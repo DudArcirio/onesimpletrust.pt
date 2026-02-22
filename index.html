@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Simple Trust — Ignite Adaptivity From Within</title>
+    <meta name="description" content="One Simple Trust is a transformation consultancy. Home of noise.os — the operating system for adaptive, human, resilient organizations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B0F14;
+            --bg-subtle: #111820;
+            --surface: #1A2230;
+            --surface-hover: #222D3E;
+            --text: #E8ECF1;
+            --text-muted: #8899AA;
+            --accent: #C8A96E;
+            --accent-light: #E0C98D;
+            --accent-glow: rgba(200, 169, 110, 0.15);
+            --gradient-warm: linear-gradient(135deg, #C8A96E 0%, #D4A853 50%, #E0C98D 100%);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        ::selection { background: var(--accent); color: var(--bg); }
+
+        .canvas-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+        /* ── Nav ── */
+        nav { position: fixed; top: 0; width: 100%; z-index: 100; padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center; transition: all 0.4s ease; }
+        nav.scrolled { background: rgba(11,15,20,0.92); backdrop-filter: blur(20px); padding: 1rem 3rem; border-bottom: 1px solid rgba(200,169,110,0.1); }
+        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+        .logo-text span { color: var(--accent); }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.3s ease; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-cta { background: transparent !important; border: 1px solid var(--accent) !important; color: var(--accent) !important; padding: 0.6rem 1.5rem; border-radius: 4px; font-size: 0.8rem !important; letter-spacing: 0.08em; transition: all 0.3s ease !important; cursor: pointer; }
+        .nav-cta:hover { background: var(--accent) !important; color: var(--bg) !important; }
+        .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        .menu-toggle span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: all 0.3s; }
+
+        /* ── Hero ── */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 6rem 3rem; z-index: 1; }
+        .hero-content { max-width: 900px; text-align: center; }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 2.5rem; opacity: 0; animation: fadeUp 0.8s ease 0.3s forwards; }
+        .hero-eyebrow::before, .hero-eyebrow::after { content: ''; width: 30px; height: 1px; background: var(--accent); opacity: 0.5; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 6vw, 4.5rem); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s ease 0.5s forwards; }
+        .hero h1 em { font-style: italic; color: var(--accent); }
+        .hero-sub { font-size: 1.15rem; color: var(--text-muted); max-width: 620px; margin: 0 auto 3rem; font-weight: 300; line-height: 1.8; opacity: 0; animation: fadeUp 0.8s ease 0.7s forwards; }
+        .hero-sub strong { color: var(--accent); font-weight: 600; }
+        .hero-actions { display: flex; gap: 1.5rem; justify-content: center; opacity: 0; animation: fadeUp 0.8s ease 0.9s forwards; }
+        .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: var(--bg); padding: 1rem 2.5rem; border: none; border-radius: 4px; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(200,169,110,0.25); }
+        .btn-ghost { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: var(--text-muted); padding: 1rem 2.5rem; border: 1px solid rgba(136,153,170,0.2); border-radius: 4px; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: all 0.3s ease; }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .scroll-indicator { position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; opacity: 0; animation: fadeUp 0.8s ease 1.2s forwards; }
+        .scroll-indicator span { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+        .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--accent), transparent); animation: scrollPulse 2s ease infinite; }
+
+        /* ── Sections base ── */
+        section { position: relative; z-index: 1; padding: 8rem 3rem; }
+        .section-container { max-width: 1200px; margin: 0 auto; }
+        .section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 400; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 1.5rem; }
+        .section-subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; font-weight: 300; line-height: 1.8; }
+
+        /* ── About / Who We Are ── */
+        #about { background: var(--bg-subtle); }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 4rem; }
+        .about-text p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.05rem; font-weight: 300; }
+
+        /* CLD Graph Canvas */
+        .cld-container { position: relative; width: 100%; aspect-ratio: 1; }
+        #cldCanvas { width: 100%; height: 100%; border-radius: 12px; }
+
+        /* Partners */
+        .partners-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 4rem; }
+        .partner-card { background: var(--surface); border: 1px solid rgba(200,169,110,0.08); border-radius: 8px; padding: 2rem; text-align: center; transition: all 0.4s ease; }
+        .partner-card:hover { border-color: rgba(200,169,110,0.2); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .partner-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--surface-hover), var(--accent-glow)); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--accent); border: 2px solid rgba(200,169,110,0.15); }
+        .partner-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .partner-card .partner-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
+        .partner-links { display: flex; justify-content: center; gap: 1.5rem; }
+        .partner-links a { font-size: 0.7rem; color: var(--accent); text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; transition: opacity 0.3s; }
+        .partner-links a:hover { opacity: 0.7; }
+
+        /* ── Track Record ── */
+        #trackrecord { background: var(--bg); }
+        .track-timeline { margin-top: 4rem; position: relative; padding-left: 2rem; }
+        .track-timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--accent), rgba(200,169,110,0.1)); }
+        .track-item { position: relative; padding: 0 0 3rem 2.5rem; }
+        .track-item::before { content: ''; position: absolute; left: -4.5px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px rgba(200,169,110,0.4); }
+        .track-item:last-child { padding-bottom: 0; }
+        .track-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .track-year { font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; }
+        .track-sector { font-size: 0.65rem; padding: 0.2rem 0.6rem; border: 1px solid rgba(200,169,110,0.2); border-radius: 100px; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+        .track-item h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .track-item p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; line-height: 1.7; }
+
+        /* ── Opportunity (for leaders) ── */
+        .opp-leader-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 4rem; }
+        .opp-card { background: var(--surface); border: 1px solid rgba(200,169,110,0.08); border-radius: 8px; padding: 2.5rem; transition: all 0.4s ease; position: relative; overflow: hidden; }
+        .opp-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--gradient-warm); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+        .opp-card:hover { border-color: rgba(200,169,110,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .opp-card:hover::before { transform: scaleX(1); }
+        .opp-card h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .opp-card .big-number { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--accent); opacity: 0.2; position: absolute; top: 1.5rem; right: 2rem; }
+        .opp-card p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; }
+        .opp-card .opp-question { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; color: var(--accent); margin-bottom: 1rem; line-height: 1.5; }
+
+        /* ── noise.os 7 Layers Carousel ── */
+        #product { background: var(--bg-subtle); }
+        .product-header { text-align: center; margin-bottom: 4rem; }
+        .product-header .section-subtitle { margin: 0 auto; }
+        .noise-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent-glow); border: 1px solid rgba(200,169,110,0.2); padding: 0.5rem 1.25rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 2rem; }
+        .noise-badge::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease infinite; }
+
+        .carousel-wrapper { position: relative; overflow: hidden; }
+        .carousel-track { display: flex; transition: transform 0.5s ease; }
+        .carousel-slide { min-width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; padding: 0 1rem; }
+        .carousel-slide-visual { position: relative; }
+        .layer-number-big { font-family: 'Playfair Display', serif; font-size: 8rem; color: var(--accent); opacity: 0.08; line-height: 1; position: absolute; top: -2rem; left: -1rem; }
+        .layer-icon-area { width: 100%; aspect-ratio: 16/10; background: var(--surface); border: 1px solid rgba(200,169,110,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .carousel-slide-content h3 { font-size: 1.8rem; font-weight: 600; color: var(--accent); margin-bottom: 0.5rem; }
+        .carousel-slide-content h4 { font-size: 1.1rem; font-weight: 400; margin-bottom: 1.25rem; color: var(--text); }
+        .carousel-slide-content p { color: var(--text-muted); font-size: 1rem; font-weight: 300; line-height: 1.8; margin-bottom: 1.5rem; }
+        .layer-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .layer-tag { font-size: 0.7rem; padding: 0.35rem 0.75rem; border: 1px solid rgba(200,169,110,0.15); border-radius: 100px; color: var(--text-muted); letter-spacing: 0.05em; }
+
+        .carousel-nav { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 3rem; }
+        .carousel-dots { display: flex; gap: 0.5rem; }
+        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(200,169,110,0.2); cursor: pointer; transition: all 0.3s; border: none; padding: 0; }
+        .carousel-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+        .carousel-btn { background: var(--surface); border: 1px solid rgba(200,169,110,0.15); color: var(--accent); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.3s; }
+        .carousel-btn:hover { background: var(--accent); color: var(--bg); }
+
+        /* ── Difference: 3 Layers ── */
+        #difference { background: var(--bg); }
+        .layers-visual { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 4rem; position: relative; }
+        .layers-visual::before { content: ''; position: absolute; top: 50%; left: 33.33%; width: 33.33%; height: 2px; background: var(--gradient-warm); transform: translateY(-50%); z-index: 2; opacity: 0.4; }
+        .diff-layer { padding: 3rem; border: 1px solid rgba(200,169,110,0.08); position: relative; transition: all 0.4s ease; }
+        .diff-layer:hover { background: var(--surface); border-color: rgba(200,169,110,0.15); }
+        .diff-layer-num { font-family: 'Playfair Display', serif; font-size: 0.8rem; font-weight: 600; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+        .diff-layer h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; margin-bottom: 0.75rem; }
+        .diff-layer p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; line-height: 1.7; margin-bottom: 1.25rem; }
+        .diff-layer .lever-list { list-style: none; }
+        .diff-layer .lever-list li { font-size: 0.85rem; color: var(--text-muted); padding: 0.4rem 0; border-bottom: 1px solid rgba(200,169,110,0.05); display: flex; align-items: center; gap: 0.5rem; }
+        .diff-layer .lever-list li::before { content: ''; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+        .diff-connector { text-align: center; padding: 3rem 2rem; margin-top: 3rem; border-top: 1px solid rgba(200,169,110,0.08); }
+        .diff-connector p { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-style: italic; color: var(--accent); max-width: 700px; margin: 0 auto; line-height: 1.6; }
+        .diff-connector .small-text { font-family: 'Inter', sans-serif; font-size: 0.9rem; font-style: normal; color: var(--text-muted); margin-top: 1rem; font-weight: 300; }
+
+        /* ── Contact / Let's Talk ── */
+        #contact { text-align: center; padding: 10rem 3rem; }
+        .contact-content { max-width: 800px; margin: 0 auto; }
+        .contact-content .section-title { margin-bottom: 1rem; }
+        .contact-content .section-subtitle { margin: 0 auto 3.5rem; text-align: center; }
+        .profile-chooser { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 700px; margin: 0 auto 3rem; }
+        .profile-card { background: var(--surface); border: 2px solid rgba(200,169,110,0.1); border-radius: 12px; padding: 3rem 2rem; cursor: pointer; transition: all 0.4s ease; text-decoration: none; display: block; }
+        .profile-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(200,169,110,0.1); }
+        .profile-icon { font-size: 2.5rem; margin-bottom: 1.5rem; display: block; }
+        .profile-card h3 { font-size: 1.2rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+        .profile-card .profile-question { font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--accent); margin-bottom: 1rem; line-height: 1.5; }
+        .profile-card p { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; line-height: 1.6; margin-bottom: 1.5rem; }
+        .profile-cta { font-size: 0.8rem; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+        .contact-fallback { margin-top: 3rem; }
+        .contact-fallback p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .contact-email { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(200,169,110,0.3); padding-bottom: 0.15rem; transition: all 0.3s ease; }
+        .contact-email:hover { border-bottom-color: var(--accent); }
+        .contact-socials { display: flex; gap: 2rem; justify-content: center; margin-top: 1.5rem; }
+        .contact-socials a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.05em; transition: color 0.3s; }
+        .contact-socials a:hover { color: var(--accent); }
+
+        /* ── Footer ── */
+        footer { position: relative; z-index: 1; border-top: 1px solid rgba(200,169,110,0.08); padding: 2.5rem 3rem; display: flex; justify-content: space-between; align-items: center; }
+        footer p { font-size: 0.8rem; color: var(--text-muted); }
+        footer .footer-links { display: flex; gap: 2rem; }
+        footer .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; transition: color 0.3s; }
+        footer .footer-links a:hover { color: var(--accent); }
+
+        /* ── Animations ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scrollPulse { 0%, 100% { opacity: 0.3; transform: scaleY(0.6); transform-origin: top; } 50% { opacity: 1; transform: scaleY(1); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .carousel-slide { grid-template-columns: 1fr; }
+            .carousel-slide-visual { display: none; }
+            .layers-visual { grid-template-columns: 1fr; }
+            .layers-visual::before { display: none; }
+        }
+        @media (max-width: 768px) {
+            nav { padding: 1.25rem 1.5rem; }
+            .nav-links { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg); flex-direction: column; justify-content: center; align-items: center; gap: 2rem; }
+            .nav-links.open { display: flex; }
+            .menu-toggle { display: block; z-index: 101; }
+            section { padding: 5rem 1.5rem; }
+            .hero { padding: 6rem 1.5rem; }
+            .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .cld-container { display: none; }
+            .partners-grid { grid-template-columns: 1fr; }
+            .opp-leader-grid { grid-template-columns: 1fr; }
+            .profile-chooser { grid-template-columns: 1fr; }
+            .hero-actions { flex-direction: column; align-items: center; }
+            footer { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas class="canvas-bg" id="bgCanvas"></canvas>
+
+<!-- Navigation -->
+<nav id="navbar">
+    <a href="#" class="logo">
+        <span class="logo-text">One Simple <span>Trust</span></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="#about">About</a></li>
+        <li><a href="#trackrecord">Track Record</a></li>
+        <li><a href="#opportunity">For Leaders</a></li>
+        <li><a href="#product">noise.os</a></li>
+        <li><a href="#difference">How We Deliver</a></li>
+        <li><a href="#contact" class="nav-cta">Let's Talk</a></li>
+    </ul>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-eyebrow">Transformation Consultancy</div>
+        <h1>Organizations are living systems.<br>We help them <em>evolve</em>.</h1>
+        <p class="hero-sub"><strong>noise.os</strong> is the operating system for adaptive, human, resilient organizations.</p>
+        <div class="hero-actions">
+            <a href="#contact" class="btn-primary">Start a conversation &rarr;</a>
+            <a href="#product" class="btn-ghost">Discover noise.os</a>
+        </div>
+    </div>
+    <div class="scroll-indicator"><span>Scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- Who We Are -->
+<section id="about">
+    <div class="section-container">
+        <div class="about-grid">
+            <div class="about-text reveal">
+                <div class="section-label">Who We Are</div>
+                <h2 class="section-title">Built on the belief that trust is the foundation of transformation</h2>
+                <p>One Simple Trust was founded to bridge the gap between how organizations are structured and how work actually happens. We partner with leaders and enterprises navigating the complexity of modern business — not with pre-built frameworks, but with the capacity to see the system and evolve it from within.</p>
+                <p>Our consultancy practice has produced <strong style="color:var(--accent)">noise.os</strong> — an operating system for organizations that recognize themselves as complex adaptive systems. It connects what they know (data) with how they think (mental models) and what they feel (tensions) — and then gives them the means to experiment, learn, and evolve.</p>
+            </div>
+            <div class="cld-container reveal">
+                <canvas id="cldCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Partners -->
+        <div class="partners-grid reveal">
+            <div class="partner-card">
+                <div class="partner-avatar">EA</div>
+                <h4>Eduardo Arcirio</h4>
+                <p class="partner-role">Founding Partner</p>
+                <div class="partner-links">
+                    <a href="#">Profile</a>
+                    <a href="#">Cases</a>
+                    <a href="mailto:eduardo.arcirio@onesimpletrust.pt">Contact</a>
+                </div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-avatar">MS</div>
+                <h4>Partner Name</h4>
+                <p class="partner-role">Partner</p>
+                <div class="partner-links">
+                    <a href="#">Profile</a>
+                    <a href="#">Cases</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-avatar">RL</div>
+                <h4>Partner Name</h4>
+                <p class="partner-role">Partner</p>
+                <div class="partner-links">
+                    <a href="#">Profile</a>
+                    <a href="#">Cases</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Track Record -->
+<section id="trackrecord">
+    <div class="section-container">
+        <div class="reveal">
+            <div class="section-label">Track Record</div>
+            <h2 class="section-title">Where we've activated transformation</h2>
+            <p class="section-subtitle">Real organizations, real complexity, real evolution.</p>
+        </div>
+        <div class="track-timeline reveal">
+            <div class="track-item">
+                <div class="track-meta">
+                    <span class="track-year">2026</span>
+                    <span class="track-sector">Energy</span>
+                    <span class="track-sector">Brazil</span>
+                </div>
+                <h3>TAESA — Corporate Finance Transformation</h3>
+                <p>Redesigning the Corporate Finance & Investor Relations function from operational to strategic focus. Structuring value streams, capability redistribution, and governance circles for a publicly-traded energy transmission company.</p>
+            </div>
+            <div class="track-item">
+                <div class="track-meta">
+                    <span class="track-year">2026</span>
+                    <span class="track-sector">Education</span>
+                    <span class="track-sector">Brazil</span>
+                </div>
+                <h3>La Vie — Organizational Structure Evolution</h3>
+                <p>Transitioning from a traditional hierarchy to a circles-based organizational model. Designing scopes of work, decentralized decision-making, and autonomous governance structures for a growing education enterprise.</p>
+            </div>
+            <div class="track-item">
+                <div class="track-meta">
+                    <span class="track-year">2024–25</span>
+                    <span class="track-sector">Technology</span>
+                    <span class="track-sector">Global</span>
+                </div>
+                <h3>Enterprise Transformation Programs</h3>
+                <p>Multiple engagements applying systems thinking to organizational design challenges across medium and large enterprises — from value stream mapping to workforce planning and leadership development.</p>
+            </div>
+            <div class="track-item">
+                <div class="track-meta">
+                    <span class="track-year">Prior</span>
+                    <span class="track-sector">Music</span>
+                    <span class="track-sector">Sweden</span>
+                </div>
+                <h3>Spotify — Platform Engineering Operations</h3>
+                <p>Designing and operating organizational frameworks for platform engineering at scale. Building the operational muscle that connects strategy to execution in one of the world's most progressive technology organizations.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- For Leaders / Opportunity -->
+<section id="opportunity">
+    <div class="section-container">
+        <div class="reveal">
+            <div class="section-label">For Leaders & Enterprises</div>
+            <h2 class="section-title">You feel it. Now see it.</h2>
+            <p class="section-subtitle">Leaders know intuitively that their organizations are more complex than their tools can handle. That feeling is real — and it has a shape.</p>
+        </div>
+        <div class="opp-leader-grid">
+            <div class="opp-card reveal">
+                <div class="big-number">01</div>
+                <div class="opp-question">"Why does every change program produce the opposite of what we intended?"</div>
+                <h3>The Paradox of Control</h3>
+                <p>You have more data than ever, but less understanding. More tools, but less visibility into how your organization actually behaves. The problem isn't effort — it's that you're using linear tools in a non-linear system.</p>
+            </div>
+            <div class="opp-card reveal">
+                <div class="big-number">02</div>
+                <div class="opp-question">"We restructured twice this year. Why isn't anything different?"</div>
+                <h3>The Invisible Architecture</h3>
+                <p>Org charts show boxes and lines. They don't show the mental models that drive decisions, the informal networks that carry influence, or the tensions that silently shape every initiative. You're redesigning the map while the territory shifts beneath you.</p>
+            </div>
+            <div class="opp-card reveal">
+                <div class="big-number">03</div>
+                <div class="opp-question">"How do I make better decisions when I can't see the system?"</div>
+                <h3>The Leadership Blind Spot</h3>
+                <p>You're confident in some areas, uncertain in others. But confidence and competence don't always align. The gap between what you think you know and what the system reveals is where the highest leverage hides.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- noise.os — 7 Layers Carousel -->
+<section id="product">
+    <div class="section-container">
+        <div class="product-header reveal">
+            <div class="noise-badge">noise.os</div>
+            <h2 class="section-title">The operating system for<br>adaptive organizations</h2>
+            <p class="section-subtitle">Not a single tool but a chain of interactions — seven integrated layers that connect, interpret, simulate, and learn from the living data of your organization.</p>
+        </div>
+        <div class="carousel-wrapper reveal">
+            <div class="carousel-track" id="carouselTrack">
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">01</div><div class="layer-icon-area" id="layerViz1"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Organizational Graph</h3>
+                        <h4>The structural backbone</h4>
+                        <p>A living graph that captures your business architecture as it truly is: organizational units, capabilities, processes, roles, and their relationships. Not a static org chart — a navigable model of how work actually flows through your system.</p>
+                        <div class="layer-tags"><span class="layer-tag">Neo4j graph</span><span class="layer-tag">Business architecture</span><span class="layer-tag">Living model</span><span class="layer-tag">Temporal metadata</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">02</div><div class="layer-icon-area" id="layerViz2"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Semantic Memory</h3>
+                        <h4>The meaning layer</h4>
+                        <p>Captures what people actually believe about how work happens. Through AI-facilitated interviews and micro-narratives, noise.os surfaces the mental models, hidden assumptions, and cultural signals that no dashboard can reveal.</p>
+                        <div class="layer-tags"><span class="layer-tag">Vector embeddings</span><span class="layer-tag">Mental models</span><span class="layer-tag">Consensus & divergence</span><span class="layer-tag">Cultural signals</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">03</div><div class="layer-icon-area" id="layerViz3"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Tension Engine</h3>
+                        <h4>Making friction visible</h4>
+                        <p>Synthesizes organizational tensions into Causal Loop Diagrams that reveal reinforcing spirals, balancing constraints, and systemic archetypes. Surfaces both what people say (micro-narratives) and what the system computes (structural gap analysis).</p>
+                        <div class="layer-tags"><span class="layer-tag">Causal Loop Diagrams</span><span class="layer-tag">Leverage points</span><span class="layer-tag">Health diagnostics</span><span class="layer-tag">12 OS Canvas levers</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">04</div><div class="layer-icon-area" id="layerViz4"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Simulation Sandbox</h3>
+                        <h4>Play with the future</h4>
+                        <p>Test changes to your organizational graph before committing. What happens if you restructure this team? Redistribute this capability? Change this governance model? The sandbox surfaces probable consequences in complex space.</p>
+                        <div class="layer-tags"><span class="layer-tag">What-if scenarios</span><span class="layer-tag">Graph mutations</span><span class="layer-tag">Impact propagation</span><span class="layer-tag">Scenario comparison</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">05</div><div class="layer-icon-area" id="layerViz5"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Experiment Lab</h3>
+                        <h4>From thinking to doing</h4>
+                        <p>Converts simulation insights into bounded kaizen experiments — safe-to-try adjustments with clear hypotheses, observation criteria, and feedback mechanisms. A successful experiment becomes a permanent change to the organizational model.</p>
+                        <div class="layer-tags"><span class="layer-tag">Experiment Kanban</span><span class="layer-tag">Strategic alignment</span><span class="layer-tag">Safe-to-try</span><span class="layer-tag">Feedback loops</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">06</div><div class="layer-icon-area" id="layerViz6"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>Reinforcement Learning</h3>
+                        <h4>The self-evolution substrate</h4>
+                        <p>Continuously compares predictions against outcomes. Did that flagged risk materialize? Did the simulation predict correctly? The platform becomes more valuable with every organizational cycle. Data is the moat.</p>
+                        <div class="layer-tags"><span class="layer-tag">Prediction-outcome pairs</span><span class="layer-tag">Model refinement</span><span class="layer-tag">Pattern library</span><span class="layer-tag">Cross-org learning</span></div>
+                    </div>
+                </div>
+                <div class="carousel-slide">
+                    <div class="carousel-slide-visual"><div class="layer-number-big">07</div><div class="layer-icon-area" id="layerViz7"></div></div>
+                    <div class="carousel-slide-content">
+                        <h3>AI Orchestrator</h3>
+                        <h4>The organizational facilitator</h4>
+                        <p>Not a chatbot — the primary interface between humans and the living organizational model. It asks questions before giving answers, highlights connections rather than prescribing solutions, and challenges assumptions respectfully. The voice of noise.os is a systems thinker.</p>
+                        <div class="layer-tags"><span class="layer-tag">Voice interaction</span><span class="layer-tag">RAG over graph</span><span class="layer-tag">Guided sense-making</span><span class="layer-tag">Complexity-aware</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-nav">
+                <button class="carousel-btn" id="carouselPrev">&larr;</button>
+                <div class="carousel-dots" id="carouselDots"></div>
+                <button class="carousel-btn" id="carouselNext">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How We Deliver / Difference -->
+<section id="difference">
+    <div class="section-container">
+        <div class="reveal">
+            <div class="section-label">How We Deliver</div>
+            <h2 class="section-title">Three layers that reveal<br>structural levers for change</h2>
+            <p class="section-subtitle">Every tool on the market helps organizations do things to themselves. We help organizations see themselves — through three interconnected layers that make structural leverage visible.</p>
+        </div>
+        <div class="layers-visual reveal">
+            <div class="diff-layer">
+                <div class="diff-layer-num">Layer 01 &mdash; Structure</div>
+                <h3>The Architecture</h3>
+                <p>How the organization is built. The formal relationships, capabilities, processes, and governance models that define where work lives.</p>
+                <ul class="lever-list">
+                    <li>Organizational units & teams</li>
+                    <li>Value streams & processes</li>
+                    <li>Capabilities & skills</li>
+                    <li>Governance circles</li>
+                    <li>Technology landscape</li>
+                </ul>
+            </div>
+            <div class="diff-layer">
+                <div class="diff-layer-num">Layer 02 &mdash; Meaning</div>
+                <h3>The Mental Models</h3>
+                <p>How people think the organization works. The beliefs, assumptions, and narratives that drive decisions — often invisible, frequently misaligned.</p>
+                <ul class="lever-list">
+                    <li>Surfaced & computed beliefs</li>
+                    <li>Consensus & divergence maps</li>
+                    <li>Cultural signals & patterns</li>
+                    <li>Implicit assumptions</li>
+                    <li>Perception gaps</li>
+                </ul>
+            </div>
+            <div class="diff-layer">
+                <div class="diff-layer-num">Layer 03 &mdash; Tension</div>
+                <h3>The System Dynamics</h3>
+                <p>Where structure and meaning collide. The friction, misalignments, and feedback loops that shape organizational behavior — mapped as causal systems.</p>
+                <ul class="lever-list">
+                    <li>Reinforcing spirals</li>
+                    <li>Balancing constraints</li>
+                    <li>Systemic archetypes</li>
+                    <li>Leverage points</li>
+                    <li>Health scores per lever</li>
+                </ul>
+            </div>
+        </div>
+        <div class="diff-connector reveal">
+            <p>"The connection between these three layers is where the structural levers for effective change become visible."</p>
+            <p class="small-text">This is what we deliver: not a PowerPoint, not a framework — the capacity to see and act on the systemic forces shaping your organization.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Let's Talk -->
+<section id="contact">
+    <div class="contact-content reveal">
+        <div class="section-label">Let's Talk</div>
+        <h2 class="section-title">Where are you in your journey?</h2>
+        <p class="section-subtitle">Every transformation starts differently. Tell us where you stand — we'll meet you there.</p>
+
+        <div class="profile-chooser">
+            <a href="mailto:hello@onesimpletrust.pt?subject=Leader%20Inquiry%20—%20I%20want%20to%20see%20the%20system&body=I'm%20a%20leader%20looking%20to%20understand%20my%20organization%20as%20a%20system.%20Let's%20talk." class="profile-card">
+                <span class="profile-icon">&#9673;</span>
+                <div class="profile-question">"I sense my organization is more complex than my tools can handle."</div>
+                <h3>I'm a Leader</h3>
+                <p>You feel the gap between strategy and execution. You want to see the system as it truly is — the hidden dynamics, the mental models, the tensions — and build your capacity to evolve it intentionally.</p>
+                <span class="profile-cta">Start seeing &rarr;</span>
+            </a>
+            <a href="mailto:hello@onesimpletrust.pt?subject=Enterprise%20Inquiry%20—%20We%20need%20to%20evolve%20our%20organization&body=We're%20an%20enterprise%20looking%20for%20transformation%20that%20goes%20beyond%20frameworks.%20Let's%20talk." class="profile-card">
+                <span class="profile-icon">&#9670;</span>
+                <div class="profile-question">"We've tried transformation before. We need something that actually changes the system."</div>
+                <h3>We're an Enterprise</h3>
+                <p>Your organization has been through change programs. You're ready for an approach that doesn't parachute in with answers but builds the internal capability to sense, experiment, and adapt — continuously.</p>
+                <span class="profile-cta">Start evolving &rarr;</span>
+            </a>
+        </div>
+
+        <div class="contact-fallback">
+            <p>Or reach out directly:</p>
+            <a href="mailto:hello@onesimpletrust.pt" class="contact-email">hello@onesimpletrust.pt</a>
+            <div class="contact-socials">
+                <a href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://twitter.com" target="_blank" rel="noopener">Twitter / X</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2026 One Simple Trust. All rights reserved.</p>
+    <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+    </div>
+</footer>
+
+<script>
+// ── Background Particles ──
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.3 + 0.05;
+    }
+    update() {
+        this.x += this.speedX; this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,169,110,${this.opacity})`;
+        ctx.fill();
+    }
+}
+
+function initParticles() {
+    particles = [];
+    const count = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000));
+    for (let i = 0; i < count; i++) particles.push(new Particle());
+}
+
+function connectParticles() {
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(200,169,110,${0.04 * (1 - dist / 150)})`;
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+function animateCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    connectParticles();
+    requestAnimationFrame(animateCanvas);
+}
+
+resizeCanvas(); initParticles(); animateCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+// ── CLD Graph Animation ──
+const cldCanvas = document.getElementById('cldCanvas');
+if (cldCanvas) {
+    const cCtx = cldCanvas.getContext('2d');
+    let cldNodes = [];
+    let cldEdges = [];
+    let cldTime = 0;
+
+    function initCLD() {
+        const w = cldCanvas.parentElement.offsetWidth;
+        const h = w;
+        cldCanvas.width = w * 2;
+        cldCanvas.height = h * 2;
+        cldCanvas.style.width = w + 'px';
+        cldCanvas.style.height = h + 'px';
+        cCtx.scale(2, 2);
+
+        const cx = w / 2, cy = h / 2;
+        const r = w * 0.3;
+
+        cldNodes = [
+            { x: cx, y: cy, label: 'Trust', size: 10, fixed: true },
+            { x: cx + r * 0.8, y: cy - r * 0.5, label: 'Transparency', size: 6 },
+            { x: cx + r * 0.6, y: cy + r * 0.7, label: 'Autonomy', size: 6 },
+            { x: cx - r * 0.7, y: cy + r * 0.5, label: 'Adaptation', size: 6 },
+            { x: cx - r * 0.8, y: cy - r * 0.4, label: 'Alignment', size: 6 },
+            { x: cx + r * 0.1, y: cy - r * 0.85, label: 'Learning', size: 6 },
+            { x: cx - r * 0.2, y: cy + r * 0.9, label: 'Safety', size: 6 },
+        ];
+
+        cldEdges = [
+            { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 },
+            { from: 3, to: 4 }, { from: 4, to: 5 }, { from: 5, to: 6 },
+            { from: 6, to: 0 }, { from: 0, to: 3 }, { from: 5, to: 0 },
+        ];
+    }
+
+    function animateCLD() {
+        cldTime += 0.005;
+        const w = cldCanvas.width / 2;
+        const h = cldCanvas.height / 2;
+        cCtx.clearRect(0, 0, w, h);
+
+        cldNodes.forEach((n, i) => {
+            if (i > 0) {
+                n.x += Math.sin(cldTime * 1.5 + i * 1.7) * 0.15;
+                n.y += Math.cos(cldTime * 1.2 + i * 2.1) * 0.15;
+            }
+        });
+
+        cldEdges.forEach((e, idx) => {
+            const from = cldNodes[e.from];
+            const to = cldNodes[e.to];
+            const flowPos = (cldTime * 0.8 + idx * 0.3) % 1;
+
+            cCtx.beginPath();
+            cCtx.strokeStyle = 'rgba(200,169,110,0.15)';
+            cCtx.lineWidth = 1;
+            cCtx.moveTo(from.x, from.y);
+            cCtx.lineTo(to.x, to.y);
+            cCtx.stroke();
+
+            const fx = from.x + (to.x - from.x) * flowPos;
+            const fy = from.y + (to.y - from.y) * flowPos;
+            cCtx.beginPath();
+            cCtx.arc(fx, fy, 2, 0, Math.PI * 2);
+            cCtx.fillStyle = `rgba(200,169,110,${0.5 + Math.sin(cldTime * 3 + idx) * 0.3})`;
+            cCtx.fill();
+
+            const mx = from.x + (to.x - from.x) * 0.65;
+            const my = from.y + (to.y - from.y) * 0.65;
+            const angle = Math.atan2(to.y - from.y, to.x - from.x);
+            cCtx.beginPath();
+            cCtx.moveTo(mx + Math.cos(angle) * 5, my + Math.sin(angle) * 5);
+            cCtx.lineTo(mx + Math.cos(angle + 2.5) * 5, my + Math.sin(angle + 2.5) * 5);
+            cCtx.lineTo(mx + Math.cos(angle - 2.5) * 5, my + Math.sin(angle - 2.5) * 5);
+            cCtx.fillStyle = 'rgba(200,169,110,0.25)';
+            cCtx.fill();
+        });
+
+        cldNodes.forEach((n, i) => {
+            const p = 1 + Math.sin(cldTime * 2 + i) * 0.15;
+            const s = n.size * p;
+
+            cCtx.beginPath();
+            cCtx.arc(n.x, n.y, s * 2.5, 0, Math.PI * 2);
+            cCtx.fillStyle = i === 0 ? 'rgba(200,169,110,0.08)' : 'rgba(200,169,110,0.04)';
+            cCtx.fill();
+
+            cCtx.beginPath();
+            cCtx.arc(n.x, n.y, s, 0, Math.PI * 2);
+            cCtx.fillStyle = i === 0 ? 'rgba(200,169,110,0.9)' : 'rgba(200,169,110,0.5)';
+            cCtx.fill();
+
+            cCtx.font = i === 0 ? '600 12px Inter' : '400 10px Inter';
+            cCtx.fillStyle = i === 0 ? 'rgba(200,169,110,1)' : 'rgba(200,169,110,0.6)';
+            cCtx.textAlign = 'center';
+            cCtx.fillText(n.label, n.x, n.y + s + 16);
+        });
+
+        cCtx.font = 'italic 14px Playfair Display';
+        cCtx.fillStyle = 'rgba(200,169,110,0.3)';
+        cCtx.textAlign = 'center';
+        cCtx.fillText('R', w / 2 + 60, h / 2 - 30);
+
+        requestAnimationFrame(animateCLD);
+    }
+
+    initCLD(); animateCLD();
+    window.addEventListener('resize', initCLD);
+}
+
+// ── Carousel ──
+const track = document.getElementById('carouselTrack');
+const dotsContainer = document.getElementById('carouselDots');
+const slides = track.querySelectorAll('.carousel-slide');
+let currentSlide = 0;
+const totalSlides = slides.length;
+
+for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+}
+
+function goToSlide(n) {
+    currentSlide = n;
+    track.style.transform = `translateX(-${n * 100}%)`;
+    dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => {
+        d.className = 'carousel-dot' + (i === n ? ' active' : '');
+    });
+}
+
+document.getElementById('carouselPrev').addEventListener('click', () => goToSlide((currentSlide - 1 + totalSlides) % totalSlides));
+document.getElementById('carouselNext').addEventListener('click', () => goToSlide((currentSlide + 1) % totalSlides));
+
+let autoPlay = setInterval(() => goToSlide((currentSlide + 1) % totalSlides), 6000);
+document.querySelector('.carousel-wrapper').addEventListener('mouseenter', () => clearInterval(autoPlay));
+document.querySelector('.carousel-wrapper').addEventListener('mouseleave', () => {
+    autoPlay = setInterval(() => goToSlide((currentSlide + 1) % totalSlides), 6000);
+});
+
+// ── Scroll Animations ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// ── Navbar Scroll ──
+window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 80);
+});
+
+// ── Mobile Menu ──
+document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('navLinks').classList.toggle('open');
+});
+document.getElementById('navLinks').querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+});
+
+// ── Smooth Scroll ──
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+// ── Layer Visualizations ──
+function drawLayerViz(containerId, drawFn) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const cvs = document.createElement('canvas');
+    cvs.width = 600; cvs.height = 375;
+    cvs.style.width = '100%'; cvs.style.height = '100%';
+    container.appendChild(cvs);
+    const lCtx = cvs.getContext('2d');
+    let t = Math.random() * 100;
+    function animate() {
+        t += 0.01;
+        lCtx.clearRect(0, 0, 600, 375);
+        drawFn(lCtx, 600, 375, t);
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+drawLayerViz('layerViz1', (c, w, h, t) => {
+    const nodes = [];
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + t * 0.2;
+        const r = 100 + Math.sin(t + i) * 20;
+        nodes.push({ x: w/2 + Math.cos(angle) * r, y: h/2 + Math.sin(angle) * r });
+    }
+    nodes.forEach((n, i) => {
+        nodes.forEach((m, j) => {
+            if (j > i && ((i + j) % 3 === 0)) {
+                c.beginPath(); c.moveTo(n.x, n.y); c.lineTo(m.x, m.y);
+                c.strokeStyle = 'rgba(200,169,110,0.1)'; c.lineWidth = 0.5; c.stroke();
+            }
+        });
+    });
+    nodes.forEach((n, i) => {
+        c.beginPath(); c.arc(n.x, n.y, 4 + Math.sin(t * 2 + i) * 2, 0, Math.PI * 2);
+        c.fillStyle = 'rgba(200,169,110,0.5)'; c.fill();
+    });
+});
+
+drawLayerViz('layerViz2', (c, w, h, t) => {
+    for (let i = 0; i < 30; i++) {
+        const x = w/2 + Math.cos(t * 0.5 + i * 0.7) * (60 + i * 3);
+        const y = h/2 + Math.sin(t * 0.3 + i * 0.9) * (40 + i * 2);
+        const s = 2 + Math.sin(t + i) * 1;
+        c.beginPath(); c.arc(x, y, s, 0, Math.PI * 2);
+        c.fillStyle = `rgba(200,169,110,${0.1 + Math.sin(t + i) * 0.1})`; c.fill();
+    }
+});
+
+drawLayerViz('layerViz3', (c, w, h, t) => {
+    for (let i = 0; i < 5; i++) {
+        const cx = w/2 + Math.cos(i * 1.2) * 60;
+        const cy = h/2 + Math.sin(i * 1.5) * 40;
+        const r = 30 + Math.sin(t * 1.5 + i) * 15;
+        c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
+        c.strokeStyle = `rgba(200,169,110,${0.1 + Math.sin(t + i) * 0.05})`;
+        c.lineWidth = 1; c.stroke();
+    }
+    for (let i = 0; i < 4; i++) {
+        const x1 = w/2 + Math.cos(i * 1.2) * 60, y1 = h/2 + Math.sin(i * 1.5) * 40;
+        const x2 = w/2 + Math.cos((i+1) * 1.2) * 60, y2 = h/2 + Math.sin((i+1) * 1.5) * 40;
+        c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2);
+        c.strokeStyle = 'rgba(200,169,110,0.2)'; c.lineWidth = 1; c.stroke();
+    }
+});
+
+drawLayerViz('layerViz4', (c, w, h, t) => {
+    for (let x = 0; x < 20; x++) {
+        for (let y = 0; y < 12; y++) {
+            const px = x * 30 + 15, py = y * 31 + 10;
+            const v = Math.sin(t + x * 0.3 + y * 0.4) * 0.5 + 0.5;
+            c.fillStyle = `rgba(200,169,110,${v * 0.15})`;
+            c.fillRect(px, py, 25, 26);
+        }
+    }
+});
+
+drawLayerViz('layerViz5', (c, w, h, t) => {
+    const cols = ['Backlog', 'Design', 'Running', 'Done'];
+    cols.forEach((col, i) => {
+        c.fillStyle = 'rgba(200,169,110,0.05)';
+        c.fillRect(i * 150 + 5, 20, 140, 340);
+        c.font = '10px Inter'; c.fillStyle = 'rgba(200,169,110,0.3)'; c.textAlign = 'center';
+        c.fillText(col, i * 150 + 75, 40);
+        const cards = 2 + Math.floor(Math.sin(t * 0.5 + i) + 2);
+        for (let j = 0; j < cards; j++) {
+            const y = 55 + j * 60;
+            c.fillStyle = 'rgba(200,169,110,0.08)';
+            c.beginPath(); c.roundRect(i * 150 + 15, y, 120, 45, 4); c.fill();
+        }
+    });
+});
+
+drawLayerViz('layerViz6', (c, w, h, t) => {
+    const points = [];
+    for (let i = 0; i < 40; i++) {
+        const x = i * (w / 40);
+        const y = h/2 + Math.sin(t * 0.5 + i * 0.15) * 40 * (1 - i/50);
+        points.push({ x, y });
+    }
+    c.beginPath(); c.moveTo(points[0].x, points[0].y);
+    points.forEach(p => c.lineTo(p.x, p.y));
+    c.strokeStyle = 'rgba(200,169,110,0.3)'; c.lineWidth = 2; c.stroke();
+    c.lineTo(w, h); c.lineTo(0, h); c.closePath();
+    c.fillStyle = 'rgba(200,169,110,0.03)'; c.fill();
+});
+
+drawLayerViz('layerViz7', (c, w, h, t) => {
+    for (let i = 0; i < 6; i++) {
+        const r = 20 + i * 25 + Math.sin(t * 2 + i) * 5;
+        c.beginPath(); c.arc(w/2, h/2, r, 0, Math.PI * 2);
+        c.strokeStyle = `rgba(200,169,110,${0.08 + (6 - i) * 0.02})`;
+        c.lineWidth = 1; c.stroke();
+    }
+    c.beginPath(); c.arc(w/2, h/2, 6 + Math.sin(t * 3) * 2, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(200,169,110,0.6)'; c.fill();
+});
+</script>
+</body>
+</html>
