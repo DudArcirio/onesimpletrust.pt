@@ -866,26 +866,214 @@ function drawLayerViz(containerId, drawFn) {
     animate();
 }
 
-drawLayerViz('layerViz1', (c, w, h, t) => {
-    const nodes = [];
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2 + t * 0.2;
-        const r = 100 + Math.sin(t + i) * 20;
-        nodes.push({ x: w/2 + Math.cos(angle) * r, y: h/2 + Math.sin(angle) * r });
+// ── Rich Organizational Graph for Layer 1 ──
+(function(){
+    const container = document.getElementById('layerViz1');
+    if (!container) return;
+    const cvs = document.createElement('canvas');
+    const W = 600, H = 375;
+    cvs.width = W; cvs.height = H;
+    cvs.style.width = '100%'; cvs.style.height = '100%';
+    container.appendChild(cvs);
+    const c = cvs.getContext('2d');
+
+    const COL = {
+        OrgUnit:   {f:'rgba(200,169,110,',l:'#C8A96E'},
+        Capability:{f:'rgba(110,170,200,',l:'#6EAAC8'},
+        Process:   {f:'rgba(139,200,110,',l:'#8BC86E'},
+        Role:      {f:'rgba(200,110,139,',l:'#C86E8B'},
+        System:    {f:'rgba(176,139,212,',l:'#B08BD4'},
+        Product:   {f:'rgba(212,168,91,', l:'#D4A85B'},
+        Objective: {f:'rgba(91,200,180,', l:'#5BC8B4'},
+        Team:      {f:'rgba(232,236,241,',l:'#E8ECF1'}
+    };
+
+    const ND = [
+        {tp:'OrgUnit',l:'Executive Board',s:9},{tp:'OrgUnit',l:'Product',s:7},{tp:'OrgUnit',l:'Engineering',s:7},
+        {tp:'OrgUnit',l:'People',s:6},{tp:'OrgUnit',l:'Finance',s:5},{tp:'OrgUnit',l:'Operations',s:6},
+        {tp:'Capability',l:'Data Analytics',s:4},{tp:'Capability',l:'Cloud Infra',s:4},{tp:'Capability',l:'Customer Insight',s:4},
+        {tp:'Capability',l:'Agile Delivery',s:4},{tp:'Capability',l:'Talent Dev',s:3},
+        {tp:'Process',l:'Strategy Review',s:3},{tp:'Process',l:'Sprint Delivery',s:3},{tp:'Process',l:'Hiring',s:3},
+        {tp:'Process',l:'Incident Resp.',s:3},{tp:'Process',l:'Budget Cycle',s:3},
+        {tp:'Role',l:'CPO',s:3},{tp:'Role',l:'CTO',s:3},{tp:'Role',l:'Scrum Master',s:3},{tp:'Role',l:'Data Lead',s:3},
+        {tp:'System',l:'ERP',s:4},{tp:'System',l:'CRM',s:3},{tp:'System',l:'CI/CD',s:3},
+        {tp:'Product',l:'Core Platform',s:5},{tp:'Product',l:'Mobile App',s:3},{tp:'Product',l:'API Gateway',s:3},
+        {tp:'Objective',l:'Market Expansion',s:4},{tp:'Objective',l:'Op. Excellence',s:3},{tp:'Objective',l:'Talent Retention',s:3},
+        {tp:'Team',l:'Platform Squad',s:3},{tp:'Team',l:'Growth Squad',s:3},{tp:'Team',l:'Core Experience',s:3},{tp:'Team',l:'Data Team',s:3}
+    ];
+
+    const ED = [
+        [0,1],[0,2],[0,3],[0,4],[0,5],
+        [2,6],[2,7],[1,8],[1,9],[3,10],
+        [0,11],[2,12],[3,13],[5,14],[4,15],
+        [16,1],[17,2],[18,9],[19,6],[1,23],[23,24],[23,25],
+        [20,4],[20,5],[21,8],[22,7],
+        [26,1],[26,8],[27,5],[28,3],[28,10],
+        [29,2],[30,1],[31,1],[32,6],
+        [6,21],[9,12],[29,7],[30,23],[31,24],[32,19],[14,7],[11,26],[12,22]
+    ];
+
+    const types = ['OrgUnit','Capability','Process','Role','System','Product','Objective','Team'];
+    let nodes = ND.map((d,i) => {
+        const ti = types.indexOf(d.tp);
+        const ang = (ti/8)*Math.PI*2 + (Math.random()-0.5)*0.7;
+        const rad = d.tp==='OrgUnit' ? 40+Math.random()*50 : 100+Math.random()*120;
+        let x = W/2 + Math.cos(ang)*rad + (Math.random()-0.5)*60;
+        let y = H/2 + Math.sin(ang)*rad + (Math.random()-0.5)*50;
+        if(i===0){x=W/2;y=H/2;}
+        return {...d,x,y,bx:x,by:y,vx:0,vy:0,ph:Math.random()*6.28};
+    });
+
+    // Force layout
+    let iters=0;
+    function forces(){
+        if(iters>250)return;iters++;
+        for(let i=0;i<nodes.length;i++){
+            for(let j=i+1;j<nodes.length;j++){
+                let dx=nodes[j].x-nodes[i].x,dy=nodes[j].y-nodes[i].y;
+                let d=Math.sqrt(dx*dx+dy*dy)||1;
+                if(d<25)d=25;
+                let f=800/(d*d);
+                let fx=(dx/d)*f,fy=(dy/d)*f;
+                nodes[i].vx-=fx;nodes[i].vy-=fy;
+                nodes[j].vx+=fx;nodes[j].vy+=fy;
+            }
+        }
+        ED.forEach(e=>{
+            const a=nodes[e[0]],b=nodes[e[1]];
+            let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+            let f=(d-60)*0.008;
+            let fx=(dx/d)*f,fy=(dy/d)*f;
+            a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;
+        });
+        nodes.forEach(n=>{
+            n.vx-=(n.x-W/2)*0.0005;n.vy-=(n.y-H/2)*0.0005;
+            n.vx*=0.82;n.vy*=0.82;
+            n.x+=n.vx;n.y+=n.vy;
+            n.x=Math.max(30,Math.min(W-30,n.x));
+            n.y=Math.max(25,Math.min(H-25,n.y));
+            n.bx=n.x;n.by=n.y;
+        });
     }
-    nodes.forEach((n, i) => {
-        nodes.forEach((m, j) => {
-            if (j > i && ((i + j) % 3 === 0)) {
-                c.beginPath(); c.moveTo(n.x, n.y); c.lineTo(m.x, m.y);
-                c.strokeStyle = 'rgba(200,169,110,0.1)'; c.lineWidth = 0.5; c.stroke();
+
+    // Camera auto-zoom
+    let cam={x:0,y:0,z:1,tx:0,ty:0,tz:1};
+    let zPhase=0,zTimer=0;
+    const zTargets=[
+        {z:1,x:0,y:0},
+        {z:1.6,ni:0},  // Executive Board
+        {z:1.8,tp:'Capability'},
+        {z:1.7,ni:23}, // Core Platform
+        {z:1,x:0,y:0},
+        {z:1.5,tp:'Process'},
+        {z:1.8,tp:'Role'},
+        {z:1,x:0,y:0},
+    ];
+
+    function updateCam(dt){
+        zTimer+=dt;
+        if(zTimer>8){
+            zTimer=0;zPhase=(zPhase+1)%zTargets.length;
+            const tg=zTargets[zPhase];
+            cam.tz=tg.z;
+            if(tg.ni!==undefined){cam.tx=W/2-nodes[tg.ni].bx;cam.ty=H/2-nodes[tg.ni].by;}
+            else if(tg.tp){
+                const ns=nodes.filter(n=>n.tp===tg.tp);
+                const ax=ns.reduce((s,n)=>s+n.bx,0)/ns.length;
+                const ay=ns.reduce((s,n)=>s+n.by,0)/ns.length;
+                cam.tx=W/2-ax;cam.ty=H/2-ay;
+            }else{cam.tx=tg.x;cam.ty=tg.y;}
+        }
+        cam.z+=(cam.tz-cam.z)*0.02;
+        cam.x+=(cam.tx-cam.x)*0.02;
+        cam.y+=(cam.ty-cam.y)*0.02;
+    }
+
+    function w2s(wx,wy){return{x:(wx+cam.x-W/2)*cam.z+W/2,y:(wy+cam.y-H/2)*cam.z+H/2};}
+
+    let t=0;
+    function draw(){
+        const dt=0.016;t+=dt;
+        forces();updateCam(dt);
+
+        c.fillStyle='#0B0F14';c.fillRect(0,0,W,H);
+
+        // Subtle grid
+        const gs=40*cam.z;
+        c.strokeStyle='rgba(200,169,110,0.015)';c.lineWidth=0.5;
+        const ox=((cam.x)*cam.z+W/2)%gs,oy=((cam.y)*cam.z+H/2)%gs;
+        for(let x=ox;x<W;x+=gs){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke();}
+        for(let y=oy;y<H;y+=gs){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
+
+        // Float nodes gently
+        nodes.forEach((n,i)=>{
+            n.x=n.bx+Math.sin(t*0.4+n.ph)*1.5;
+            n.y=n.by+Math.cos(t*0.35+n.ph*1.3)*1.5;
+        });
+
+        // Edges with flow particles
+        ED.forEach((e,idx)=>{
+            const a=nodes[e[0]],b=nodes[e[1]];
+            const sa=w2s(a.x,a.y),sb=w2s(b.x,b.y);
+            c.beginPath();c.moveTo(sa.x,sa.y);c.lineTo(sb.x,sb.y);
+            c.strokeStyle='rgba(200,169,110,0.07)';c.lineWidth=0.6*cam.z;c.stroke();
+            // Flow particle
+            const fp=(t*0.2+idx*0.15)%1;
+            const fx=sa.x+(sb.x-sa.x)*fp,fy=sa.y+(sb.y-sa.y)*fp;
+            c.beginPath();c.arc(fx,fy,1*cam.z,0,Math.PI*2);
+            c.fillStyle='rgba(200,169,110,0.25)';c.fill();
+        });
+
+        // Nodes
+        nodes.forEach((n,i)=>{
+            const s=w2s(n.x,n.y);
+            if(s.x<-20||s.x>W+20||s.y<-20||s.y>H+20)return;
+            const cl=COL[n.tp];
+            const sz=n.s*cam.z;
+            const pulse=1+Math.sin(t*2+n.ph)*0.1;
+            const r=sz*pulse;
+
+            // Glow
+            const gr=c.createRadialGradient(s.x,s.y,r*0.3,s.x,s.y,r*2.5);
+            gr.addColorStop(0,cl.f+'0.08)');gr.addColorStop(1,cl.f+'0)');
+            c.beginPath();c.arc(s.x,s.y,r*2.5,0,Math.PI*2);c.fillStyle=gr;c.fill();
+
+            // Circle
+            c.beginPath();c.arc(s.x,s.y,r,0,Math.PI*2);
+            c.fillStyle=cl.f+'0.55)';c.fill();
+
+            // Inner dot
+            c.beginPath();c.arc(s.x,s.y,r*0.35,0,Math.PI*2);
+            c.fillStyle=cl.f+'0.9)';c.fill();
+
+            // Labels — show for bigger nodes or when zoomed
+            if(cam.z>1.2 || n.s>=6){
+                const fs=Math.max(7,Math.min(10,8*cam.z));
+                c.font=`${n.s>=7?'600':'400'} ${fs}px Inter,sans-serif`;
+                c.fillStyle=cl.f+'0.5)';
+                c.textAlign='center';
+                c.fillText(n.l,s.x,s.y+r+fs+2);
             }
         });
-    });
-    nodes.forEach((n, i) => {
-        c.beginPath(); c.arc(n.x, n.y, 4 + Math.sin(t * 2 + i) * 2, 0, Math.PI * 2);
-        c.fillStyle = 'rgba(200,169,110,0.5)'; c.fill();
-    });
-});
+
+        // Legend (bottom-left inside canvas)
+        const leg=[['OrgUnit','#C8A96E'],['Capability','#6EAAC8'],['Process','#8BC86E'],['Role','#C86E8B'],['System','#B08BD4'],['Product','#D4A85B'],['Objective','#5BC8B4'],['Team','#E8ECF1']];
+        const legY=H-12;
+        let legX=10;
+        c.font='500 7px Inter,sans-serif';
+        leg.forEach(([label,color])=>{
+            c.beginPath();c.arc(legX+3,legY,3,0,Math.PI*2);
+            c.fillStyle=color;c.fill();
+            c.fillStyle='rgba(232,236,241,0.35)';
+            c.textAlign='left';
+            c.fillText(label,legX+9,legY+2.5);
+            legX+=c.measureText(label).width+18;
+        });
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
 
 drawLayerViz('layerViz2', (c, w, h, t) => {
     for (let i = 0; i < 30; i++) {
