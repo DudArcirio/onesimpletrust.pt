@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Orchestrator - noise.os</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: #0B0F14;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            padding: 40px;
+        }
+
+        .title-section {
+            opacity: 0.5;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: rgba(200, 169, 110, 1);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: rgba(200, 169, 110, 0.6);
+            max-width: 400px;
+            line-height: 1.5;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="overlay">
+        <div class="title-section">
+            <div class="title">AI ORCHESTRATOR</div>
+            <div class="subtitle">The systems-thinking interface between humans and the living model</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Color palette
+        const colors = {
+            bg: '#0B0F14',
+            gold: { r: 200, g: 169, b: 110 },
+            teal: { r: 91, g: 200, b: 180 },
+            rose: { r: 200, g: 110, b: 139 },
+            blue: { r: 110, g: 170, b: 200 },
+            amber: { r: 200, g: 140, b: 80 }
+        };
+
+        function rgbString(color, alpha = 1) {
+            return `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+        }
+
+        // Noise.os layers configuration
+        const layers = [
+            { name: 'Organizational Graph', angle: 0, color: colors.gold, keyword: 'graph query' },
+            { name: 'Semantic Memory', angle: Math.PI / 3, color: colors.teal, keyword: 'embeddings' },
+            { name: 'Tension Engine', angle: (2 * Math.PI) / 3, color: colors.rose, keyword: 'pattern detect' },
+            { name: 'Simulation Sandbox', angle: Math.PI, color: colors.blue, keyword: 'simulation run' },
+            { name: 'Experiment Lab', angle: (4 * Math.PI) / 3, color: colors.teal, keyword: 'experiment' },
+            { name: 'Reinforcement Learning', angle: (5 * Math.PI) / 3, color: colors.amber, keyword: 'learning' }
+        ];
+
+        // Background particles
+        const bgParticles = [];
+        function initBackgroundParticles() {
+            for (let i = 0; i < 30; i++) {
+                bgParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 1.5,
+                    opacity: Math.random() * 0.3 + 0.1,
+                    targetOpacity: Math.random() * 0.3 + 0.1
+                });
+            }
+        }
+        initBackgroundParticles();
+
+        // Data particles for neural pathways
+        const dataParticles = [];
+
+        function createDataParticle(startX, startY, endX, endY, color) {
+            return {
+                x: startX,
+                y: startY,
+                endX: endX,
+                endY: endY,
+                progress: 0,
+                speed: 0.01 + Math.random() * 0.02,
+                color: color,
+                size: 2 + Math.random() * 2
+            };
+        }
+
+        // Conversation bubbles
+        const conversationBubbles = [
+            { text: 'What pattern do you see?', type: 'question', duration: 3000 },
+            { text: '3 teams share this tension', type: 'response', duration: 3000 },
+            { text: 'Have you considered...', type: 'question', duration: 3000 },
+            { text: 'Connecting signals across layers', type: 'status', duration: 3000 },
+            { text: 'Surfacing a systemic archetype', type: 'insight', duration: 3000 },
+            { text: 'Challenge: Is this a root cause?', type: 'challenge', duration: 3000 }
+        ];
+
+        const activeBubbles = [];
+        let bubbleIndex = 0;
+        let lastBubbleTime = 0;
+
+        // Animation state
+        let time = 0;
+        let activeLayer = 0;
+        let lastLayerQueryTime = 0;
+
+        // Utility functions
+        function drawCircle(x, y, radius, color, alpha = 1) {
+            ctx.fillStyle = rgbString(color, alpha);
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawRing(x, y, radius, width, color, alpha = 1) {
+            ctx.strokeStyle = rgbString(color, alpha);
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawLine(x1, y1, x2, y2, color, alpha = 1, width = 1) {
+            ctx.strokeStyle = rgbString(color, alpha);
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        function drawText(text, x, y, size, color, alpha = 1, align = 'center') {
+            ctx.font = `${size}px Inter, sans-serif`;
+            ctx.fillStyle = rgbString(color, alpha);
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y);
+        }
+
+        function drawRoundedRect(x, y, width, height, radius, color, alpha = 1) {
+            ctx.fillStyle = rgbString(color, alpha);
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.fill();
+        }
+
+        // Update background particles
+        function updateBackgroundParticles() {
+            for (let particle of bgParticles) {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.opacity += (particle.targetOpacity - particle.opacity) * 0.02;
+
+                if (particle.x < 0) particle.x = canvas.width;
+                if (particle.x > canvas.width) particle.x = 0;
+                if (particle.y < 0) particle.y = canvas.height;
+                if (particle.y > canvas.height) particle.y = 0;
+
+                drawCircle(particle.x, particle.y, particle.size, colors.gold, particle.opacity * 0.5);
+
+                if (Math.random() < 0.01) {
+                    particle.targetOpacity = Math.random() * 0.3 + 0.1;
+                }
+            }
+        }
+
+        // Update data particles
+        function updateDataParticles() {
+            for (let i = dataParticles.length - 1; i >= 0; i--) {
+                const particle = dataParticles[i];
+                particle.progress += particle.speed;
+
+                if (particle.progress >= 1) {
+                    dataParticles.splice(i, 1);
+                    continue;
+                }
+
+                const x = particle.x + (particle.endX - particle.x) * particle.progress;
+                const y = particle.y + (particle.endY - particle.y) * particle.progress;
+                const alpha = Math.sin(particle.progress * Math.PI) * 0.8;
+
+                drawCircle(x, y, particle.size, particle.color, alpha);
+            }
+        }
+
+        // Emit data particles from center to a layer
+        function emitParticlesToLayer(layerIndex) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const layer = layers[layerIndex];
+            const distance = 180;
+            const endX = centerX + Math.cos(layer.angle) * distance;
+            const endY = centerY + Math.sin(layer.angle) * distance;
+
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    dataParticles.push(createDataParticle(centerX, centerY, endX, endY, layer.color));
+                }, i * 50);
+            }
+        }
+
+        // Update and draw conversation bubbles
+        function updateConversationBubbles() {
+            const now = Date.now();
+
+            // Spawn new bubble periodically
+            if (now - lastBubbleTime > 4000) {
+                activeBubbles.push({
+                    text: conversationBubbles[bubbleIndex % conversationBubbles.length].text,
+                    type: conversationBubbles[bubbleIndex % conversationBubbles.length].type,
+                    spawnTime: now,
+                    duration: 4000,
+                    x: canvas.width / 2 - 80 + Math.random() * 160
+                });
+                bubbleIndex++;
+                lastBubbleTime = now;
+            }
+
+            // Update and draw bubbles
+            for (let i = activeBubbles.length - 1; i >= 0; i--) {
+                const bubble = activeBubbles[i];
+                const age = now - bubble.spawnTime;
+                const progress = age / bubble.duration;
+
+                if (progress >= 1) {
+                    activeBubbles.splice(i, 1);
+                    continue;
+                }
+
+                const bubbleY = canvas.height / 2 - 100 + progress * 150;
+                const alpha = progress < 0.2 ? progress * 5 : progress > 0.8 ? (1 - progress) * 5 : 1;
+
+                drawConversationBubble(bubble.text, bubble.x, bubbleY, bubble.type, alpha);
+            }
+        }
+
+        function drawConversationBubble(text, x, y, type, alpha) {
+            const padding = 12;
+            const radius = 8;
+            const width = 140;
+            const height = 50;
+
+            // Color based on type
+            let bgColor;
+            switch (type) {
+                case 'question':
+                    bgColor = { ...colors.gold };
+                    break;
+                case 'response':
+                    bgColor = { ...colors.teal };
+                    break;
+                case 'status':
+                    bgColor = { ...colors.blue };
+                    break;
+                case 'insight':
+                    bgColor = { ...colors.amber };
+                    break;
+                case 'challenge':
+                    bgColor = { ...colors.rose };
+                    break;
+                default:
+                    bgColor = colors.gold;
+            }
+
+            // Draw background
+            drawRoundedRect(x - width / 2, y - height / 2, width, height, radius, bgColor, alpha * 0.15);
+
+            // Draw border
+            ctx.strokeStyle = rgbString(bgColor, alpha * 0.5);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x - width / 2 + radius, y - height / 2);
+            ctx.lineTo(x + width / 2 - radius, y - height / 2);
+            ctx.quadraticCurveTo(x + width / 2, y - height / 2, x + width / 2, y - height / 2 + radius);
+            ctx.lineTo(x + width / 2, y + height / 2 - radius);
+            ctx.quadraticCurveTo(x + width / 2, y + height / 2, x + width / 2 - radius, y + height / 2);
+            ctx.lineTo(x - width / 2 + radius, y + height / 2);
+            ctx.quadraticCurveTo(x - width / 2, y + height / 2, x - width / 2, y + height / 2 - radius);
+            ctx.lineTo(x - width / 2, y - height / 2 + radius);
+            ctx.quadraticCurveTo(x - width / 2, y - height / 2, x - width / 2 + radius, y - height / 2);
+            ctx.stroke();
+
+            // Draw text
+            drawText(text, x, y, 11, bgColor, alpha * 0.9);
+        }
+
+        // Draw the central thinking orb
+        function drawCentralOrb() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Breathing pulse
+            const breathScale = 1 + Math.sin(time * 0.003) * 0.15;
+            const orbRadius = 25 * breathScale;
+
+            // Glow effect
+            const glowRadius = orbRadius * 2.5;
+            for (let i = 0; i < 3; i++) {
+                const r = glowRadius + i * 15;
+                const alpha = (0.3 - i * 0.1) * Math.abs(Math.sin(time * 0.002));
+                drawRing(centerX, centerY, r, 2, colors.gold, alpha);
+            }
+
+            // Core orb
+            drawCircle(centerX, centerY, orbRadius, colors.gold, 1);
+
+            // Inner glow
+            drawCircle(centerX, centerY, orbRadius * 0.7, colors.gold, 0.4);
+        }
+
+        // Draw satellite nodes
+        function drawSatellites() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const distance = 180;
+
+            for (let i = 0; i < layers.length; i++) {
+                const layer = layers[i];
+                const x = centerX + Math.cos(layer.angle) * distance;
+                const y = centerY + Math.sin(layer.angle) * distance;
+
+                // Highlight active layer
+                const isActive = i === activeLayer;
+                const highlightAlpha = isActive ? 0.6 : 0.2;
+
+                // Draw outer ring (query indicator)
+                if (isActive) {
+                    drawRing(x, y, 15, 2, layer.color, 1);
+                }
+
+                // Draw satellite node
+                const nodeSize = isActive ? 10 : 6;
+                drawCircle(x, y, nodeSize, layer.color, 1);
+
+                // Draw label
+                const labelDistance = 45;
+                const labelX = x + Math.cos(layer.angle) * labelDistance;
+                const labelY = y + Math.sin(layer.angle) * labelDistance;
+                drawText(layer.keyword, labelX, labelY, 9, layer.color, 0.6);
+            }
+        }
+
+        // Draw neural pathways
+        function drawNeuralPathways() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const distance = 180;
+
+            for (let i = 0; i < layers.length; i++) {
+                const layer = layers[i];
+                const x = centerX + Math.cos(layer.angle) * distance;
+                const y = centerY + Math.sin(layer.angle) * distance;
+
+                // Pulse animation for active layer
+                const isActive = i === activeLayer;
+                const alpha = isActive ? 0.6 : 0.15;
+                const width = isActive ? 2 : 1;
+
+                drawLine(centerX, centerY, x, y, layer.color, alpha, width);
+            }
+        }
+
+        // Draw ripple waves
+        function drawRipples() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const rippleFrequency = 0.005;
+            const rippleCount = 4;
+
+            for (let i = 0; i < rippleCount; i++) {
+                const phase = (time * rippleFrequency + i * 0.5) % 1;
+                const radius = phase * 200;
+                const alpha = Math.max(0, 1 - phase) * 0.4;
+
+                drawRing(centerX, centerY, radius, 1, colors.gold, alpha);
+            }
+        }
+
+        // Main animation loop
+        function animate() {
+            // Clear canvas
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update time
+            time++;
+
+            // Cycle through layers
+            if (time % 300 === 0) {
+                activeLayer = (activeLayer + 1) % layers.length;
+                emitParticlesToLayer(activeLayer);
+            }
+
+            // Draw and update
+            updateBackgroundParticles();
+            drawNeuralPathways();
+            drawRipples();
+            updateDataParticles();
+            drawCentralOrb();
+            drawSatellites();
+            updateConversationBubbles();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tension Engine - One Simple Trust</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0B0F14;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .title-section {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: rgba(200, 169, 110, 0.5);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            font-weight: 400;
+            color: rgba(91, 200, 180, 0.4);
+            letter-spacing: 0.5px;
+            max-width: 280px;
+            line-height: 1.4;
+        }
+
+        .info-panel {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(11, 15, 20, 0.7);
+            border: 1px solid rgba(91, 200, 180, 0.2);
+            border-radius: 4px;
+            padding: 16px;
+            font-size: 11px;
+            color: rgba(91, 200, 180, 0.6);
+            max-width: 300px;
+            line-height: 1.6;
+            z-index: 10;
+        }
+
+        .health-indicator {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            text-align: right;
+            z-index: 10;
+        }
+
+        .health-label {
+            font-size: 11px;
+            color: rgba(91, 200, 180, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .health-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: rgba(200, 169, 110, 0.8);
+        }
+
+        .health-bar {
+            width: 160px;
+            height: 3px;
+            background: rgba(91, 200, 180, 0.2);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(91, 200, 180, 0.8), rgba(200, 169, 110, 0.8));
+            border-radius: 2px;
+            width: 100%;
+            animation: pulse-bar 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bar {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="overlay">
+        <div class="title-section">
+            <div class="title">TENSION ENGINE</div>
+            <div class="subtitle">Making friction visible through systemic tension mapping</div>
+        </div>
+
+        <div class="info-panel">
+            <strong>Active Tensions:</strong><br>
+            Analyzing organizational systems for reinforcing spirals, balancing constraints, and systemic archetypes. Tensions show structural gaps between stated intent and system behavior.
+        </div>
+
+        <div class="health-indicator">
+            <div class="health-label">System Health</div>
+            <div class="health-value" id="healthValue">72</div>
+            <div class="health-bar">
+                <div class="health-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Color palette
+        const colors = {
+            bg: '#0B0F14',
+            gold: { r: 200, g: 169, b: 110 },
+            teal: { r: 91, g: 200, b: 180 },
+            rose: { r: 200, g: 110, b: 139 },
+            blue: { r: 110, g: 170, b: 200 },
+            darkBlue: { r: 30, g: 50, b: 70 }
+        };
+
+        // Tension pair definitions
+        const tensions = [
+            {
+                name: 'Strategy vs Execution',
+                angle: 0,
+                color: colors.gold,
+                severity: 0.4,
+                narrative: 'vision lacks clarity'
+            },
+            {
+                name: 'Control vs Autonomy',
+                angle: Math.PI / 3,
+                color: colors.teal,
+                severity: 0.6,
+                narrative: 'teams feel disconnected'
+            },
+            {
+                name: 'Efficiency vs Innovation',
+                angle: (2 * Math.PI) / 3,
+                color: colors.rose,
+                severity: 0.8,
+                narrative: 'competing priorities'
+            },
+            {
+                name: 'Local vs Global',
+                angle: Math.PI,
+                color: colors.blue,
+                severity: 0.3,
+                narrative: 'alignment gaps'
+            },
+            {
+                name: 'Short-Term vs Long-Term',
+                angle: (4 * Math.PI) / 3,
+                color: colors.gold,
+                severity: 0.7,
+                narrative: 'autonomy requested'
+            },
+            {
+                name: 'Stability vs Adaptability',
+                angle: (5 * Math.PI) / 3,
+                color: colors.teal,
+                severity: 0.5,
+                narrative: 'resistance to change'
+            }
+        ];
+
+        // Background particles
+        const bgParticles = [];
+        for (let i = 0; i < 30; i++) {
+            bgParticles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                radius: Math.random() * 1.5 + 0.5,
+                opacity: Math.random() * 0.3 + 0.1
+            });
+        }
+
+        // Micro-narratives system
+        const narratives = [
+            'teams feel disconnected',
+            'competing priorities',
+            'autonomy requested',
+            'vision lacks clarity',
+            'alignment gaps',
+            'resistance to change',
+            'resources stretched',
+            'decision paralysis',
+            'siloed thinking',
+            'unclear expectations'
+        ];
+
+        const activeNarratives = [];
+
+        // Tension particles (flowing between poles)
+        const tensionParticles = [];
+
+        function initTensionParticles() {
+            tensions.forEach((tension, idx) => {
+                for (let i = 0; i < 8; i++) {
+                    tensionParticles.push({
+                        tensionIdx: idx,
+                        progress: Math.random(),
+                        speed: Math.random() * 0.008 + 0.004,
+                        radius: Math.random() * 2 + 1,
+                        color: tension.color
+                    });
+                }
+            });
+        }
+
+        class FloatingNarrative {
+            constructor(x, y, text, color) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.opacity = 0;
+                this.targetOpacity = 1;
+                this.lifespan = 4000 + Math.random() * 2000;
+                this.createdAt = Date.now();
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+            }
+
+            update() {
+                const age = Date.now() - this.createdAt;
+                const progress = age / this.lifespan;
+
+                if (progress < 0.2) {
+                    this.targetOpacity = progress / 0.2;
+                } else if (progress > 0.8) {
+                    this.targetOpacity = (1 - progress) / 0.2;
+                } else {
+                    this.targetOpacity = 1;
+                }
+
+                this.opacity += (this.targetOpacity - this.opacity) * 0.1;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                return progress < 1;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.opacity * 0.7;
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        initTensionParticles();
+
+        let lastNarrativeTime = 0;
+        let systemHealth = 72;
+
+        function getRgbString(color, alpha = 1) {
+            return `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+        }
+
+        function drawBackgroundParticles() {
+            bgParticles.forEach(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+
+                // Wrap around edges
+                if (particle.x < 0) particle.x = canvas.width;
+                if (particle.x > canvas.width) particle.x = 0;
+                if (particle.y < 0) particle.y = canvas.height;
+                if (particle.y > canvas.height) particle.y = 0;
+
+                ctx.fillStyle = getRgbString(colors.teal, particle.opacity);
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawTension(tension, centerX, centerY, radius) {
+            const tension_magnitude = 0.3 + tension.severity * 0.7;
+
+            // Calculate pole positions
+            const pole1X = centerX + Math.cos(tension.angle) * radius;
+            const pole1Y = centerY + Math.sin(tension.angle) * radius;
+            const pole2X = centerX - Math.cos(tension.angle) * radius;
+            const pole2Y = centerY - Math.sin(tension.angle) * radius;
+
+            // Animate severity with breathing and flare cycles
+            const time = Date.now() * 0.001;
+            const breathe = Math.sin(time * 1.5) * 0.15;
+            const flarePattern = Math.sin(time * 0.8 + tension.angle) * 0.3;
+            let animatedSeverity = tension.severity + breathe + Math.max(0, flarePattern);
+            animatedSeverity = Math.min(1, animatedSeverity);
+
+            // Color based on severity
+            let wireColor = colors.teal;
+            let glowColor = colors.teal;
+            if (animatedSeverity > 0.7) {
+                wireColor = colors.rose;
+                glowColor = colors.rose;
+            } else if (animatedSeverity > 0.4) {
+                wireColor = colors.gold;
+                glowColor = colors.gold;
+            }
+
+            // Draw glow effect
+            ctx.save();
+            const glowRadius = 4 + animatedSeverity * 8;
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius * 2);
+            gradient.addColorStop(0, getRgbString(glowColor, animatedSeverity * 0.3));
+            gradient.addColorStop(1, getRgbString(glowColor, 0));
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, glowRadius * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw tension wire with pulsation
+            ctx.strokeStyle = getRgbString(wireColor, 0.4 + animatedSeverity * 0.4);
+            ctx.lineWidth = 2 + animatedSeverity * 3;
+            ctx.setLineDash([3, 3]);
+            ctx.lineDashOffset = -time * 40;
+            ctx.beginPath();
+            ctx.moveTo(pole1X, pole1Y);
+            ctx.lineTo(centerX, centerY);
+            ctx.lineTo(pole2X, pole2Y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.restore();
+
+            // Draw poles
+            const poleRadius = 6 + animatedSeverity * 4;
+            [
+                { x: pole1X, y: pole1Y, label: 'A' },
+                { x: pole2X, y: pole2Y, label: 'B' }
+            ].forEach(pole => {
+                ctx.fillStyle = getRgbString(wireColor, 0.9);
+                ctx.beginPath();
+                ctx.arc(pole.x, pole.y, poleRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Outer ring
+                ctx.strokeStyle = getRgbString(wireColor, 0.5);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(pole.x, pole.y, poleRadius + 3, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            return { pole1: { x: pole1X, y: pole1Y }, pole2: { x: pole2X, y: pole2Y } };
+        }
+
+        function drawTensionParticles(centerX, centerY, radius) {
+            tensionParticles.forEach(particle => {
+                const tension = tensions[particle.tensionIdx];
+
+                // Update progress
+                particle.progress += particle.speed;
+                if (particle.progress > 1) particle.progress = 0;
+
+                // Calculate position between poles
+                const pole1X = centerX + Math.cos(tension.angle) * radius;
+                const pole1Y = centerY + Math.sin(tension.angle) * radius;
+                const pole2X = centerX - Math.cos(tension.angle) * radius;
+                const pole2Y = centerY - Math.sin(tension.angle) * radius;
+
+                // Oscillate around the line
+                const baseX = pole1X + (pole2X - pole1X) * particle.progress;
+                const baseY = pole1Y + (pole2Y - pole1Y) * particle.progress;
+
+                const perpX = -Math.sin(tension.angle);
+                const perpY = Math.cos(tension.angle);
+
+                const oscillation = Math.sin(particle.progress * Math.PI * 4) * 8;
+                const x = baseX + perpX * oscillation;
+                const y = baseY + perpY * oscillation;
+
+                // Draw particle
+                ctx.fillStyle = getRgbString(particle.color, 0.6);
+                ctx.beginPath();
+                ctx.arc(x, y, particle.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Glow
+                ctx.fillStyle = getRgbString(particle.color, 0.2);
+                ctx.beginPath();
+                ctx.arc(x, y, particle.radius + 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawCentralIndicator(centerX, centerY) {
+            // Calculate average tension severity
+            let avgSeverity = tensions.reduce((sum, t) => sum + t.severity, 0) / tensions.length;
+
+            // Add breathing animation
+            const time = Date.now() * 0.001;
+            const breathe = Math.sin(time * 1.2) * 0.1;
+            const displayHealth = Math.round(Math.max(20, Math.min(100, (1 - avgSeverity - breathe) * 100)));
+
+            // Update the health display
+            document.getElementById('healthValue').textContent = displayHealth;
+            systemHealth = displayHealth;
+
+            // Draw central circle
+            const innerRadius = 40;
+            const outerRadius = 55;
+
+            // Outer glow
+            const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius + 20);
+            glowGradient.addColorStop(0, getRgbString(colors.blue, 0.2));
+            glowGradient.addColorStop(1, getRgbString(colors.blue, 0));
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, outerRadius + 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Inner circle
+            ctx.fillStyle = getRgbString(colors.darkBlue, 0.8);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Border
+            ctx.strokeStyle = getRgbString(colors.blue, 0.6);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Health indicator text
+            ctx.save();
+            ctx.fillStyle = getRgbString(colors.blue, 0.9);
+            ctx.font = 'bold 14px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(displayHealth, centerX, centerY - 5);
+
+            ctx.fillStyle = getRgbString(colors.teal, 0.6);
+            ctx.font = '10px Inter, sans-serif';
+            ctx.fillText('health', centerX, centerY + 8);
+            ctx.restore();
+        }
+
+        function animate() {
+            // Clear canvas
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.25;
+
+            // Draw background particles
+            drawBackgroundParticles();
+
+            // Draw all tensions
+            tensions.forEach(tension => {
+                drawTension(tension, centerX, centerY, radius);
+            });
+
+            // Draw flowing particles
+            drawTensionParticles(centerX, centerY, radius);
+
+            // Draw central indicator
+            drawCentralIndicator(centerX, centerY);
+
+            // Update and draw narratives
+            const now = Date.now();
+            if (now - lastNarrativeTime > 2500 + Math.random() * 1500) {
+                const randomTension = tensions[Math.floor(Math.random() * tensions.length)];
+                const angle = randomTension.angle;
+                const narrativeRadius = radius * 1.4;
+                const x = centerX + Math.cos(angle) * narrativeRadius;
+                const y = centerY + Math.sin(angle) * narrativeRadius;
+                const randomNarrative = narratives[Math.floor(Math.random() * narratives.length)];
+
+                activeNarratives.push(new FloatingNarrative(x, y, randomNarrative, randomTension.color));
+                lastNarrativeTime = now;
+            }
+
+            // Update and filter narratives
+            for (let i = activeNarratives.length - 1; i >= 0; i--) {
+                if (!activeNarratives[i].update()) {
+                    activeNarratives.splice(i, 1);
+                } else {
+                    activeNarratives[i].draw(ctx);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

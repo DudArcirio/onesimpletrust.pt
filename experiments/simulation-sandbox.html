@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Sandbox - noise.os</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0B0F14;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .title-overlay {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .title-main {
+            font-size: 28px;
+            font-weight: 600;
+            color: rgba(200, 169, 110, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .title-subtitle {
+            font-size: 13px;
+            color: rgba(200, 169, 110, 0.3);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            max-width: 300px;
+        }
+
+        .scenario-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .scenario-label {
+            font-size: 11px;
+            color: rgba(200, 169, 110, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scenario-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: all;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-item:hover {
+            background: rgba(200, 169, 110, 0.1);
+        }
+
+        .scenario-item.active {
+            background: rgba(200, 169, 110, 0.15);
+        }
+
+        .scenario-name {
+            font-size: 12px;
+            color: rgba(200, 169, 110, 0.8);
+            font-weight: 500;
+        }
+
+        .scenario-nodes {
+            font-size: 10px;
+            color: rgba(200, 169, 110, 0.4);
+        }
+
+        .mutation-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(91, 200, 180, 0.8);
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 0 0 8px rgba(91, 200, 180, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="simulationCanvas"></canvas>
+        <div class="title-overlay">
+            <div class="title-main">SIMULATION SANDBOX</div>
+            <div class="title-subtitle">Testing organizational mutations before they become real</div>
+        </div>
+        <div class="scenario-bar">
+            <div class="scenario-label">Current Scenario</div>
+            <div id="scenarioButtons"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // CONFIGURATION & COLOR SCHEME
+        // ============================================================================
+        const CONFIG = {
+            colors: {
+                background: '#0B0F14',
+                gold: 'rgba(200, 169, 110, 1)',
+                goldLight: 'rgba(200, 169, 110, 0.3)',
+                teal: 'rgba(91, 200, 180, 1)',
+                tealGlow: 'rgba(91, 200, 180, 0.4)',
+                rose: 'rgba(200, 110, 139, 1)',
+                roseGlow: 'rgba(200, 110, 139, 0.4)',
+                blue: 'rgba(110, 170, 200, 1)',
+                blueGlow: 'rgba(110, 170, 200, 0.3)',
+                gridLine: 'rgba(200, 169, 110, 0.05)',
+                particleGlow: 'rgba(91, 200, 180, 0.15)'
+            },
+            nodeRadius: {
+                OrgUnit: 12,
+                Role: 10,
+                Capability: 11
+            },
+            animationDuration: 3000, // 3 seconds morphing
+            holdDuration: 2000,      // 2 seconds hold
+            edgeFlashDuration: 600,
+            nodeGhostDuration: 800,
+            particleCount: 30
+        };
+
+        // ============================================================================
+        // NODE TYPES & MUTATIONS DATA
+        // ============================================================================
+        const GRAPH_STATES = [
+            {
+                name: "Current Structure",
+                nodes: [
+                    { id: 'ceo', label: 'CEO', type: 'OrgUnit', team: 0 },
+                    { id: 'cto', label: 'CTO', type: 'OrgUnit', team: 1 },
+                    { id: 'cpo', label: 'Product', type: 'OrgUnit', team: 2 },
+                    { id: 'eng-lead', label: 'Eng Lead', type: 'Role', team: 1 },
+                    { id: 'product-mgr', label: 'Product Manager', type: 'Role', team: 2 },
+                    { id: 'design-lead', label: 'Design', type: 'Role', team: 2 },
+                    { id: 'backend-cap', label: 'Backend System', type: 'Capability', team: 1 },
+                    { id: 'frontend-cap', label: 'Frontend', type: 'Capability', team: 1 },
+                    { id: 'analytics-cap', label: 'Analytics', type: 'Capability', team: 2 },
+                    { id: 'infra-cap', label: 'Infrastructure', type: 'Capability', team: 1 },
+                    { id: 'data-cap', label: 'Data Pipeline', type: 'Capability', team: 2 },
+                    { id: 'testing-cap', label: 'QA Testing', type: 'Capability', team: 1 }
+                ],
+                edges: [
+                    { source: 'ceo', target: 'cto', strength: 1.0 },
+                    { source: 'ceo', target: 'cpo', strength: 1.0 },
+                    { source: 'cto', target: 'eng-lead', strength: 1.0 },
+                    { source: 'cpo', target: 'product-mgr', strength: 1.0 },
+                    { source: 'cpo', target: 'design-lead', strength: 1.0 },
+                    { source: 'eng-lead', target: 'backend-cap', strength: 0.8 },
+                    { source: 'eng-lead', target: 'frontend-cap', strength: 0.8 },
+                    { source: 'eng-lead', target: 'testing-cap', strength: 0.7 },
+                    { source: 'product-mgr', target: 'analytics-cap', strength: 0.8 },
+                    { source: 'design-lead', target: 'frontend-cap', strength: 0.7 },
+                    { source: 'cto', target: 'infra-cap', strength: 0.8 },
+                    { source: 'backend-cap', target: 'data-cap', strength: 0.6 }
+                ],
+                mutation: "Initial State"
+            },
+            {
+                name: "Restructure Marketing",
+                nodes: [
+                    { id: 'ceo', label: 'CEO', type: 'OrgUnit', team: 0 },
+                    { id: 'cto', label: 'CTO', type: 'OrgUnit', team: 1 },
+                    { id: 'cpo', label: 'Product', type: 'OrgUnit', team: 2 },
+                    { id: 'mkt-lead', label: 'Marketing Head', type: 'Role', team: 3 },
+                    { id: 'product-mgr', label: 'Product Manager', type: 'Role', team: 2 },
+                    { id: 'eng-lead', label: 'Eng Lead', type: 'Role', team: 1 },
+                    { id: 'backend-cap', label: 'Backend System', type: 'Capability', team: 1 },
+                    { id: 'frontend-cap', label: 'Frontend', type: 'Capability', team: 1 },
+                    { id: 'analytics-cap', label: 'Analytics', type: 'Capability', team: 3 },
+                    { id: 'infra-cap', label: 'Infrastructure', type: 'Capability', team: 1 },
+                    { id: 'data-cap', label: 'Data Pipeline', type: 'Capability', team: 3 },
+                    { id: 'content-cap', label: 'Content Mgmt', type: 'Capability', team: 3 }
+                ],
+                edges: [
+                    { source: 'ceo', target: 'cto', strength: 1.0 },
+                    { source: 'ceo', target: 'cpo', strength: 1.0 },
+                    { source: 'ceo', target: 'mkt-lead', strength: 1.0 },
+                    { source: 'cto', target: 'eng-lead', strength: 1.0 },
+                    { source: 'cpo', target: 'product-mgr', strength: 1.0 },
+                    { source: 'mkt-lead', target: 'analytics-cap', strength: 0.9 },
+                    { source: 'mkt-lead', target: 'data-cap', strength: 0.8 },
+                    { source: 'mkt-lead', target: 'content-cap', strength: 0.9 },
+                    { source: 'eng-lead', target: 'backend-cap', strength: 0.8 },
+                    { source: 'eng-lead', target: 'frontend-cap', strength: 0.8 },
+                    { source: 'product-mgr', target: 'analytics-cap', strength: 0.6 },
+                    { source: 'cto', target: 'infra-cap', strength: 0.8 }
+                ],
+                mutation: "Restructure Marketing → New Division"
+            },
+            {
+                name: "Platform Engineering",
+                nodes: [
+                    { id: 'ceo', label: 'CEO', type: 'OrgUnit', team: 0 },
+                    { id: 'cto', label: 'CTO', type: 'OrgUnit', team: 1 },
+                    { id: 'cpo', label: 'Product', type: 'OrgUnit', team: 2 },
+                    { id: 'platform-lead', label: 'Platform Eng', type: 'OrgUnit', team: 4 },
+                    { id: 'eng-lead', label: 'Eng Lead', type: 'Role', team: 1 },
+                    { id: 'platform-mgr', label: 'Platform Manager', type: 'Role', team: 4 },
+                    { id: 'product-mgr', label: 'Product Manager', type: 'Role', team: 2 },
+                    { id: 'backend-cap', label: 'Backend System', type: 'Capability', team: 1 },
+                    { id: 'frontend-cap', label: 'Frontend', type: 'Capability', team: 1 },
+                    { id: 'infra-cap', label: 'Infrastructure', type: 'Capability', team: 4 },
+                    { id: 'observability-cap', label: 'Observability', type: 'Capability', team: 4 },
+                    { id: 'analytics-cap', label: 'Analytics', type: 'Capability', team: 2 }
+                ],
+                edges: [
+                    { source: 'ceo', target: 'cto', strength: 1.0 },
+                    { source: 'ceo', target: 'cpo', strength: 1.0 },
+                    { source: 'ceo', target: 'platform-lead', strength: 1.0 },
+                    { source: 'cto', target: 'eng-lead', strength: 1.0 },
+                    { source: 'cto', target: 'platform-lead', strength: 0.9 },
+                    { source: 'platform-lead', target: 'platform-mgr', strength: 1.0 },
+                    { source: 'platform-mgr', target: 'infra-cap', strength: 0.9 },
+                    { source: 'platform-mgr', target: 'observability-cap', strength: 0.9 },
+                    { source: 'eng-lead', target: 'backend-cap', strength: 0.8 },
+                    { source: 'eng-lead', target: 'frontend-cap', strength: 0.8 },
+                    { source: 'cpo', target: 'product-mgr', strength: 1.0 },
+                    { source: 'product-mgr', target: 'analytics-cap', strength: 0.8 }
+                ],
+                mutation: "New Team: Platform Engineering"
+            },
+            {
+                name: "Merged Analytics",
+                nodes: [
+                    { id: 'ceo', label: 'CEO', type: 'OrgUnit', team: 0 },
+                    { id: 'cto', label: 'CTO', type: 'OrgUnit', team: 1 },
+                    { id: 'data-cto', label: 'Data Officer', type: 'OrgUnit', team: 5 },
+                    { id: 'eng-lead', label: 'Eng Lead', type: 'Role', team: 1 },
+                    { id: 'data-lead', label: 'Data Lead', type: 'Role', team: 5 },
+                    { id: 'product-mgr', label: 'Product Manager', type: 'Role', team: 2 },
+                    { id: 'backend-cap', label: 'Backend System', type: 'Capability', team: 1 },
+                    { id: 'frontend-cap', label: 'Frontend', type: 'Capability', team: 1 },
+                    { id: 'analytics-cap', label: 'Analytics Platform', type: 'Capability', team: 5 },
+                    { id: 'infra-cap', label: 'Infrastructure', type: 'Capability', team: 1 },
+                    { id: 'ml-cap', label: 'ML Pipeline', type: 'Capability', team: 5 },
+                    { id: 'data-platform-cap', label: 'Data Ops', type: 'Capability', team: 5 }
+                ],
+                edges: [
+                    { source: 'ceo', target: 'cto', strength: 1.0 },
+                    { source: 'ceo', target: 'data-cto', strength: 1.0 },
+                    { source: 'cto', target: 'eng-lead', strength: 1.0 },
+                    { source: 'data-cto', target: 'data-lead', strength: 1.0 },
+                    { source: 'eng-lead', target: 'backend-cap', strength: 0.8 },
+                    { source: 'eng-lead', target: 'frontend-cap', strength: 0.8 },
+                    { source: 'cto', target: 'infra-cap', strength: 0.8 },
+                    { source: 'data-lead', target: 'analytics-cap', strength: 0.9 },
+                    { source: 'data-lead', target: 'ml-cap', strength: 0.9 },
+                    { source: 'data-lead', target: 'data-platform-cap', strength: 0.9 },
+                    { source: 'product-mgr', target: 'analytics-cap', strength: 0.7 },
+                    { source: 'backend-cap', target: 'data-platform-cap', strength: 0.6 }
+                ],
+                mutation: "Merge Capability: Analytics → Data Team"
+            }
+        ];
+
+        // ============================================================================
+        // UTILITY FUNCTIONS
+        // ============================================================================
+        function getColorForType(type, team) {
+            const typeColors = {
+                OrgUnit: CONFIG.colors.gold,
+                Role: CONFIG.colors.rose,
+                Capability: CONFIG.colors.teal
+            };
+            return typeColors[type] || CONFIG.colors.blue;
+        }
+
+        function getTeamColor(team) {
+            const teamColors = [
+                CONFIG.colors.gold,
+                CONFIG.colors.blue,
+                CONFIG.colors.rose,
+                CONFIG.colors.teal,
+                'rgba(180, 130, 200, 1)',
+                'rgba(150, 200, 120, 1)'
+            ];
+            return teamColors[team % teamColors.length];
+        }
+
+        // ============================================================================
+        // PARTICLE SYSTEM FOR BACKGROUND
+        // ============================================================================
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.life = 1.0;
+                this.maxLife = Math.random() * 10000 + 5000;
+                this.age = 0;
+            }
+
+            update(dt) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.age += dt;
+                this.life = Math.max(0, 1 - this.age / this.maxLife);
+
+                // Wrap around
+                if (this.x < -20) this.x = window.innerWidth + 20;
+                if (this.x > window.innerWidth + 20) this.x = -20;
+                if (this.y < -20) this.y = window.innerHeight + 20;
+                if (this.y > window.innerHeight + 20) this.y = -20;
+            }
+
+            draw(ctx) {
+                const alpha = this.life * 0.4;
+                ctx.fillStyle = `rgba(91, 200, 180, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ============================================================================
+        // SIMULATION ENGINE
+        // ============================================================================
+        class SimulationSandbox {
+            constructor() {
+                this.canvas = document.getElementById('simulationCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+
+                this.particles = [];
+                for (let i = 0; i < CONFIG.particleCount; i++) {
+                    this.particles.push(new Particle(
+                        Math.random() * this.canvas.width,
+                        Math.random() * this.canvas.height
+                    ));
+                }
+
+                this.currentStateIndex = 0;
+                this.nextStateIndex = 1;
+                this.transitionProgress = 0;
+                this.timeInState = 0;
+                this.isTransitioning = false;
+
+                this.nodes = this.getNodesForState(0);
+                this.edges = this.getEdgesForState(0);
+                this.nodePositions = this.initializeNodePositions();
+                this.targetPositions = this.clonePositions(this.nodePositions);
+
+                this.nodeAnimations = new Map();
+                this.edgeFlashes = [];
+                this.mutationLabels = [];
+                this.ghostTrails = [];
+
+                this.animate();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            getNodesForState(stateIndex) {
+                return GRAPH_STATES[stateIndex].nodes.map(n => ({ ...n }));
+            }
+
+            getEdgesForState(stateIndex) {
+                return GRAPH_STATES[stateIndex].edges.map(e => ({ ...e }));
+            }
+
+            initializeNodePositions() {
+                const positions = {};
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = 150;
+
+                this.nodes.forEach((node, index) => {
+                    const angle = (index / this.nodes.length) * Math.PI * 2;
+                    positions[node.id] = {
+                        x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 40,
+                        y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 40,
+                        vx: 0,
+                        vy: 0
+                    };
+                });
+
+                return positions;
+            }
+
+            clonePositions(positions) {
+                const clone = {};
+                for (const [key, val] of Object.entries(positions)) {
+                    clone[key] = { ...val };
+                }
+                return clone;
+            }
+
+            startTransition() {
+                this.isTransitioning = true;
+                this.transitionProgress = 0;
+                this.currentStateIndex = this.nextStateIndex;
+                this.nextStateIndex = (this.nextStateIndex + 1) % GRAPH_STATES.length;
+
+                const oldNodes = this.nodes;
+                this.nodes = this.getNodesForState(this.currentStateIndex);
+                this.edges = this.getEdgesForState(this.currentStateIndex);
+
+                // Track mutations
+                const oldNodeIds = new Set(oldNodes.map(n => n.id));
+                const newNodeIds = new Set(this.nodes.map(n => n.id));
+                const addedNodes = [...newNodeIds].filter(id => !oldNodeIds.has(id));
+                const removedNodes = [...oldNodeIds].filter(id => !newNodeIds.has(id));
+
+                // Calculate target positions with force-directed layout
+                this.targetPositions = this.calculateForceDirectedLayout(this.nodes, this.edges);
+
+                // Detect edge additions and removals
+                const oldEdgeSet = new Set(oldNodes.flatMap((n, i) =>
+                    oldNodes.map((m, j) => i < j ? `${n.id}-${m.id}` : null).filter(Boolean)
+                ));
+                const newEdgeSet = new Set(this.edges.map(e =>
+                    e.source < e.target ? `${e.source}-${e.target}` : `${e.target}-${e.source}`
+                ));
+
+                // Flash removed edges
+                oldNodes.forEach(n => {
+                    this.edges.forEach(e => {
+                        const key1 = `${n.id}-${e.source}`;
+                        const key2 = `${n.id}-${e.target}`;
+                        if (e.source === n.id || e.target === n.id) {
+                            const edgeKey = e.source < e.target ? `${e.source}-${e.target}` : `${e.target}-${e.source}`;
+                            if (!newEdgeSet.has(edgeKey)) {
+                                this.edgeFlashes.push({
+                                    source: e.source,
+                                    target: e.target,
+                                    color: CONFIG.colors.rose,
+                                    age: 0,
+                                    maxAge: CONFIG.edgeFlashDuration
+                                });
+                            }
+                        }
+                    });
+                });
+
+                // Ghost trails for moved nodes
+                for (const nodeId of newNodeIds) {
+                    if (oldNodeIds.has(nodeId)) {
+                        const oldNode = oldNodes.find(n => n.id === nodeId);
+                        const newNode = this.nodes.find(n => n.id === nodeId);
+                        if (oldNode && oldNode.type !== newNode.type) {
+                            this.ghostTrails.push({
+                                x: this.nodePositions[nodeId].x,
+                                y: this.nodePositions[nodeId].y,
+                                color: getColorForType(oldNode.type, oldNode.team),
+                                age: 0,
+                                maxAge: CONFIG.nodeGhostDuration
+                            });
+                        }
+                    }
+                }
+
+                // Create mutation labels
+                this.addMutationLabels();
+
+                // Update node positions
+                this.nodePositions = this.clonePositions(this.targetPositions);
+            }
+
+            calculateForceDirectedLayout(nodes, edges) {
+                const positions = {};
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = 180;
+
+                nodes.forEach((node, index) => {
+                    const angle = (index / nodes.length) * Math.PI * 2;
+                    positions[node.id] = {
+                        x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 80,
+                        y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 80,
+                        vx: 0,
+                        vy: 0
+                    };
+                });
+
+                // Apply repulsive forces
+                for (let iter = 0; iter < 20; iter++) {
+                    for (let i = 0; i < nodes.length; i++) {
+                        for (let j = i + 1; j < nodes.length; j++) {
+                            const n1 = nodes[i];
+                            const n2 = nodes[j];
+                            const p1 = positions[n1.id];
+                            const p2 = positions[n2.id];
+                            const dx = p2.x - p1.x;
+                            const dy = p2.y - p1.y;
+                            const dist = Math.hypot(dx, dy) || 1;
+                            const force = -100 / (dist * dist);
+                            const fx = (dx / dist) * force;
+                            const fy = (dy / dist) * force;
+                            p1.vx += fx;
+                            p1.vy += fy;
+                            p2.vx -= fx;
+                            p2.vy -= fy;
+                        }
+                    }
+
+                    // Apply attractive forces along edges
+                    edges.forEach(e => {
+                        const p1 = positions[e.source];
+                        const p2 = positions[e.target];
+                        if (p1 && p2) {
+                            const dx = p2.x - p1.x;
+                            const dy = p2.y - p1.y;
+                            const dist = Math.hypot(dx, dy) || 1;
+                            const force = (dist - 100) * 0.1;
+                            const fx = (dx / dist) * force;
+                            const fy = (dy / dist) * force;
+                            p1.vx += fx;
+                            p1.vy += fy;
+                            p2.vx -= fx;
+                            p2.vy -= fy;
+                        }
+                    });
+
+                    // Apply centering force
+                    for (const [nodeId, pos] of Object.entries(positions)) {
+                        const dx = centerX - pos.x;
+                        const dy = centerY - pos.y;
+                        pos.vx += dx * 0.01;
+                        pos.vy += dy * 0.01;
+                    }
+
+                    // Damping
+                    for (const pos of Object.values(positions)) {
+                        pos.x += pos.vx * 0.1;
+                        pos.y += pos.vy * 0.1;
+                        pos.vx *= 0.9;
+                        pos.vy *= 0.9;
+                    }
+                }
+
+                return positions;
+            }
+
+            addMutationLabels() {
+                const state = GRAPH_STATES[this.currentStateIndex];
+                const mutations = state.mutation.split(' → ');
+
+                mutations.forEach((mutation, index) => {
+                    this.mutationLabels.push({
+                        text: mutation,
+                        x: Math.random() * this.canvas.width * 0.8 + this.canvas.width * 0.1,
+                        y: Math.random() * this.canvas.height * 0.6 + this.canvas.height * 0.2,
+                        age: 0,
+                        maxAge: 2000,
+                        vy: -0.5
+                    });
+                });
+            }
+
+            update(dt) {
+                // Update particles
+                this.particles.forEach(p => p.update(dt));
+                if (this.particles.length < CONFIG.particleCount && Math.random() < 0.1) {
+                    this.particles.push(new Particle(
+                        Math.random() * this.canvas.width,
+                        Math.random() * this.canvas.height
+                    ));
+                }
+                this.particles = this.particles.filter(p => p.life > 0.01);
+
+                // Update edge flashes
+                this.edgeFlashes = this.edgeFlashes.filter(ef => {
+                    ef.age += dt;
+                    return ef.age < ef.maxAge;
+                });
+
+                // Update ghost trails
+                this.ghostTrails = this.ghostTrails.filter(gt => {
+                    gt.age += dt;
+                    return gt.age < gt.maxAge;
+                });
+
+                // Update mutation labels
+                this.mutationLabels = this.mutationLabels.filter(ml => {
+                    ml.age += dt;
+                    ml.y += ml.vy;
+                    return ml.age < ml.maxAge;
+                });
+
+                // Update animation state
+                this.timeInState += dt;
+
+                if (!this.isTransitioning) {
+                    if (this.timeInState >= CONFIG.holdDuration) {
+                        this.startTransition();
+                    }
+                } else {
+                    this.transitionProgress = Math.min(1, this.timeInState / CONFIG.animationDuration);
+
+                    if (this.transitionProgress >= 1) {
+                        this.isTransitioning = false;
+                        this.timeInState = 0;
+                    }
+                }
+            }
+
+            draw() {
+                // Clear canvas
+                this.ctx.fillStyle = CONFIG.colors.background;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw grid
+                this.drawGrid();
+
+                // Draw particles
+                this.particles.forEach(p => p.draw(this.ctx));
+
+                // Draw graph
+                this.drawEdges();
+                this.drawNodes();
+
+                // Draw edge flashes
+                this.drawEdgeFlashes();
+
+                // Draw ghost trails
+                this.drawGhostTrails();
+
+                // Draw mutation labels
+                this.drawMutationLabels();
+
+                // Draw diff overlay info
+                this.drawDiffInfo();
+            }
+
+            drawGrid() {
+                const gridSize = 80;
+                this.ctx.strokeStyle = CONFIG.colors.gridLine;
+                this.ctx.lineWidth = 1;
+
+                for (let x = 0; x < this.canvas.width; x += gridSize) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.canvas.height);
+                    this.ctx.stroke();
+                }
+
+                for (let y = 0; y < this.canvas.height; y += gridSize) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(this.canvas.width, y);
+                    this.ctx.stroke();
+                }
+            }
+
+            drawEdges() {
+                this.edges.forEach(edge => {
+                    const sourcePos = this.nodePositions[edge.source];
+                    const targetPos = this.nodePositions[edge.target];
+
+                    if (sourcePos && targetPos) {
+                        const x1 = sourcePos.x;
+                        const y1 = sourcePos.y;
+                        const x2 = targetPos.x;
+                        const y2 = targetPos.y;
+
+                        // Interpolate during transition
+                        let drawX1 = x1, drawY1 = y1, drawX2 = x2, drawY2 = y2;
+
+                        if (this.isTransitioning && this.transitionProgress < 1) {
+                            const targetSourcePos = this.targetPositions[edge.source];
+                            const targetTargetPos = this.targetPositions[edge.target];
+                            if (targetSourcePos && targetTargetPos) {
+                                drawX1 = x1 + (targetSourcePos.x - x1) * this.transitionProgress;
+                                drawY1 = y1 + (targetSourcePos.y - y1) * this.transitionProgress;
+                                drawX2 = x2 + (targetTargetPos.x - x2) * this.transitionProgress;
+                                drawY2 = y2 + (targetTargetPos.y - y2) * this.transitionProgress;
+                            }
+                        }
+
+                        // Draw glow for new edges
+                        if (this.transitionProgress < 0.5) {
+                            this.ctx.strokeStyle = `rgba(91, 200, 180, ${0.1 * this.transitionProgress * 2})`;
+                            this.ctx.lineWidth = 4;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(drawX1, drawY1);
+                            this.ctx.lineTo(drawX2, drawY2);
+                            this.ctx.stroke();
+                        }
+
+                        // Draw edge line
+                        this.ctx.strokeStyle = `rgba(91, 200, 180, ${0.4 + 0.2 * Math.sin(Date.now() * 0.001)})`;
+                        this.ctx.lineWidth = 1.5;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(drawX1, drawY1);
+                        this.ctx.lineTo(drawX2, drawY2);
+                        this.ctx.stroke();
+                    }
+                });
+            }
+
+            drawNodes() {
+                this.nodes.forEach(node => {
+                    const pos = this.nodePositions[node.id];
+                    if (pos) {
+                        let drawX = pos.x, drawY = pos.y;
+
+                        if (this.isTransitioning && this.transitionProgress < 1) {
+                            const targetPos = this.targetPositions[node.id];
+                            if (targetPos) {
+                                drawX = pos.x + (targetPos.x - pos.x) * this.transitionProgress;
+                                drawY = pos.y + (targetPos.y - pos.y) * this.transitionProgress;
+                            }
+                        }
+
+                        const radius = CONFIG.nodeRadius[node.type] || 10;
+                        const color = getColorForType(node.type, node.team);
+
+                        // Draw glow
+                        this.ctx.fillStyle = color.replace('1)', '0.2)');
+                        this.ctx.beginPath();
+                        this.ctx.arc(drawX, drawY, radius * 1.5, 0, Math.PI * 2);
+                        this.ctx.fill();
+
+                        // Draw node
+                        this.ctx.fillStyle = color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+
+                        // Draw label
+                        this.ctx.fillStyle = CONFIG.colors.goldLight;
+                        this.ctx.font = '10px Inter, sans-serif';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.textBaseline = 'middle';
+                        this.ctx.fillText(node.label, drawX, drawY + radius + 16);
+                    }
+                });
+            }
+
+            drawEdgeFlashes() {
+                this.edgeFlashes.forEach(flash => {
+                    const progress = 1 - (flash.age / flash.maxAge);
+                    const sourcePos = this.nodePositions[flash.source];
+                    const targetPos = this.nodePositions[flash.target];
+
+                    if (sourcePos && targetPos) {
+                        this.ctx.strokeStyle = flash.color.replace('1)', `${progress})`);
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(sourcePos.x, sourcePos.y);
+                        this.ctx.lineTo(targetPos.x, targetPos.y);
+                        this.ctx.stroke();
+                    }
+                });
+            }
+
+            drawGhostTrails() {
+                this.ghostTrails.forEach(trail => {
+                    const progress = 1 - (trail.age / trail.maxAge);
+                    const radius = 8 * progress;
+
+                    this.ctx.fillStyle = trail.color.replace('1)', `${progress * 0.3})`);
+                    this.ctx.beginPath();
+                    this.ctx.arc(trail.x, trail.y, radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+            }
+
+            drawMutationLabels() {
+                this.mutationLabels.forEach(label => {
+                    const progress = 1 - (label.age / label.maxAge);
+                    const alpha = progress * 0.8;
+
+                    this.ctx.fillStyle = `rgba(91, 200, 180, ${alpha})`;
+                    this.ctx.font = `12px Inter, sans-serif`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.shadowColor = `rgba(91, 200, 180, ${alpha * 0.5})`;
+                    this.ctx.shadowBlur = 8;
+                    this.ctx.fillText(label.text, label.x, label.y);
+                    this.ctx.shadowColor = 'transparent';
+                });
+            }
+
+            drawDiffInfo() {
+                if (this.isTransitioning && this.transitionProgress > 0.2) {
+                    const state = GRAPH_STATES[this.currentStateIndex];
+                    const alpha = Math.sin(this.transitionProgress * Math.PI) * 0.6;
+
+                    this.ctx.fillStyle = `rgba(91, 200, 180, ${alpha})`;
+                    this.ctx.font = '13px Inter, sans-serif';
+                    this.ctx.textAlign = 'right';
+                    this.ctx.textBaseline = 'bottom';
+                    this.ctx.fillText(state.mutation, this.canvas.width - 40, this.canvas.height - 40);
+                }
+            }
+
+            animate() {
+                const now = Date.now();
+                if (!this.lastFrame) this.lastFrame = now;
+                const dt = Math.min(now - this.lastFrame, 50);
+                this.lastFrame = now;
+
+                this.update(dt);
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // ============================================================================
+        // SCENARIO BUTTONS
+        // ============================================================================
+        function initializeScenarioButtons(sandbox) {
+            const container = document.getElementById('scenarioButtons');
+            GRAPH_STATES.forEach((state, index) => {
+                const button = document.createElement('div');
+                button.className = 'scenario-item' + (index === 0 ? ' active' : '');
+                button.innerHTML = `
+                    <div class="scenario-name">${state.name}</div>
+                    <div class="scenario-nodes">${state.nodes.length} nodes</div>
+                `;
+                button.onclick = () => {
+                    document.querySelectorAll('.scenario-item').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    sandbox.nextStateIndex = index;
+                    if (!sandbox.isTransitioning) {
+                        sandbox.startTransition();
+                    }
+                };
+                container.appendChild(button);
+            });
+        }
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            const sandbox = new SimulationSandbox();
+            initializeScenarioButtons(sandbox);
+        });
+    </script>
+</body>
+</html>

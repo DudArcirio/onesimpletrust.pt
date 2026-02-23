@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>noise.os — Semantic Memory: Causal Loop Diagrams</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B0F14; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ── Color Palette ──
+const GOLD = { r: 200, g: 169, b: 110 };
+const TEAL = { r: 91, g: 200, b: 180 };
+const ROSE = { r: 200, g: 110, b: 139 };
+const BLUE = { r: 110, g: 170, b: 200 };
+
+function rgba(col, a) { return `rgba(${col.r},${col.g},${col.b},${a})`; }
+
+// ── Three CLD Loops ──
+// Each loop: { name, type (R/B), color, nodes: [{label, x, y}], edges: [{from, to, polarity}] }
+const loops = [
+    {
+        name: 'The Illusion of Control',
+        type: 'B',
+        typeLabel: 'Balancing Loop',
+        color: ROSE,
+        description: 'More control → less autonomy → less learning → worse outcomes → more control',
+        nodes: [
+            { label: 'Perceived\nUncertainty', shortLabel: 'Uncertainty' },
+            { label: 'Desire for\nControl', shortLabel: 'Control' },
+            { label: 'Top-Down\nDirectives', shortLabel: 'Directives' },
+            { label: 'Team\nAutonomy', shortLabel: 'Autonomy' },
+            { label: 'Adaptive\nCapacity', shortLabel: 'Adaptation' },
+            { label: 'Unintended\nConsequences', shortLabel: 'Consequences' },
+        ],
+        edges: [
+            { from: 0, to: 1, polarity: '+' },
+            { from: 1, to: 2, polarity: '+' },
+            { from: 2, to: 3, polarity: '−' },
+            { from: 3, to: 4, polarity: '+' },
+            { from: 4, to: 5, polarity: '−' },
+            { from: 5, to: 0, polarity: '+' },
+        ]
+    },
+    {
+        name: 'The Learning Organization',
+        type: 'R',
+        typeLabel: 'Reinforcing Loop',
+        color: TEAL,
+        description: 'Psychological safety → experimentation → learning → trust → more safety',
+        nodes: [
+            { label: 'Psychological\nSafety', shortLabel: 'Safety' },
+            { label: 'Willingness to\nExperiment', shortLabel: 'Experiment' },
+            { label: 'Organizational\nLearning', shortLabel: 'Learning' },
+            { label: 'Better\nDecisions', shortLabel: 'Decisions' },
+            { label: 'Trust in\nthe System', shortLabel: 'Trust' },
+        ],
+        edges: [
+            { from: 0, to: 1, polarity: '+' },
+            { from: 1, to: 2, polarity: '+' },
+            { from: 2, to: 3, polarity: '+' },
+            { from: 3, to: 4, polarity: '+' },
+            { from: 4, to: 0, polarity: '+' },
+        ]
+    },
+    {
+        name: 'The Restructuring Trap',
+        type: 'B',
+        typeLabel: 'Balancing Loop',
+        color: BLUE,
+        description: 'Misalignment → restructuring → disruption → lost knowledge → more misalignment',
+        nodes: [
+            { label: 'Strategy-Execution\nMisalignment', shortLabel: 'Misalignment' },
+            { label: 'Restructuring\nProgram', shortLabel: 'Restructuring' },
+            { label: 'Organizational\nDisruption', shortLabel: 'Disruption' },
+            { label: 'Informal Network\nDestruction', shortLabel: 'Network Loss' },
+            { label: 'Knowledge &\nCapability Loss', shortLabel: 'Knowledge Loss' },
+        ],
+        edges: [
+            { from: 0, to: 1, polarity: '+' },
+            { from: 1, to: 2, polarity: '+' },
+            { from: 2, to: 3, polarity: '+' },
+            { from: 3, to: 4, polarity: '+' },
+            { from: 4, to: 0, polarity: '+' },
+        ]
+    }
+];
+
+// ── Layout: position nodes in circular arcs per loop ──
+function layoutLoops() {
+    const centerY = H / 2;
+    const loopSpacing = W / (loops.length + 1);
+
+    loops.forEach((loop, li) => {
+        const cx = loopSpacing * (li + 1);
+        const cy = centerY;
+        const radius = Math.min(W / (loops.length + 1) * 0.38, H * 0.32);
+        const n = loop.nodes.length;
+
+        loop.cx = cx;
+        loop.cy = cy;
+        loop.radius = radius;
+
+        loop.nodes.forEach((node, ni) => {
+            const angle = -Math.PI / 2 + (ni / n) * Math.PI * 2;
+            node.x = cx + Math.cos(angle) * radius;
+            node.y = cy + Math.sin(angle) * radius;
+            node.angle = angle;
+            node.baseX = node.x;
+            node.baseY = node.y;
+        });
+    });
+}
+
+// ── Animation State ──
+// Each loop independently traces its edges step by step, then holds, then fades to restart
+const STEP_DURATION = 1.2;     // seconds to animate one edge
+const HOLD_DURATION = 3.0;     // seconds to hold the full loop visible
+const FADE_DURATION = 1.0;     // seconds to fade before restarting
+const STAGGER = 2.5;           // seconds offset between loops starting
+
+class LoopAnimator {
+    constructor(loop, startDelay) {
+        this.loop = loop;
+        this.startDelay = startDelay;
+        this.time = -startDelay;
+        this.totalSteps = loop.edges.length;
+        this.cycleDuration = this.totalSteps * STEP_DURATION + HOLD_DURATION + FADE_DURATION;
+    }
+
+    update(dt) {
+        this.time += dt;
+        if (this.time > this.cycleDuration) {
+            this.time -= this.cycleDuration;
+        }
+    }
+
+    // Returns 0-1 how "revealed" each edge is
+    getEdgeProgress(edgeIndex) {
+        if (this.time < 0) return 0;
+        const edgeStart = edgeIndex * STEP_DURATION;
+        const edgeEnd = edgeStart + STEP_DURATION;
+
+        if (this.time < edgeStart) return 0;
+        if (this.time >= edgeEnd) {
+            // Check if in fade phase
+            const fadeStart = this.totalSteps * STEP_DURATION + HOLD_DURATION;
+            if (this.time > fadeStart) {
+                return Math.max(0, 1 - (this.time - fadeStart) / FADE_DURATION);
+            }
+            return 1;
+        }
+        // Eased progress within this step
+        const t = (this.time - edgeStart) / STEP_DURATION;
+        return t * t * (3 - 2 * t); // smoothstep
+    }
+
+    // Returns 0-1 how "revealed" each node is
+    getNodeProgress(nodeIndex) {
+        if (this.time < 0) return 0.15; // dim baseline
+        // Node lights up when it's the source of an active edge, or target of a completed one
+        let maxP = 0.15;
+        this.loop.edges.forEach((edge, ei) => {
+            const ep = this.getEdgeProgress(ei);
+            if (edge.from === nodeIndex) maxP = Math.max(maxP, ep * 0.7);
+            if (edge.to === nodeIndex) maxP = Math.max(maxP, ep);
+        });
+        return maxP;
+    }
+
+    // Is the "currently animating" edge's flow particle position (0-1)
+    getCurrentFlowEdge() {
+        if (this.time < 0) return { index: -1, progress: 0 };
+        const rawStep = this.time / STEP_DURATION;
+        const stepIndex = Math.floor(rawStep);
+        if (stepIndex >= this.totalSteps) return { index: -1, progress: 0 };
+        const progress = rawStep - stepIndex;
+        return { index: stepIndex, progress: progress * progress * (3 - 2 * progress) };
+    }
+
+    getLoopLabelAlpha() {
+        if (this.time < 0) return 0;
+        // Fade in after all edges are shown
+        const allShown = this.totalSteps * STEP_DURATION;
+        if (this.time < allShown - 0.3) return 0;
+        if (this.time < allShown + 0.5) return (this.time - allShown + 0.3) / 0.8;
+        const fadeStart = allShown + HOLD_DURATION;
+        if (this.time > fadeStart) return Math.max(0, 1 - (this.time - fadeStart) / FADE_DURATION);
+        return 1;
+    }
+}
+
+let animators = [];
+let globalTime = 0;
+
+function init() {
+    layoutLoops();
+    animators = loops.map((loop, i) => new LoopAnimator(loop, i * STAGGER));
+}
+
+// ── Drawing ──
+
+function drawArrow(x1, y1, x2, y2, color, alpha, lineWidth) {
+    // Shorten to not overlap nodes
+    const dx = x2 - x1, dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const nodeRadius = 28;
+    const ratio1 = nodeRadius / dist;
+    const ratio2 = (dist - nodeRadius - 8) / dist;
+    const sx = x1 + dx * ratio1;
+    const sy = y1 + dy * ratio1;
+    const ex = x1 + dx * ratio2;
+    const ey = y1 + dy * ratio2;
+
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = rgba(color, alpha);
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    // Arrowhead
+    const angle = Math.atan2(ey - sy, ex - sx);
+    const headLen = 8 + lineWidth * 2;
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - Math.cos(angle - 0.35) * headLen, ey - Math.sin(angle - 0.35) * headLen);
+    ctx.lineTo(ex - Math.cos(angle + 0.35) * headLen, ey - Math.sin(angle + 0.35) * headLen);
+    ctx.closePath();
+    ctx.fillStyle = rgba(color, alpha);
+    ctx.fill();
+}
+
+function drawPolarityLabel(x1, y1, x2, y2, polarity, color, alpha) {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    // Offset perpendicular to the edge
+    const dx = x2 - x1, dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const px = -dy / dist * 14;
+    const py = dx / dist * 14;
+
+    ctx.font = '700 13px Inter, sans-serif';
+    ctx.fillStyle = rgba(color, alpha * 0.8);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(polarity, mx + px, my + py);
+}
+
+function drawNode(node, color, alpha, isActive) {
+    const x = node.x, y = node.y;
+    const r = isActive ? 26 : 22;
+
+    // Outer glow
+    if (alpha > 0.2) {
+        const grad = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 3);
+        grad.addColorStop(0, rgba(color, alpha * 0.12));
+        grad.addColorStop(1, rgba(color, 0));
+        ctx.beginPath();
+        ctx.arc(x, y, r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
+    // Circle border
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(color, alpha * 0.6);
+    ctx.lineWidth = isActive ? 2 : 1;
+    ctx.stroke();
+
+    // Fill
+    ctx.beginPath();
+    ctx.arc(x, y, r - 1, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(color, alpha * 0.08);
+    ctx.fill();
+
+    // Inner bright core when active
+    if (alpha > 0.5) {
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(color, alpha * 0.9);
+        ctx.fill();
+    }
+
+    // Label
+    const lines = node.label.split('\n');
+    const fontSize = 9;
+    ctx.font = `${isActive ? '600' : '400'} ${fontSize}px Inter, sans-serif`;
+    ctx.fillStyle = rgba(color, alpha * 0.85);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    lines.forEach((line, li) => {
+        const yOff = (li - (lines.length - 1) / 2) * (fontSize + 2);
+        ctx.fillText(line, x, y + yOff);
+    });
+}
+
+function drawFlowParticle(x1, y1, x2, y2, progress, color) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const nodeRadius = 28;
+    const r1 = nodeRadius / dist;
+    const r2 = (dist - nodeRadius) / dist;
+    const t = r1 + (r2 - r1) * progress;
+
+    const px = x1 + dx * t;
+    const py = y1 + dy * t;
+
+    // Glowing particle
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
+    grad.addColorStop(0, rgba(color, 0.9));
+    grad.addColorStop(0.4, rgba(color, 0.3));
+    grad.addColorStop(1, rgba(color, 0));
+    ctx.beginPath();
+    ctx.arc(px, py, 12, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Core
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(color, 1);
+    ctx.fill();
+}
+
+function drawLoopCenter(loop, alpha) {
+    if (alpha < 0.01) return;
+
+    // Loop type badge (R or B) in center
+    const r = 18;
+    ctx.beginPath();
+    ctx.arc(loop.cx, loop.cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(loop.color, alpha * 0.4);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = rgba(loop.color, alpha * 0.06);
+    ctx.fill();
+
+    // Circular arrow indicator
+    const arrowR = r + 6;
+    ctx.beginPath();
+    const startA = -Math.PI * 0.8;
+    const endA = Math.PI * 0.8;
+    ctx.arc(loop.cx, loop.cy, arrowR, startA, endA);
+    ctx.strokeStyle = rgba(loop.color, alpha * 0.25);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '700 14px Inter, sans-serif';
+    ctx.fillStyle = rgba(loop.color, alpha * 0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(loop.type, loop.cx, loop.cy);
+}
+
+function drawLoopTitle(loop, alpha) {
+    if (alpha < 0.01) return;
+
+    // Title above the loop
+    ctx.font = '600 13px Inter, sans-serif';
+    ctx.fillStyle = rgba(loop.color, alpha * 0.8);
+    ctx.textAlign = 'center';
+    ctx.fillText(loop.name, loop.cx, loop.cy - loop.radius - 48);
+
+    // Type label
+    ctx.font = '400 9px Inter, sans-serif';
+    ctx.fillStyle = rgba(loop.color, alpha * 0.45);
+    ctx.letterSpacing = '0.1em';
+    ctx.fillText(loop.typeLabel.toUpperCase(), loop.cx, loop.cy - loop.radius - 34);
+}
+
+function animate() {
+    const dt = 1 / 60;
+    globalTime += dt;
+
+    ctx.fillStyle = '#0B0F14';
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle background particles
+    for (let i = 0; i < 30; i++) {
+        const px = ((globalTime * 8 + i * 137.5) % (W + 40)) - 20;
+        const py = ((globalTime * 3 + i * 89.3) % (H + 40)) - 20;
+        ctx.beginPath();
+        ctx.arc(px, py, 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(200,169,110,0.04)';
+        ctx.fill();
+    }
+
+    // Update and draw each loop
+    animators.forEach((anim, ai) => {
+        anim.update(dt);
+        const loop = anim.loop;
+
+        // Gentle float
+        loop.nodes.forEach((node, ni) => {
+            node.x = node.baseX + Math.sin(globalTime * 0.5 + ni * 1.7 + ai * 2) * 2;
+            node.y = node.baseY + Math.cos(globalTime * 0.4 + ni * 2.1 + ai * 3) * 2;
+        });
+
+        // Draw edges
+        loop.edges.forEach((edge, ei) => {
+            const ep = anim.getEdgeProgress(ei);
+            if (ep < 0.01) return;
+
+            const fromNode = loop.nodes[edge.from];
+            const toNode = loop.nodes[edge.to];
+
+            drawArrow(fromNode.x, fromNode.y, toNode.x, toNode.y, loop.color, ep * 0.5, ep > 0.8 ? 1.5 : 1);
+            if (ep > 0.3) {
+                drawPolarityLabel(fromNode.x, fromNode.y, toNode.x, toNode.y, edge.polarity, loop.color, ep);
+            }
+        });
+
+        // Draw flow particle on currently animating edge
+        const flow = anim.getCurrentFlowEdge();
+        if (flow.index >= 0) {
+            const edge = loop.edges[flow.index];
+            const fromNode = loop.nodes[edge.from];
+            const toNode = loop.nodes[edge.to];
+            drawFlowParticle(fromNode.x, fromNode.y, toNode.x, toNode.y, flow.progress, loop.color);
+        }
+
+        // Draw nodes
+        loop.nodes.forEach((node, ni) => {
+            const np = anim.getNodeProgress(ni);
+            drawNode(node, loop.color, np, np > 0.6);
+        });
+
+        // Loop center indicator
+        const labelAlpha = anim.getLoopLabelAlpha();
+        drawLoopCenter(loop, Math.max(0.15, labelAlpha));
+        drawLoopTitle(loop, labelAlpha);
+    });
+
+    // Title overlay
+    const titleAlpha = Math.min(1, globalTime / 2);
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.fillStyle = `rgba(200,169,110,${titleAlpha * 0.5})`;
+    ctx.textAlign = 'left';
+    ctx.letterSpacing = '0.15em';
+    ctx.fillText('SEMANTIC MEMORY', 24, 30);
+    ctx.font = '300 10px Inter, sans-serif';
+    ctx.fillStyle = `rgba(136,153,170,${titleAlpha * 0.4})`;
+    ctx.fillText('Surfacing mental models through causal loop dynamics', 24, 46);
+
+    requestAnimationFrame(animate);
+}
+
+init();
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiment Lab - noise.os</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0B0F14;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .title-section {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: rgba(200, 169, 110, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: rgba(91, 200, 180, 0.4);
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            max-width: 300px;
+        }
+
+        .kanban-board {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1400px;
+            height: 70%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            perspective: 1000px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 25, 40, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(91, 200, 180, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .column::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 10%;
+            width: 1px;
+            height: 80%;
+            background: linear-gradient(to bottom, transparent, rgba(91, 200, 180, 0.1), transparent);
+        }
+
+        .column:last-child::before {
+            display: none;
+        }
+
+        .column-header {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(91, 200, 180, 0.6);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(91, 200, 180, 0.15);
+        }
+
+        .cards-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            min-height: 0;
+        }
+
+        .experiment-card {
+            position: relative;
+            background: rgba(20, 35, 55, 0.8);
+            border: 1px solid rgba(91, 200, 180, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 50px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 12px;
+            color: rgba(220, 230, 240, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .experiment-card:hover {
+            border-color: rgba(91, 200, 180, 0.4);
+            background: rgba(20, 35, 55, 1);
+            box-shadow: 0 0 15px rgba(91, 200, 180, 0.15);
+        }
+
+        .card-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 3px;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .indicator-teal {
+            background: rgba(91, 200, 180, 0.8);
+            color: rgba(91, 200, 180, 0.9);
+        }
+
+        .indicator-gold {
+            background: rgba(200, 169, 110, 0.8);
+            color: rgba(200, 169, 110, 0.9);
+        }
+
+        .indicator-rose {
+            background: rgba(200, 110, 139, 0.8);
+            color: rgba(200, 110, 139, 0.9);
+        }
+
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-label {
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: rgba(91, 200, 180, 0.15);
+            border-radius: 1px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(91, 200, 180, 0.6);
+            border-radius: 1px;
+            width: 0%;
+            box-shadow: 0 0 6px rgba(91, 200, 180, 0.4);
+        }
+
+        .card-checkmark {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            color: rgba(91, 200, 180, 0.8);
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+        }
+
+        .measurement-float {
+            position: absolute;
+            font-size: 11px;
+            color: rgba(110, 170, 200, 0.4);
+            pointer-events: none;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .wave-icon {
+            width: 30px;
+            height: 15px;
+            display: inline-block;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="overlay">
+        <div class="title-section">
+            <div class="title">EXPERIMENT LAB</div>
+            <div class="subtitle">From hypotheses to validated organizational change</div>
+        </div>
+
+        <div class="kanban-board">
+            <div class="column" data-column="hypothesis">
+                <div class="column-header">Hypothesis</div>
+                <div class="cards-container"></div>
+            </div>
+            <div class="column" data-column="design">
+                <div class="column-header">Design</div>
+                <div class="cards-container"></div>
+            </div>
+            <div class="column" data-column="running">
+                <div class="column-header">Running</div>
+                <div class="cards-container"></div>
+            </div>
+            <div class="column" data-column="validated">
+                <div class="column-header">Validated</div>
+                <div class="cards-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas to full viewport
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Color palette
+        const colors = {
+            bg: '#0B0F14',
+            gold: 'rgba(200, 169, 110, 0.6)',
+            goldBright: 'rgba(200, 169, 110, 1)',
+            teal: 'rgba(91, 200, 180, 0.7)',
+            tealBright: 'rgba(91, 200, 180, 1)',
+            rose: 'rgba(200, 110, 139, 0.7)',
+            roseBright: 'rgba(200, 110, 139, 1)',
+            blue: 'rgba(110, 170, 200, 0.5)',
+            blueBright: 'rgba(110, 170, 200, 0.8)',
+            text: 'rgba(200, 220, 240, 0.3)'
+        };
+
+        // Particle system for background
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.radius = Math.random() * 1.5 + 0.5;
+                this.opacity = Math.random() * 0.4 + 0.1;
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.995;
+                this.vy *= 0.995;
+
+                // Wrap around edges
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = `rgba(91, 200, 180, ${this.opacity * 0.6})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const particles = Array.from({ length: 30 }, () => new Particle());
+
+        // Draw scientific decorations
+        function drawLabDecorations() {
+            // Flask outlines
+            const flaskPositions = [
+                { x: 100, y: 100, scale: 1 },
+                { x: canvas.width - 120, y: canvas.height - 150, scale: 0.8 },
+                { x: canvas.width / 2, y: canvas.height - 200, scale: 0.6 }
+            ];
+
+            flaskPositions.forEach(pos => {
+                drawFlask(pos.x, pos.y, pos.scale);
+            });
+
+            // DNA helix-style lines
+            drawHelixLines();
+        }
+
+        function drawFlask(x, y, scale) {
+            ctx.strokeStyle = colors.teal;
+            ctx.globalAlpha = 0.05;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Flask neck
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - 15 * scale, y + 10 * scale);
+            ctx.lineTo(x - 20 * scale, y + 30 * scale);
+            ctx.arc(x, y + 40 * scale, 20 * scale, Math.PI, 0);
+            ctx.lineTo(x + 20 * scale, y + 30 * scale);
+            ctx.lineTo(x + 15 * scale, y + 10 * scale);
+            ctx.stroke();
+
+            ctx.globalAlpha = 1;
+        }
+
+        function drawHelixLines() {
+            ctx.strokeStyle = colors.gold;
+            ctx.globalAlpha = 0.03;
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < 3; i++) {
+                const startX = (canvas.width / 4) * (i + 1);
+                const startY = 0;
+
+                ctx.beginPath();
+                for (let y = startY; y < canvas.height; y += 5) {
+                    const x = startX + Math.sin(y * 0.01) * 30;
+                    if (y === startY) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+            ctx.globalAlpha = 1;
+        }
+
+        // Floating measurement elements
+        class MeasurementFloat {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.2;
+                this.vy = (Math.random() - 0.5) * 0.15 - 0.05;
+                this.angle = Math.random() * Math.PI * 2;
+                this.type = Math.floor(Math.random() * 3); // wave, chart, percentage
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.angle += 0.02;
+                this.life -= 0.0005;
+
+                if (this.life <= 0) {
+                    return true; // Remove
+                }
+                return false;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.opacity * this.life;
+                ctx.fillStyle = colors.blue;
+
+                if (this.type === 0) {
+                    // Wave
+                    ctx.strokeStyle = colors.blue;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for (let i = 0; i < 30; i++) {
+                        const px = this.x + (i - 15) * 1.5;
+                        const py = this.y + Math.sin(i * 0.3 + this.angle) * 4;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                } else if (this.type === 1) {
+                    // Bar chart
+                    for (let i = 0; i < 4; i++) {
+                        const h = (Math.sin(this.angle + i) + 1) * 8;
+                        ctx.fillRect(this.x + i * 4, this.y + 10 - h, 3, h);
+                    }
+                } else {
+                    // Percentage
+                    ctx.font = '10px Inter';
+                    const percent = Math.floor((Math.sin(this.angle) + 1) * 50);
+                    ctx.fillText(`${percent}%`, this.x, this.y);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        let measurements = [];
+        function addMeasurement() {
+            if (Math.random() > 0.97) {
+                measurements.push(new MeasurementFloat());
+            }
+        }
+
+        // Experiment data
+        const experiments = [
+            { label: 'Cross-team standup', indicator: 'teal' },
+            { label: 'Async decisions', indicator: 'gold' },
+            { label: 'Rotate product owner', indicator: 'rose' },
+            { label: 'Merge support teams', indicator: 'teal' },
+            { label: 'Weekly retrospective', indicator: 'gold' },
+            { label: 'Shared OKRs', indicator: 'teal' },
+            { label: 'Pair facilitation', indicator: 'rose' },
+            { label: 'Decision framework', indicator: 'gold' },
+            { label: 'Feedback loops', indicator: 'teal' },
+            { label: 'Autonomy zones', indicator: 'rose' }
+        ];
+
+        // Kanban state
+        const kanban = {
+            hypothesis: [],
+            design: [],
+            running: [],
+            validated: []
+        };
+
+        let cardIdCounter = 0;
+
+        function createCard(label, indicator) {
+            const card = document.createElement('div');
+            card.className = 'experiment-card';
+            card.dataset.id = cardIdCounter++;
+            card.dataset.indicator = indicator;
+            card.innerHTML = `
+                <div class="card-indicator indicator-${indicator}"></div>
+                <div class="card-content">
+                    <div class="card-label">${label}</div>
+                    ${label.includes('Running') || Math.random() > 0.7 ? '<div class="progress-bar"><div class="progress-fill"></div></div>' : ''}
+                </div>
+                <div class="card-checkmark">✓</div>
+            `;
+            return card;
+        }
+
+        function addCardToColumn(columnName, label, indicator) {
+            const column = document.querySelector(`[data-column="${columnName}"]`);
+            const container = column.querySelector('.cards-container');
+            const card = createCard(label, indicator);
+            container.appendChild(card);
+            return card;
+        }
+
+        // Initialize with some cards
+        function initializeKanban() {
+            const cols = ['hypothesis', 'design', 'running'];
+            const indicators = ['teal', 'gold', 'rose'];
+            let expIndex = 0;
+
+            for (let col = 0; col < 3; col++) {
+                for (let i = 0; i < Math.floor(Math.random() * 3) + 2; i++) {
+                    if (expIndex < experiments.length) {
+                        const exp = experiments[expIndex];
+                        addCardToColumn(cols[col], exp.label, exp.indicator);
+                        expIndex++;
+                    }
+                }
+            }
+
+            // Add one to validated with checkmark
+            if (expIndex < experiments.length) {
+                const card = addCardToColumn('validated', experiments[expIndex].label, experiments[expIndex].indicator);
+                const checkmark = card.querySelector('.card-checkmark');
+                checkmark.style.opacity = '1';
+            }
+        }
+
+        initializeKanban();
+
+        // Animation loop
+        let lastCardAddTime = 0;
+        const cardAddInterval = 8000; // 8 seconds
+
+        function animateProgressBars() {
+            const runningCards = document.querySelectorAll('[data-column="running"] .experiment-card');
+            runningCards.forEach(card => {
+                const progressFill = card.querySelector('.progress-fill');
+                if (progressFill) {
+                    let width = parseFloat(progressFill.style.width) || 0;
+                    width = Math.min(width + 0.3, 100);
+                    progressFill.style.width = width + '%';
+
+                    // If complete, move to validated
+                    if (width >= 100) {
+                        const runningCol = document.querySelector('[data-column="running"] .cards-container');
+                        const validatedCol = document.querySelector('[data-column="validated"] .cards-container');
+
+                        if (runningCol.contains(card)) {
+                            // Animate the move
+                            card.style.opacity = '0.5';
+                            setTimeout(() => {
+                                if (runningCol.contains(card)) {
+                                    validatedCol.appendChild(card);
+                                    const checkmark = card.querySelector('.card-checkmark');
+                                    checkmark.style.transition = 'opacity 0.5s ease';
+                                    checkmark.style.opacity = '1';
+
+                                    // Pulse effect
+                                    card.style.boxShadow = '0 0 30px rgba(91, 200, 180, 0.6)';
+                                    setTimeout(() => {
+                                        card.style.boxShadow = '';
+                                        card.style.opacity = '1';
+                                    }, 500);
+                                }
+                            }, 300);
+                        }
+                    }
+                }
+            });
+        }
+
+        function moveCardsDown() {
+            const columns = ['hypothesis', 'design', 'running'];
+            const nextColumns = ['design', 'running', 'validated'];
+
+            for (let i = 0; i < columns.length; i++) {
+                const currentCol = document.querySelector(`[data-column="${columns[i]}"] .cards-container`);
+                const nextCol = document.querySelector(`[data-column="${nextColumns[i]}"] .cards-container`);
+                const cards = currentCol.querySelectorAll('.experiment-card');
+
+                if (cards.length > 0 && Math.random() > 0.93) {
+                    const card = cards[Math.floor(Math.random() * cards.length)];
+
+                    // Animate the card
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(20px)';
+
+                    setTimeout(() => {
+                        nextCol.appendChild(card);
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateX(0)';
+
+                        // Add glow trail
+                        const glow = document.createElement('div');
+                        glow.style.cssText = `
+                            position: absolute;
+                            width: 8px;
+                            height: 8px;
+                            background: rgba(91, 200, 180, 0.3);
+                            border-radius: 50%;
+                            pointer-events: none;
+                            animation: fadeOut 0.6s ease-out forwards;
+                        `;
+                        card.appendChild(glow);
+
+                        setTimeout(() => glow.remove(), 600);
+                    }, 300);
+                }
+            }
+        }
+
+        // Add new experiment cards periodically
+        function addNewExperiment(timestamp) {
+            if (timestamp - lastCardAddTime > cardAddInterval) {
+                const hypothesisCol = document.querySelector('[data-column="hypothesis"] .cards-container');
+                if (hypothesisCol.children.length < 6) {
+                    const randomExp = experiments[Math.floor(Math.random() * experiments.length)];
+                    const card = createCard(randomExp.label, randomExp.indicator);
+                    card.style.animation = 'fadeIn 0.8s ease-out';
+                    hypothesisCol.appendChild(card);
+                    lastCardAddTime = timestamp;
+                }
+            }
+        }
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; transform: scale(0.5); }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Draw connection lines (hypothesis to result flows)
+        function drawConnectionLines() {
+            const hypothesisCards = document.querySelectorAll('[data-column="hypothesis"] .experiment-card');
+            const validatedCards = document.querySelectorAll('[data-column="validated"] .experiment-card');
+
+            if (hypothesisCards.length > 0 && validatedCards.length > 0) {
+                ctx.strokeStyle = 'rgba(91, 200, 180, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+
+                // Draw a few flowing lines
+                for (let i = 0; i < Math.min(2, hypothesisCards.length, validatedCards.length); i++) {
+                    const start = hypothesisCards[i].getBoundingClientRect();
+                    const end = validatedCards[validatedCards.length - 1 - i].getBoundingClientRect();
+
+                    const startX = start.right;
+                    const startY = start.top + start.height / 2;
+                    const endX = end.left;
+                    const endY = end.top + end.height / 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.bezierCurveTo(
+                        startX + (endX - startX) * 0.3,
+                        startY,
+                        endX - (endX - startX) * 0.3,
+                        endY,
+                        endX,
+                        endY
+                    );
+                    ctx.stroke();
+                }
+
+                ctx.setLineDash([]);
+            }
+        }
+
+        // Main animation loop
+        function animate(timestamp) {
+            // Clear canvas
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw lab decorations
+            drawLabDecorations();
+
+            // Update and draw particles
+            particles.forEach(p => {
+                p.update();
+                p.draw(ctx);
+            });
+
+            // Update and draw measurements
+            measurements = measurements.filter(m => !m.update());
+            measurements.forEach(m => m.draw(ctx));
+
+            // Add new measurements occasionally
+            addMeasurement();
+
+            // Draw connection lines
+            drawConnectionLines();
+
+            // Update kanban
+            animateProgressBars();
+            moveCardsDown();
+            addNewExperiment(timestamp);
+
+            requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
