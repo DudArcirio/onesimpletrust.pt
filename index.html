@@ -118,6 +118,8 @@
         .opp-card .big-number { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--accent); opacity: 0.2; position: absolute; top: 1.5rem; right: 2rem; }
         .opp-card p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; }
         .opp-card .opp-question { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; color: var(--accent); margin-bottom: 1rem; line-height: 1.5; }
+        .opp-card-viz { margin-top: 1.5rem; border-top: 1px solid rgba(200,169,110,0.06); padding-top: 1.2rem; }
+        .opp-card-viz canvas { width: 100%; height: auto; display: block; border-radius: 4px; }
 
         /* ── noise.os 7 Layers Carousel ── */
         #product { background: var(--bg-subtle); }
@@ -413,18 +415,21 @@
                 <div class="opp-question">"Why does every change program produce the opposite of what we intended?"</div>
                 <h3>The Paradox of Control</h3>
                 <p>You have more data than ever, but less understanding. More tools, but less visibility into how your organization actually behaves. The problem isn't effort — it's that you're using linear tools in a non-linear system.</p>
+                <div class="opp-card-viz"><canvas id="oppViz1" width="600" height="200"></canvas></div>
             </div>
             <div class="opp-card reveal">
                 <div class="big-number">02</div>
                 <div class="opp-question">"We restructured twice this year. Why isn't anything different?"</div>
                 <h3>The Invisible Architecture</h3>
                 <p>Org charts show boxes and lines. They don't show the mental models that drive decisions, the informal networks that carry influence, or the tensions that silently shape every initiative. You're redesigning the map while the territory shifts beneath you.</p>
+                <div class="opp-card-viz"><canvas id="oppViz2" width="600" height="200"></canvas></div>
             </div>
             <div class="opp-card reveal">
                 <div class="big-number">03</div>
                 <div class="opp-question">"How do I make better decisions when I can't see the system?"</div>
                 <h3>The Leadership Blind Spot</h3>
                 <p>You're confident in some areas, uncertain in others. But confidence and competence don't always align. The gap between what you think you know and what the system reveals is where the highest leverage hides.</p>
+                <div class="opp-card-viz"><canvas id="oppViz3" width="600" height="200"></canvas></div>
             </div>
         </div>
     </div>
@@ -1802,6 +1807,400 @@ function drawLayerViz(containerId, drawFn) {
         requestAnimationFrame(draw);
     }
     draw();
+})();
+</script>
+
+<!-- ═══ Opportunity Card Animations ═══ -->
+<script>
+/* ── 01 · Paradox of Control ── */
+(function(){
+    const c = document.getElementById('oppViz1');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const GOLD=[200,169,110], TEAL=[91,200,180], ROSE=[200,110,139], BLUE=[110,170,200];
+    const BG = [11,15,20];
+
+    // Linear arrows (left side)
+    const arrows = [];
+    for(let i=0;i<8;i++){
+        arrows.push({
+            x: 30 + (i/7)*200,
+            baseH: 25 + Math.random()*20,
+            phase: Math.random()*Math.PI*2
+        });
+    }
+
+    // Chaos nodes (right side)
+    const nodes = [];
+    for(let i=0;i<12;i++){
+        const a = (i/12)*Math.PI*2;
+        nodes.push({
+            bx: Math.cos(a)*55, by: Math.sin(a)*40,
+            x:0, y:0, phase: i*0.8,
+            col: [TEAL,ROSE,BLUE][i%3]
+        });
+    }
+
+    let t = 0;
+    function draw(){
+        t += 0.012;
+        ctx.fillStyle = 'rgba(11,15,20,0.92)';
+        ctx.fillRect(0,0,W,H);
+
+        const hw = W/2;
+
+        // Divider
+        ctx.strokeStyle = 'rgba(200,169,110,0.15)';
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(hw,8); ctx.lineTo(hw,H-8); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // LEFT: grid + arrows
+        ctx.strokeStyle = 'rgba(200,169,110,0.05)';
+        ctx.lineWidth = 1;
+        for(let i=0;i<=5;i++){
+            const gy = 20+(i/5)*(H-40);
+            ctx.beginPath(); ctx.moveTo(15,gy); ctx.lineTo(hw-15,gy); ctx.stroke();
+        }
+
+        // Labels
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(200,169,110,0.25)';
+        ctx.textAlign = 'center';
+        ctx.fillText('LINEAR ILLUSION', hw/2, H-8);
+
+        arrows.forEach(a => {
+            const ah = a.baseH + Math.sin(t*1.5 + a.phase)*4;
+            const sx = a.x, sy = H/2;
+            ctx.strokeStyle = `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},0.5)`;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(sx,sy+ah*0.3); ctx.lineTo(sx,sy-ah*0.7); ctx.stroke();
+            // arrowhead
+            ctx.fillStyle = `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},0.7)`;
+            ctx.beginPath();
+            ctx.moveTo(sx,sy-ah*0.7-6);
+            ctx.lineTo(sx-3.5,sy-ah*0.7);
+            ctx.lineTo(sx+3.5,sy-ah*0.7);
+            ctx.fill();
+        });
+
+        // RIGHT: chaos network
+        ctx.fillStyle = 'rgba(200,169,110,0.25)';
+        ctx.fillText('NON-LINEAR REALITY', hw + hw/2, H-8);
+
+        const cx = hw + hw/2, cy = H/2;
+        nodes.forEach(n => {
+            n.x = n.bx + Math.sin(t*0.6+n.phase)*18 + Math.sin(t*1.1+n.phase*1.7)*8;
+            n.y = n.by + Math.cos(t*0.8+n.phase)*14 + Math.cos(t*1.3+n.phase*0.5)*6;
+        });
+
+        // Connections
+        for(let i=0;i<nodes.length;i++){
+            for(let j=i+1;j<nodes.length;j++){
+                const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+                const d = Math.sqrt(dx*dx+dy*dy);
+                if(d<75){
+                    const a = Math.max(0,(75-d)/75)*0.35;
+                    ctx.strokeStyle = `rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${a})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx+nodes[i].x, cy+nodes[i].y);
+                    // Bezier for organic feel
+                    const mx=(nodes[i].x+nodes[j].x)/2, my=(nodes[i].y+nodes[j].y)/2;
+                    ctx.quadraticCurveTo(cx+mx+Math.sin(t+i)*8, cy+my+Math.cos(t+j)*8, cx+nodes[j].x, cy+nodes[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Nodes
+        nodes.forEach(n => {
+            // Glow
+            ctx.fillStyle = `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.08)`;
+            ctx.beginPath(); ctx.arc(cx+n.x,cy+n.y,8,0,Math.PI*2); ctx.fill();
+            // Core
+            ctx.fillStyle = `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.7)`;
+            ctx.beginPath(); ctx.arc(cx+n.x,cy+n.y,3,0,Math.PI*2); ctx.fill();
+        });
+
+        // Feedback pulse rings
+        const pulse = Math.sin(t*1.5)*0.5+0.5;
+        ctx.strokeStyle = `rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${pulse*0.2})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(cx,cy,30+pulse*15,0,Math.PI*2); ctx.stroke();
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ── 02 · Invisible Architecture ── */
+(function(){
+    const c = document.getElementById('oppViz2');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const GOLD=[200,169,110], TEAL=[91,200,180], ROSE=[200,110,139];
+
+    // Org nodes
+    const nodes = [
+        {id:0, x:W/2, y:28, label:'CEO', rank:0, inf:1.0},
+        {id:1, x:W*0.18, y:78, label:'VP Eng', rank:1, inf:0.85},
+        {id:2, x:W*0.50, y:78, label:'VP Prod', rank:1, inf:0.8},
+        {id:3, x:W*0.82, y:78, label:'VP Sales', rank:1, inf:0.75},
+        {id:4, x:W*0.08, y:135, label:'Backend', rank:2, inf:0.6},
+        {id:5, x:W*0.25, y:135, label:'Frontend', rank:2, inf:0.65},
+        {id:6, x:W*0.42, y:135, label:'Design', rank:2, inf:0.7},
+        {id:7, x:W*0.58, y:135, label:'Growth', rank:2, inf:0.6},
+        {id:8, x:W*0.75, y:135, label:'Enterprise', rank:2, inf:0.65},
+        {id:9, x:W*0.92, y:135, label:'Ops', rank:2, inf:0.55}
+    ];
+    const formal = [[0,1],[0,2],[0,3],[1,4],[1,5],[2,6],[2,7],[3,8],[3,9]];
+    const informal = [
+        [1,6,0.8],[2,1,0.9],[6,7,0.85],[4,5,0.75],[5,6,0.8],
+        [7,8,0.7],[2,9,0.65],[1,7,0.6],[3,2,0.7],[6,1,0.75],[4,8,0.5],[5,2,0.65]
+    ];
+
+    // Particles
+    const parts = [];
+    class Part {
+        constructor(f,t){ this.f=f; this.t=t; this.p=Math.random(); this.sp=0.003+Math.random()*0.002; this.sz=1.5+Math.random()*1.5; }
+        update(){ this.p+=this.sp; if(this.p>1) this.p=0; }
+    }
+
+    let timer = 0;
+    const PHASE_DUR = 150;
+
+    function draw(){
+        timer++;
+        ctx.fillStyle = '#0B0F14';
+        ctx.fillRect(0,0,W,H);
+
+        const cycle = Math.floor(timer/PHASE_DUR) % 3;
+        const t = (timer%PHASE_DUR)/PHASE_DUR;
+        let formalA, informalA;
+        if(cycle===0){ formalA=1; informalA=0; }
+        else if(cycle===1){ formalA=Math.max(0,1-t); informalA=Math.min(1,t); }
+        else { formalA=Math.min(1,t); informalA=Math.max(0,1-t); }
+
+        // Formal connections
+        if(formalA>0.01){
+            ctx.strokeStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${formalA*0.5})`;
+            ctx.lineWidth=1.5;
+            formal.forEach(([a,b])=>{
+                ctx.beginPath(); ctx.moveTo(nodes[a].x,nodes[a].y); ctx.lineTo(nodes[b].x,nodes[b].y); ctx.stroke();
+            });
+        }
+
+        // Informal connections
+        if(informalA>0.01){
+            informal.forEach(([a,b,s])=>{
+                const na=nodes[a], nb=nodes[b];
+                const dx=nb.x-na.x, dy=nb.y-na.y;
+                const len=Math.sqrt(dx*dx+dy*dy)||1;
+                const px=-dy/len, py=dx/len;
+                const off = (Math.sin(timer*0.03+a+b)*12+12)*informalA*0.8;
+                const cpx=(na.x+nb.x)/2+px*off, cpy=(na.y+nb.y)/2+py*off;
+
+                ctx.strokeStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${informalA*s*0.45})`;
+                ctx.lineWidth=1+s*1.2;
+                ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.quadraticCurveTo(cpx,cpy,nb.x,nb.y); ctx.stroke();
+
+                if(s>0.7 && informalA>0.3){
+                    ctx.strokeStyle=`rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${informalA*s*0.2})`;
+                    ctx.lineWidth=3+s*2;
+                    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.quadraticCurveTo(cpx,cpy,nb.x,nb.y); ctx.stroke();
+                }
+            });
+
+            // Particles
+            if(parts.length<informal.length*2 && Math.random()>0.6){
+                const c=informal[Math.floor(Math.random()*informal.length)];
+                parts.push(new Part(c[0],c[1]));
+            }
+            parts.forEach(p=>{
+                p.update();
+                const na=nodes[p.f], nb=nodes[p.t];
+                const px=na.x+(nb.x-na.x)*p.p, py=na.y+(nb.y-na.y)*p.p;
+                const a=Math.sin(p.p*Math.PI)*informalA*0.5;
+                ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${a})`;
+                ctx.beginPath(); ctx.arc(px,py,p.sz,0,Math.PI*2); ctx.fill();
+            });
+        }
+
+        // Nodes
+        nodes.forEach(n=>{
+            const di = formalA*0.3 + informalA*n.inf;
+            if(formalA>0.3){
+                ctx.fillStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${formalA*0.7})`;
+                ctx.strokeStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${formalA*0.9})`;
+                ctx.lineWidth=1;
+                ctx.fillRect(n.x-7,n.y-7,14,14);
+                ctx.strokeRect(n.x-7,n.y-7,14,14);
+            }
+            if(informalA>0.3){
+                const r=5+n.inf*4;
+                ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${informalA*0.1})`;
+                ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,Math.PI*2); ctx.fill();
+                ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${informalA*di})`;
+                ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2); ctx.fill();
+                const pulse=Math.sin(timer*0.05+n.id)*0.3+0.7;
+                ctx.strokeStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${informalA*di*pulse*0.4})`;
+                ctx.lineWidth=1;
+                ctx.beginPath(); ctx.arc(n.x,n.y,r+3,0,Math.PI*2); ctx.stroke();
+            }
+        });
+
+        // Phase labels
+        ctx.font='8px Inter, sans-serif';
+        ctx.textAlign='right';
+        if(formalA>0.5){
+            ctx.fillStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${formalA*0.3})`;
+            ctx.fillText('FORMAL STRUCTURE', W-12, H-8);
+        }
+        if(informalA>0.5){
+            ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${informalA*0.3})`;
+            ctx.fillText('REAL INFLUENCE NETWORK', W-12, H-8);
+        }
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ── 03 · Leadership Blind Spot ── */
+(function(){
+    const c = document.getElementById('oppViz3');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const GOLD=[200,169,110], TEAL=[91,200,180], ROSE=[200,110,139];
+
+    const axes = ['Strategy','Culture','Operations','Talent','Innovation','Risk'];
+    const N = axes.length;
+    const conf = [0.85, 0.78, 0.82, 0.88, 0.75, 0.80];
+    const real = [0.55, 0.62, 0.70, 0.45, 0.65, 0.48];
+
+    const cx = W/2, cy = H/2;
+    const R = 68;
+
+    function polar(angle, radius){ return { x: cx + radius*Math.cos(angle), y: cy + radius*Math.sin(angle) }; }
+    function ease(t){ return t<0.5? 2*t*t : -1+(4-2*t)*t; }
+
+    let startT = null;
+    const CYCLE = 6000;
+
+    function draw(ts){
+        if(!startT) startT = ts;
+        const elapsed = ts - startT;
+        const phase = (elapsed % CYCLE) / CYCLE;
+
+        ctx.fillStyle = '#0B0F14';
+        ctx.fillRect(0,0,W,H);
+
+        // Grid circles
+        ctx.strokeStyle = 'rgba(200,169,110,0.08)';
+        ctx.lineWidth = 1;
+        for(let i=1;i<=5;i++){
+            ctx.beginPath(); ctx.arc(cx,cy,(R/5)*i,0,Math.PI*2); ctx.stroke();
+        }
+
+        // Axis lines + labels
+        ctx.strokeStyle = 'rgba(200,169,110,0.12)';
+        for(let i=0;i<N;i++){
+            const a = (Math.PI*2*i)/N - Math.PI/2;
+            const p = polar(a, R);
+            ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p.x,p.y); ctx.stroke();
+            const lp = polar(a, R+22);
+            ctx.fillStyle = 'rgba(200,169,110,0.5)';
+            ctx.font = 'bold 8px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(axes[i], lp.x, lp.y);
+        }
+
+        // Draw polygon helper
+        function drawPoly(scores, col, fillA, strokeA, ph){
+            ctx.beginPath();
+            for(let i=0;i<N;i++){
+                const a = (Math.PI*2*i)/N - Math.PI/2;
+                const s = scores[i] * (ph<1? ease(ph) : 1);
+                const p = polar(a, R*s);
+                if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${fillA})`;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${strokeA})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        // Confidence (always visible after phase 0)
+        const confPhase = Math.min(phase/0.25, 1);
+        drawPoly(conf, GOLD, 0.12, 0.6, confPhase);
+
+        // Reality (after 0.25)
+        if(phase>=0.25){
+            const realPhase = Math.min((phase-0.25)/0.25, 1);
+            drawPoly(real, TEAL, 0.1, 0.6, realPhase);
+        }
+
+        // Blind spots (after 0.5)
+        if(phase>=0.5){
+            const bsPhase = Math.min((phase-0.5)/0.3, 1);
+            const pulse = Math.sin(elapsed/300)*0.5+0.5;
+            for(let i=0;i<N;i++){
+                const a1 = (Math.PI*2*i)/N - Math.PI/2;
+                const a2 = (Math.PI*2*(i+1))/N - Math.PI/2;
+                const cr = R*conf[i], rr = R*real[i];
+                const gap = Math.abs(cr-rr);
+                if(gap>4){
+                    const minR=Math.min(cr,rr), maxR=Math.max(cr,rr);
+                    const glow = Math.min(bsPhase*2,1)*(0.25+pulse*0.35);
+                    ctx.fillStyle = `rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${glow})`;
+                    ctx.beginPath();
+                    ctx.arc(cx,cy,maxR,a1,a2);
+                    ctx.arc(cx,cy,minR,a2,a1,true);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            // High leverage labels
+            if(bsPhase>0.7){
+                const la = Math.min((bsPhase-0.7)*3.33,1);
+                const gaps = conf.map((v,i)=>({i,g:Math.abs(v-real[i])})).sort((a,b)=>b.g-a.g);
+                for(let n=0;n<2;n++){
+                    const i=gaps[n].i;
+                    const a=(Math.PI*2*i)/N - Math.PI/2;
+                    const mr = R*(conf[i]+real[i])/2+18;
+                    const lp = polar(a, mr);
+                    ctx.fillStyle = `rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${la*0.8})`;
+                    ctx.font = 'bold 7px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('HIGH LEVERAGE', lp.x, lp.y);
+                }
+            }
+        }
+
+        // Legend at bottom-left
+        ctx.font = '7px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},0.4)`;
+        ctx.fillRect(10, H-20, 6, 6);
+        ctx.fillText('Confidence', 20, H-14);
+        ctx.fillStyle = `rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.4)`;
+        ctx.fillRect(80, H-20, 6, 6);
+        ctx.fillText('Reality', 90, H-14);
+        ctx.fillStyle = `rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},0.4)`;
+        ctx.fillRect(135, H-20, 6, 6);
+        ctx.fillText('Blind Spot', 145, H-14);
+
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
 })();
 </script>
 </body>

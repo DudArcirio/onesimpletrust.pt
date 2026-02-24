@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leadership Blind Spot Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0B0F14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header {
+            color: #C8A96E;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #888;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            background: rgba(11, 15, 20, 0.8);
+            border: 1px solid rgba(200, 169, 110, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        canvas {
+            display: block;
+            background: #0B0F14;
+            border-radius: 4px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.confidence {
+            background: rgba(200, 169, 110, 0.7);
+            border: 1px solid #C8A96E;
+        }
+
+        .legend-dot.reality {
+            background: rgba(91, 200, 180, 0.7);
+            border: 1px solid #5BC8B4;
+        }
+
+        .legend-dot.blindspot {
+            background: rgba(200, 110, 139, 0.5);
+            box-shadow: 0 0 6px rgba(200, 110, 139, 0.8);
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(200, 169, 110, 0.05);
+            border-left: 3px solid rgba(200, 169, 110, 0.3);
+            border-radius: 4px;
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>The Leadership Blind Spot</h1>
+            <p>Where confidence and competence diverge—the highest leverage for growth</p>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="blindSpotCanvas" width="600" height="200"></canvas>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot confidence"></div>
+                <span>Perceived Knowledge</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot reality"></div>
+                <span>Actual System State</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot blindspot"></div>
+                <span>Blind Spot (High Leverage)</span>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>Watch as:</strong> Confidence is drawn first (what leaders believe), then reality is revealed (what data shows), and the gaps between them pulse—these gaps are your highest leverage for growth.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('blindSpotCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Color palette
+        const colors = {
+            gold: 'rgb(200, 169, 110)',
+            rose: 'rgb(200, 110, 139)',
+            teal: 'rgb(91, 200, 180)',
+            blue: 'rgb(110, 170, 200)',
+            darkBg: '#0B0F14'
+        };
+
+        // Radar axes
+        const axes = ['Strategy', 'Culture', 'Operations', 'Talent', 'Innovation', 'Risk'];
+        const numAxes = axes.length;
+
+        // Confidence scores (what leaders think they know)
+        const confidenceScores = [0.85, 0.78, 0.82, 0.88, 0.75, 0.80];
+
+        // Reality scores (actual system state / data reveals)
+        const realityScores = [0.55, 0.62, 0.70, 0.45, 0.65, 0.48];
+
+        // Animation state
+        let animationTime = 0;
+        const cycleDuration = 6000; // 6 seconds per cycle
+
+        function polarToCartesian(angle, radius, centerX, centerY) {
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            return { x, y };
+        }
+
+        function drawRadarGrid() {
+            ctx.save();
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = 70;
+
+            // Draw concentric circles (grid)
+            ctx.strokeStyle = 'rgba(200, 169, 110, 0.1)';
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i <= 5; i++) {
+                const radius = (maxRadius / 5) * i;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(200, 169, 110, 0.15)';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < numAxes; i++) {
+                const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+                const point = polarToCartesian(angle, maxRadius, centerX, centerY);
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(point.x, point.y);
+                ctx.stroke();
+
+                // Draw axis labels
+                const labelPoint = polarToCartesian(angle, maxRadius + 30, centerX, centerY);
+                ctx.fillStyle = 'rgba(200, 169, 110, 0.6)';
+                ctx.font = 'bold 11px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(axes[i], labelPoint.x, labelPoint.y);
+            }
+
+            ctx.restore();
+        }
+
+        function drawPolygon(scores, color, opacity, phase) {
+            ctx.save();
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = 70;
+
+            // Animated draw with phase
+            ctx.fillStyle = `rgba(${color.match(/\d+/g).join(',')}, ${opacity})`;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+
+            for (let i = 0; i < numAxes; i++) {
+                const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+
+                // Ease in/out effect based on phase
+                let score = scores[i];
+                if (phase < 1) {
+                    score = score * easeInOutQuad(phase);
+                }
+
+                const radius = (maxRadius / 1) * score;
+                const point = polarToCartesian(angle, radius, centerX, centerY);
+
+                if (i === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            }
+
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawBlindSpots(phase) {
+            if (phase < 0.5) return; // Only appear after reality is revealed
+
+            ctx.save();
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = 70;
+
+            const blindSpotPhase = (phase - 0.5) * 2; // 0 to 1 after reality appears
+            const pulseIntensity = Math.sin(animationTime / 300) * 0.5 + 0.5; // 0 to 1
+
+            for (let i = 0; i < numAxes; i++) {
+                const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+                const nextAngle = (Math.PI * 2 * (i + 1)) / numAxes - Math.PI / 2;
+
+                const confidenceRadius = maxRadius * confidenceScores[i];
+                const realityRadius = maxRadius * realityScores[i];
+
+                const gap = Math.abs(confidenceRadius - realityRadius);
+
+                if (gap > 5) {
+                    // Draw blind spot between confidence and reality
+                    const minRadius = Math.min(confidenceRadius, realityRadius);
+                    const maxBlindRadius = Math.max(confidenceRadius, realityRadius);
+
+                    const p1 = polarToCartesian(angle, minRadius, centerX, centerY);
+                    const p2 = polarToCartesian(angle, maxBlindRadius, centerX, centerY);
+                    const p3 = polarToCartesian(nextAngle, maxBlindRadius, centerX, centerY);
+                    const p4 = polarToCartesian(nextAngle, minRadius, centerX, centerY);
+
+                    const glowIntensity = Math.min(blindSpotPhase * 2, 1) * (0.3 + pulseIntensity * 0.4);
+
+                    ctx.fillStyle = `rgba(200, 110, 139, ${glowIntensity})`;
+                    ctx.strokeStyle = `rgba(200, 110, 139, ${glowIntensity + 0.3})`;
+                    ctx.lineWidth = 1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.arc(centerX, centerY, maxBlindRadius, angle, nextAngle);
+                    ctx.lineTo(p4.x, p4.y);
+                    ctx.arc(centerX, centerY, minRadius, nextAngle, angle, true);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Add glow effect
+                    ctx.shadowColor = `rgba(200, 110, 139, ${glowIntensity * 0.8})`;
+                    ctx.shadowBlur = 8;
+                    ctx.stroke();
+                }
+            }
+
+            // Draw "highest leverage" labels on biggest gaps
+            if (blindSpotPhase > 0.7) {
+                const labelPhase = (blindSpotPhase - 0.7) * 3.33; // Fade in
+                let maxGapIndex = 0;
+                let maxGap = 0;
+
+                for (let i = 0; i < numAxes; i++) {
+                    const gap = Math.abs(confidenceScores[i] - realityScores[i]);
+                    if (gap > maxGap) {
+                        maxGap = gap;
+                        maxGapIndex = i;
+                    }
+                }
+
+                // Label top 2 gaps
+                const gaps = confidenceScores.map((conf, i) => ({
+                    index: i,
+                    gap: Math.abs(conf - realityScores[i])
+                })).sort((a, b) => b.gap - a.gap);
+
+                for (let n = 0; n < Math.min(2, gaps.length); n++) {
+                    const i = gaps[n].index;
+                    const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+                    const midRadius = (maxRadius * (confidenceScores[i] + realityScores[i]) / 2) + 25;
+                    const labelPoint = polarToCartesian(angle, midRadius, centerX, centerY);
+
+                    ctx.fillStyle = `rgba(200, 110, 139, ${Math.min(labelPhase, 1)})`;
+                    ctx.font = 'bold 9px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('HIGH LEVERAGE', labelPoint.x, labelPoint.y);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        function animate(timestamp) {
+            animationTime = timestamp;
+
+            // Clear canvas
+            ctx.fillStyle = colors.darkBg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate animation phase (0 to 1) within each cycle
+            const cycle = (timestamp % cycleDuration) / cycleDuration;
+
+            // Phase breakdown:
+            // 0.0 - 0.25: Draw confidence polygon
+            // 0.25 - 0.50: Reveal reality polygon (scanning effect)
+            // 0.50 - 0.80: Highlight blind spots
+            // 0.80 - 1.00: Reset (confidence fades slightly)
+
+            drawRadarGrid();
+
+            // Always show confidence
+            const confidencePhase = Math.min(cycle / 0.25, 1);
+            drawPolygon(confidenceScores, colors.gold, 0.15, confidencePhase);
+
+            // Show reality after confidence
+            const realityStart = 0.25;
+            if (cycle >= realityStart) {
+                const realityPhase = Math.min((cycle - realityStart) / 0.25, 1);
+                drawPolygon(realityScores, colors.teal, 0.12, realityPhase);
+            }
+
+            // Show blind spots
+            const blindSpotStart = 0.5;
+            if (cycle >= blindSpotStart) {
+                const blindSpotPhase = Math.min((cycle - blindSpotStart) / 0.3, 1);
+                drawBlindSpots(blindSpotPhase);
+            }
+
+            // Reset effect
+            const resetStart = 0.85;
+            if (cycle >= resetStart) {
+                // Slight fade as cycle ends
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

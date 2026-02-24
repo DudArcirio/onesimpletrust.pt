@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Invisible Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0B0F14;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .title {
+            color: #C8A96E;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: rgba(200, 169, 110, 0.6);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        #canvas {
+            background: rgba(11, 15, 20, 0.5);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 4px;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: rgba(200, 169, 110, 0.7);
+        }
+
+        .control-item {
+            padding: 8px 12px;
+            border: 1px solid rgba(200, 169, 110, 0.3);
+            border-radius: 3px;
+            background: rgba(200, 169, 110, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-item:hover {
+            background: rgba(200, 169, 110, 0.1);
+            border-color: rgba(200, 169, 110, 0.5);
+        }
+
+        .control-item.active {
+            background: rgba(200, 169, 110, 0.2);
+            border-color: rgba(200, 169, 110, 0.7);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+            color: rgba(200, 169, 110, 0.6);
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .gold { background: #C8A96E; }
+        .teal { background: #5BC8B4; }
+        .rose { background: #C8706B; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">The Invisible Architecture</div>
+        <div class="subtitle">Formal structures fade to reveal the real networks that drive decisions</div>
+        <canvas id="canvas" width="600" height="200"></canvas>
+        <div class="controls">
+            <div class="control-item active" data-mode="auto">Auto Cycle</div>
+            <div class="control-item" data-mode="formal">Formal Only</div>
+            <div class="control-item" data-mode="reveal">Revealing</div>
+            <div class="control-item" data-mode="informal">Informal Only</div>
+        </div>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color gold"></div>
+                <span>Formal Structure</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color teal"></div>
+                <span>Informal Networks</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color rose"></div>
+                <span>Influence Flows</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Color palette
+        const colors = {
+            gold: 'rgb(200, 169, 110)',
+            rose: 'rgb(200, 110, 139)',
+            teal: 'rgb(91, 200, 180)',
+            blue: 'rgb(110, 170, 200)',
+            bg: '#0B0F14'
+        };
+
+        // Define the organization structure
+        const nodes = [
+            // CEO
+            { id: 0, x: 300, y: 30, label: 'CEO', rank: 0, influence: 1.0 },
+            // VPs
+            { id: 1, x: 100, y: 85, label: 'VP Eng', rank: 1, influence: 0.85 },
+            { id: 2, x: 300, y: 85, label: 'VP Prod', rank: 1, influence: 0.8 },
+            { id: 3, x: 500, y: 85, label: 'VP Sales', rank: 1, influence: 0.75 },
+            // Directors
+            { id: 4, x: 50, y: 140, label: 'Dir Backend', rank: 2, influence: 0.6 },
+            { id: 5, x: 150, y: 140, label: 'Dir Frontend', rank: 2, influence: 0.65 },
+            { id: 6, x: 250, y: 140, label: 'Dir Design', rank: 2, influence: 0.7 },
+            { id: 7, x: 350, y: 140, label: 'Dir Growth', rank: 2, influence: 0.6 },
+            { id: 8, x: 450, y: 140, label: 'Dir Enterprise', rank: 2, influence: 0.65 },
+            { id: 9, x: 550, y: 140, label: 'Dir Ops', rank: 2, influence: 0.55 }
+        ];
+
+        // Formal hierarchy connections
+        const formalConnections = [
+            { from: 0, to: 1 },
+            { from: 0, to: 2 },
+            { from: 0, to: 3 },
+            { from: 1, to: 4 },
+            { from: 1, to: 5 },
+            { from: 2, to: 6 },
+            { from: 2, to: 7 },
+            { from: 3, to: 8 },
+            { from: 3, to: 9 }
+        ];
+
+        // Informal network connections (the real influence)
+        const informalConnections = [
+            { from: 1, to: 6, strength: 0.8 },  // Eng talks to Design constantly
+            { from: 2, to: 1, strength: 0.9 },  // Product leans on Eng heavily
+            { from: 6, to: 7, strength: 0.85 }, // Design drives Growth decisions
+            { from: 4, to: 5, strength: 0.75 }, // Backend and Frontend collaborate
+            { from: 5, to: 6, strength: 0.8 },  // Frontend in Design discussions
+            { from: 7, to: 8, strength: 0.7 },  // Growth advises Sales
+            { from: 2, to: 9, strength: 0.65 }, // Product coordinates with Ops
+            { from: 1, to: 7, strength: 0.6 },  // Eng influences Growth
+            { from: 3, to: 2, strength: 0.7 },  // Sales provides feedback to Product
+            { from: 6, to: 1, strength: 0.75 }, // Design pushes Eng boundaries
+            { from: 4, to: 8, strength: 0.5 },  // Backend supports Enterprise
+            { from: 5, to: 2, strength: 0.65 }  // Frontend insights to Product
+        ];
+
+        // Particle system for data flow
+        const particles = [];
+
+        class Particle {
+            constructor(fromNode, toNode) {
+                this.fromNode = fromNode;
+                this.toNode = toNode;
+                this.progress = Math.random();
+                this.speed = 0.003 + Math.random() * 0.002;
+                this.size = 2 + Math.random() * 2;
+            }
+
+            update() {
+                this.progress += this.speed;
+                if (this.progress > 1) {
+                    this.progress = 0;
+                }
+            }
+
+            draw(ctx, strength) {
+                const from = nodes[this.fromNode];
+                const to = nodes[this.toNode];
+                const x = from.x + (to.x - from.x) * this.progress;
+                const y = from.y + (to.y - from.y) * this.progress;
+
+                const alpha = Math.sin(this.progress * Math.PI) * strength * 0.6;
+                ctx.fillStyle = `rgba(91, 200, 180, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Animation state
+        let phaseProgress = 0;
+        let phase = 'auto'; // 'formal', 'reveal', 'informal', 'auto'
+        let autoPhaseTimer = 0;
+        const PHASE_DURATION = 120; // frames per phase in auto mode
+
+        // Phase control
+        document.querySelectorAll('.control-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.control-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                phase = item.dataset.mode;
+                phaseProgress = 0;
+                autoPhaseTimer = 0;
+                particles.length = 0;
+            });
+        });
+
+        function getPhaseState() {
+            if (phase === 'formal') {
+                return { formal: 1, informal: 0 };
+            } else if (phase === 'informal') {
+                return { formal: 0, informal: 1 };
+            } else if (phase === 'reveal') {
+                const t = Math.min(phaseProgress / PHASE_DURATION, 1);
+                return {
+                    formal: Math.max(0, 1 - t),
+                    informal: Math.min(1, t)
+                };
+            } else {
+                // Auto cycle through phases
+                const cyclePhase = Math.floor(autoPhaseTimer / PHASE_DURATION) % 3;
+                const t = (autoPhaseTimer % PHASE_DURATION) / PHASE_DURATION;
+
+                if (cyclePhase === 0) {
+                    // Formal state
+                    return { formal: 1, informal: 0 };
+                } else if (cyclePhase === 1) {
+                    // Revealing
+                    return { formal: Math.max(0, 1 - t), informal: Math.min(1, t) };
+                } else {
+                    // Returning to formal
+                    return { formal: Math.min(1, t), informal: Math.max(0, 1 - t) };
+                }
+            }
+        }
+
+        function drawBezierCurve(ctx, x1, y1, x2, y2) {
+            const cpX = (x1 + x2) / 2;
+            const cpY = (y1 + y2) / 2 + (Math.random() - 0.5) * 20;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.quadraticCurveTo(cpX, cpY, x2, y2);
+        }
+
+        function drawFormalConnections(opacity) {
+            ctx.strokeStyle = `rgba(200, 169, 110, ${opacity * 0.6})`;
+            ctx.lineWidth = 1.5;
+
+            formalConnections.forEach(conn => {
+                const from = nodes[conn.from];
+                const to = nodes[conn.to];
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+            });
+        }
+
+        function drawInformalConnections(opacity) {
+            informalConnections.forEach(conn => {
+                const from = nodes[conn.from];
+                const to = nodes[conn.to];
+                const strength = conn.strength;
+
+                // Draw the curve
+                ctx.strokeStyle = `rgba(91, 200, 180, ${opacity * strength * 0.5})`;
+                ctx.lineWidth = 1 + strength * 1.5;
+                ctx.lineCap = 'round';
+
+                // Calculate control point for organic curve
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const perpX = -dy;
+                const perpY = dx;
+                const len = Math.sqrt(perpX * perpX + perpY * perpY);
+                const offset = (Math.sin(Date.now() / 1000 + conn.from + conn.to) * 15 + 15) * (opacity * 0.8);
+
+                const cpX = (from.x + to.x) / 2 + (perpX / len) * offset;
+                const cpY = (from.y + to.y) / 2 + (perpY / len) * offset;
+
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.quadraticCurveTo(cpX, cpY, to.x, to.y);
+                ctx.stroke();
+
+                // Add glow for strong ties
+                if (strength > 0.7 && opacity > 0.3) {
+                    ctx.strokeStyle = `rgba(200, 110, 139, ${opacity * strength * 0.3})`;
+                    ctx.lineWidth = 3 + strength * 2;
+                    ctx.globalAlpha = opacity * 0.2;
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.quadraticCurveTo(cpX, cpY, to.x, to.y);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            });
+        }
+
+        function drawNodes(formalOpacity, informalOpacity) {
+            nodes.forEach(node => {
+                const size = 12 + node.influence * 6;
+                const displayInfluence = formalOpacity * 0.3 + informalOpacity * node.influence;
+
+                // Draw node with sizing based on influence visibility
+                const displaySize = 8 + displayInfluence * 12;
+
+                // Glow effect
+                ctx.fillStyle = `rgba(91, 200, 180, ${informalOpacity * displayInfluence * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, displaySize + 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Main node - color based on phase
+                if (formalOpacity > 0.3) {
+                    // Gold for formal structure
+                    ctx.fillStyle = `rgba(200, 169, 110, ${formalOpacity * 0.8})`;
+                    ctx.strokeStyle = `rgba(200, 169, 110, ${formalOpacity})`;
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(node.x - 8, node.y - 8, 16, 16);
+                    ctx.strokeRect(node.x - 8, node.y - 8, 16, 16);
+                }
+
+                if (informalOpacity > 0.3) {
+                    // Teal for informal influence
+                    const radius = 6 + node.influence * 4;
+                    ctx.fillStyle = `rgba(91, 200, 180, ${informalOpacity * displayInfluence})`;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Pulsing effect
+                    const pulse = Math.sin(Date.now() / 200 + node.id) * 0.3 + 0.7;
+                    ctx.strokeStyle = `rgba(91, 200, 180, ${informalOpacity * displayInfluence * pulse * 0.5})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, radius + 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function animate() {
+            // Clear canvas
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Get current phase state
+            const { formal, informal } = getPhaseState();
+
+            // Draw connections
+            drawFormalConnections(formal);
+            drawInformalConnections(informal);
+
+            // Update and draw particles
+            if (informal > 0) {
+                if (particles.length < informalConnections.length * 2 && Math.random() > 0.5) {
+                    const conn = informalConnections[Math.floor(Math.random() * informalConnections.length)];
+                    particles.push(new Particle(conn.from, conn.to));
+                }
+
+                particles.forEach((p, i) => {
+                    p.update();
+                    p.draw(ctx, informal);
+                });
+            }
+
+            // Draw nodes
+            drawNodes(formal, informal);
+
+            // Update animation state
+            if (phase === 'auto') {
+                autoPhaseTimer++;
+                if (autoPhaseTimer > PHASE_DURATION * 3) {
+                    autoPhaseTimer = 0;
+                }
+            } else {
+                phaseProgress++;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
