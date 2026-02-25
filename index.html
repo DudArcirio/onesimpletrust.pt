@@ -1881,6 +1881,107 @@ function drawLayerViz(containerId, drawFn) {
         });
     }
 
+    // ── Cross-layer bridges ──
+    // Bridges are persistent connections between nodes in different zones
+    // They fade in, hold, then dissolve — lifecycle managed by age
+    const bridges = [];
+    const MAX_BRIDGES = 6;
+    function spawnBridge(){
+        if(bridges.length >= MAX_BRIDGES) return;
+        // Pick two different zones
+        const zi = Math.floor(Math.random()*3);
+        const zj = (zi + (Math.random()<0.5 ? 1 : 2)) % 3;
+        // Pick nodes near the zone edges (more likely to bridge)
+        const pickEdgeNode = (zone) => {
+            const ns = zone.nodes;
+            // Prefer nodes closer to zone boundary
+            let best = ns[0], bestDist = 999;
+            for(let k=0;k<Math.min(6,ns.length);k++){
+                const n = ns[Math.floor(Math.random()*ns.length)];
+                const edgeDist = Math.min(Math.abs(n.x - zone.ox), Math.abs(n.x - (zone.ox+zoneW)));
+                if(edgeDist < bestDist){ best=n; bestDist=edgeDist; }
+            }
+            return best;
+        };
+        const nA = pickEdgeNode(allZones[zi]);
+        const nB = pickEdgeNode(allZones[zj]);
+        const lifespan = 200 + Math.random()*400; // frames
+        const fadeIn = 60, fadeOut = 80;
+        bridges.push({
+            nA, nB,                  // live references — bridge follows nodes
+            age: 0,
+            lifespan,
+            fadeIn, fadeOut,
+            colA: nA.col, colB: nB.col,
+            pulsePhase: Math.random()*Math.PI*2
+        });
+    }
+
+    function updateBridges(){
+        // Spawn occasionally
+        if(Math.random()<0.012 && bridges.length<MAX_BRIDGES) spawnBridge();
+        // Age and cull
+        for(let i=bridges.length-1;i>=0;i--){
+            bridges[i].age++;
+            if(bridges[i].age > bridges[i].lifespan) bridges.splice(i,1);
+        }
+    }
+
+    function drawBridges(){
+        bridges.forEach(b => {
+            const {nA,nB,age,lifespan,fadeIn,fadeOut,colA,colB,pulsePhase} = b;
+            // Alpha: fade in → hold → fade out
+            let alpha;
+            if(age<fadeIn) alpha = age/fadeIn;
+            else if(age>lifespan-fadeOut) alpha = (lifespan-age)/fadeOut;
+            else alpha = 1;
+            alpha = Math.max(0, Math.min(1, alpha));
+            // Subtle pulse while alive
+            const pulse = 0.7 + Math.sin(t*1.5+pulsePhase)*0.3;
+            alpha *= pulse;
+            if(alpha<0.01) return;
+
+            const ax=nA.x, ay=nA.y, bx=nB.x, by=nB.y;
+            // Curved bridge
+            const dx=bx-ax, dy=by-ay;
+            const len=Math.sqrt(dx*dx+dy*dy)||1;
+            const px=-dy/len, py=dx/len;
+            const bend = Math.sin(t*0.3+pulsePhase)*15+10;
+            const cpx=(ax+bx)/2+px*bend, cpy=(ay+by)/2+py*bend;
+
+            // Blend color between the two nodes
+            const mr=Math.round((colA[0]+colB[0])/2);
+            const mg=Math.round((colA[1]+colB[1])/2);
+            const mb=Math.round((colA[2]+colB[2])/2);
+
+            // Glow line
+            ctx.strokeStyle=`rgba(${mr},${mg},${mb},${alpha*0.06})`;
+            ctx.lineWidth=6;
+            ctx.lineCap='round';
+            ctx.beginPath(); ctx.moveTo(ax,ay); ctx.quadraticCurveTo(cpx,cpy,bx,by); ctx.stroke();
+
+            // Main line
+            ctx.strokeStyle=`rgba(${mr},${mg},${mb},${alpha*0.22})`;
+            ctx.lineWidth=1.2;
+            ctx.beginPath(); ctx.moveTo(ax,ay); ctx.quadraticCurveTo(cpx,cpy,bx,by); ctx.stroke();
+
+            // Small dots at endpoints glow when bridged
+            ctx.fillStyle=`rgba(${colA[0]},${colA[1]},${colA[2]},${alpha*0.3})`;
+            ctx.beginPath(); ctx.arc(ax,ay,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle=`rgba(${colB[0]},${colB[1]},${colB[2]},${alpha*0.3})`;
+            ctx.beginPath(); ctx.arc(bx,by,4,0,Math.PI*2); ctx.fill();
+
+            // Particle travelling along the bridge
+            const tp = (age*0.008+pulsePhase)%1;
+            const tu=tp;
+            const tx2=(1-tu)*(1-tu)*ax+2*(1-tu)*tu*cpx+tu*tu*bx;
+            const ty2=(1-tu)*(1-tu)*ay+2*(1-tu)*tu*cpy+tu*tu*by;
+            const ta=Math.sin(tu*Math.PI)*alpha*0.6;
+            ctx.fillStyle=`rgba(${mr},${mg},${mb},${ta})`;
+            ctx.beginPath(); ctx.arc(tx2,ty2,2,0,Math.PI*2); ctx.fill();
+        });
+    }
+
     let t = 0;
 
     function updateCloud(zone){
@@ -2009,6 +2110,10 @@ function drawLayerViz(containerId, drawFn) {
         // Update + draw clouds
         allZones.forEach(updateCloud);
         allZones.forEach(drawCloud);
+
+        // ── Cross-layer bridges ──
+        updateBridges();
+        drawBridges();
 
         // ── Cross-zone signals ──
         if(Math.random()<0.1) spawnSignal();
