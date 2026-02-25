@@ -150,7 +150,7 @@
         /* ── Difference: 3 Layers ── */
         #difference { background: var(--bg); }
         .layers-visual { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 4rem; position: relative; }
-        .layers-visual::before { content: ''; position: absolute; top: 50%; left: 33.33%; width: 33.33%; height: 2px; background: var(--gradient-warm); transform: translateY(-50%); z-index: 2; opacity: 0.4; }
+        .layers-visual::before { display: none; }
         .diff-layer { padding: 3rem; border: 1px solid rgba(200,169,110,0.08); position: relative; transition: all 0.4s ease; }
         .diff-layer:hover { background: var(--surface); border-color: rgba(200,169,110,0.15); }
         .diff-layer-num { font-family: 'Playfair Display', serif; font-size: 0.8rem; font-weight: 600; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
@@ -1822,301 +1822,199 @@ function drawLayerViz(containerId, drawFn) {
     const ctx = c.getContext('2d');
     const W = c.width, H = c.height;
     const GOLD=[200,169,110], TEAL=[91,200,180], ROSE=[200,110,139], BLUE=[110,170,200], AMBER=[200,140,80];
-
-    // Three zones
     const zoneW = W/3;
-    const zones = [
-        { label:'MEANING', sub:'Beliefs · Assumptions · Narratives', col:GOLD },
-        { label:'ARCHITECTURE', sub:'Structure · Capabilities · Processes', col:TEAL },
-        { label:'TENSIONS', sub:'Friction · Feedback · Leverage', col:ROSE }
-    ];
 
-    // ── Zone 1: Meaning — floating belief words ──
-    const beliefs = ['Purpose','Growth','Trust','Innovation','Culture','Risk','Autonomy','Alignment','Value','Speed','Quality','Agility'];
-    const bNodes = beliefs.map((w,i)=>({
-        label: w,
-        x: 40 + Math.random()*(zoneW-80),
-        y: 30 + Math.random()*(H-70),
-        vx: (Math.random()-0.5)*0.3,
-        vy: (Math.random()-0.5)*0.2,
-        size: 7 + Math.random()*4,
-        phase: Math.random()*Math.PI*2
-    }));
-
-    // ── Zone 2: Architecture — structured graph ──
-    const archNodes = [
-        {x:zoneW+zoneW*0.5, y:25, label:'Org', r:0},
-        {x:zoneW+zoneW*0.2, y:65, label:'Eng', r:1},
-        {x:zoneW+zoneW*0.5, y:65, label:'Prod', r:1},
-        {x:zoneW+zoneW*0.8, y:65, label:'Ops', r:1},
-        {x:zoneW+zoneW*0.1, y:115, label:'Dev', r:2},
-        {x:zoneW+zoneW*0.3, y:115, label:'QA', r:2},
-        {x:zoneW+zoneW*0.45, y:115, label:'Design', r:2},
-        {x:zoneW+zoneW*0.6, y:115, label:'Growth', r:2},
-        {x:zoneW+zoneW*0.75, y:115, label:'Support', r:2},
-        {x:zoneW+zoneW*0.9, y:115, label:'Infra', r:2}
-    ];
-    const archEdges = [[0,1],[0,2],[0,3],[1,4],[1,5],[2,6],[2,7],[3,8],[3,9]];
-
-    // ── Zone 3: Tensions — causal loops ──
-    const tensionNodes = [
-        {x:2*zoneW+zoneW*0.5, y:H*0.3, label:'Speed'},
-        {x:2*zoneW+zoneW*0.82, y:H*0.3, label:'Quality'},
-        {x:2*zoneW+zoneW*0.82, y:H*0.7, label:'Trust'},
-        {x:2*zoneW+zoneW*0.5, y:H*0.7, label:'Debt'},
-        {x:2*zoneW+zoneW*0.18, y:H*0.5, label:'Growth'},
-        {x:2*zoneW+zoneW*0.2, y:H*0.8, label:'Burnout'}
-    ];
-    // Directed edges: from, to, type (+ reinforcing, - balancing)
-    const tensionEdges = [
-        [0,1,'-'], [1,2,'+'], [2,0,'+'], [0,3,'+'], [3,1,'-'], [4,0,'+'], [4,5,'+'], [5,2,'-']
-    ];
-
-    // ── Flow particles between zones ──
-    const flowParts = [];
-    class FlowParticle {
-        constructor(){
-            this.x = Math.random()*W;
-            this.y = 30 + Math.random()*(H-60);
-            this.speed = 0.4 + Math.random()*0.5;
-            this.size = 1 + Math.random()*1.5;
-            this.alpha = 0;
+    // ── Generic dense cloud generator ──
+    function makeCloud(count, zoneIdx, labels, colors, sizeRange){
+        const ox = zoneIdx*zoneW;
+        const nodes = [];
+        for(let i=0;i<count;i++){
+            const col = colors[i%colors.length];
+            nodes.push({
+                bx: ox + 40 + Math.random()*(zoneW-80),
+                by: 25 + Math.random()*(H-50),
+                x:0, y:0,
+                vx: (Math.random()-0.5)*0.18,
+                vy: (Math.random()-0.5)*0.12,
+                r: sizeRange[0] + Math.random()*(sizeRange[1]-sizeRange[0]),
+                col: col,
+                phase: Math.random()*Math.PI*2,
+                label: labels ? labels[i%labels.length] : null,
+                spring: 0.0003 + Math.random()*0.0003 // rigidity — pull back to base
+            });
         }
-        update(){
-            this.x += this.speed;
-            if(this.x > W+10) { this.x = -10; this.y = 30+Math.random()*(H-60); }
-            // Alpha based on zone boundaries — glow at transitions
-            const z = this.x / zoneW;
-            const frac = z % 1;
-            this.alpha = (frac < 0.1 || frac > 0.9) ? 0.5 : 0.12;
-        }
-    }
-    for(let i=0;i<40;i++) flowParts.push(new FlowParticle());
-
-    // Tension arc particles
-    const tensionParts = [];
-    class TensionParticle {
-        constructor(ei){ this.ei=ei; this.p=Math.random(); this.sp=0.004+Math.random()*0.003; }
-        update(){ this.p+=this.sp; if(this.p>1) this.p=0; }
-    }
-    tensionEdges.forEach((_,i)=>{ tensionParts.push(new TensionParticle(i)); tensionParts.push(new TensionParticle(i)); });
-
-    let t = 0;
-
-    function drawArrow(x1,y1,x2,y2,col,alpha){
-        const a = Math.atan2(y2-y1,x2-x1);
-        const hl=6;
-        ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;
-        ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-        ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;
-        ctx.beginPath();
-        ctx.moveTo(x2,y2);
-        ctx.lineTo(x2-hl*Math.cos(a-0.35), y2-hl*Math.sin(a-0.35));
-        ctx.lineTo(x2-hl*Math.cos(a+0.35), y2-hl*Math.sin(a+0.35));
-        ctx.fill();
-    }
-
-    function draw(){
-        t += 0.01;
-        ctx.fillStyle = 'rgba(11,15,20,0.94)';
-        ctx.fillRect(0,0,W,H);
-
-        // Zone dividers
-        for(let i=1;i<3;i++){
-            const dx = zoneW*i;
-            ctx.strokeStyle = 'rgba(200,169,110,0.08)';
-            ctx.setLineDash([3,5]);
-            ctx.beginPath(); ctx.moveTo(dx,10); ctx.lineTo(dx,H-10); ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Flow arrows at boundaries
-            const pulse = Math.sin(t*2+i)*0.3+0.7;
-            ctx.fillStyle = `rgba(200,169,110,${0.15*pulse})`;
-            const ay = H/2;
-            ctx.beginPath();
-            ctx.moveTo(dx-8,ay-6); ctx.lineTo(dx+4,ay); ctx.lineTo(dx-8,ay+6);
-            ctx.fill();
-        }
-
-        // Zone labels at top
-        ctx.font = 'bold 9px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        zones.forEach((z,i)=>{
-            const zx = zoneW*i + zoneW/2;
-            ctx.fillStyle = `rgba(${z.col[0]},${z.col[1]},${z.col[2]},0.35)`;
-            ctx.fillText(z.label, zx, 14);
-            ctx.font = '7px Inter, sans-serif';
-            ctx.fillStyle = `rgba(${z.col[0]},${z.col[1]},${z.col[2]},0.18)`;
-            ctx.fillText(z.sub, zx, 25);
-            ctx.font = 'bold 9px Inter, sans-serif';
-        });
-
-        // ═══ ZONE 1: Meaning ═══
-        // Belief nodes drift
-        bNodes.forEach(n => {
-            n.x += n.vx + Math.sin(t*0.7+n.phase)*0.15;
-            n.y += n.vy + Math.cos(t*0.5+n.phase)*0.1;
-            if(n.x<20||n.x>zoneW-20) n.vx*=-1;
-            if(n.y<30||n.y>H-20) n.vy*=-1;
-            n.x = Math.max(15, Math.min(zoneW-15, n.x));
-            n.y = Math.max(30, Math.min(H-15, n.y));
-        });
-
-        // Connections between nearby beliefs
-        for(let i=0;i<bNodes.length;i++){
-            for(let j=i+1;j<bNodes.length;j++){
-                const dx=bNodes[i].x-bNodes[j].x, dy=bNodes[i].y-bNodes[j].y;
+        // Pre-compute some edges (denser connectivity)
+        const edges = [];
+        for(let i=0;i<nodes.length;i++){
+            for(let j=i+1;j<nodes.length;j++){
+                const dx=nodes[i].bx-nodes[j].bx, dy=nodes[i].by-nodes[j].by;
                 const d=Math.sqrt(dx*dx+dy*dy);
-                if(d<90){
-                    const a=Math.max(0,(90-d)/90)*0.15;
-                    ctx.strokeStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${a})`;
-                    ctx.lineWidth=0.7;
-                    ctx.beginPath(); ctx.moveTo(bNodes[i].x,bNodes[i].y); ctx.lineTo(bNodes[j].x,bNodes[j].y); ctx.stroke();
+                if(d<120 && Math.random()<0.55){
+                    edges.push([i,j, 0.5+Math.random()*0.5]); // weight
                 }
             }
         }
+        return {nodes, edges, ox};
+    }
 
-        // Belief word labels
-        ctx.font = '8px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        bNodes.forEach(n => {
-            const pulse = Math.sin(t*1.2+n.phase)*0.15+0.35;
-            ctx.fillStyle = `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${pulse})`;
-            ctx.fillText(n.label, n.x, n.y-n.size-3);
-            // Dot
-            ctx.fillStyle = `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${pulse+0.15})`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,2.5,0,Math.PI*2); ctx.fill();
+    // Zone 1: Meaning
+    const meaningLabels = ['Purpose','Growth','Trust','Innovation','Culture','Risk','Autonomy','Alignment','Value','Speed','Quality','Agility','Vision','Belief','Narrative'];
+    const z1 = makeCloud(15, 0, meaningLabels, [GOLD,GOLD,AMBER], [2,5]);
+
+    // Zone 2: Architecture — dense, varied colors
+    const archLabels = ['Teams','Processes','Capabilities','Roles','Governance','Tech','Data','Products','Services','APIs','Workflows','Units','Skills','Domains','Platforms'];
+    const z2 = makeCloud(18, 1, archLabels, [TEAL,BLUE,TEAL,BLUE], [2,6]);
+
+    // Zone 3: Tensions — rose/amber
+    const tensionLabels = ['Speed','Quality','Trust','Debt','Growth','Burnout','Risk','Agility','Control','Autonomy','Alignment','Innovation','Friction','Inertia','Leverage'];
+    const z3 = makeCloud(16, 2, tensionLabels, [ROSE,AMBER,ROSE,AMBER], [2,5.5]);
+
+    const allZones = [z1,z2,z3];
+
+    // ── Cross-zone signal particles — move in ALL directions ──
+    const signals = [];
+    function spawnSignal(){
+        // Pick random source and target zone
+        const sz = Math.floor(Math.random()*3);
+        const tz = (sz + (Math.random()<0.5 ? 1 : 2)) % 3;
+        const sn = allZones[sz].nodes[Math.floor(Math.random()*allZones[sz].nodes.length)];
+        const tn = allZones[tz].nodes[Math.floor(Math.random()*allZones[tz].nodes.length)];
+        // Color blend — start with source zone color, end with target zone color
+        const scol = sn.col, tcol = tn.col;
+        signals.push({
+            sx: sn.x||sn.bx, sy: sn.y||sn.by,
+            tx: tn.x||tn.bx, ty: tn.y||tn.by,
+            p: 0, speed: 0.004 + Math.random()*0.005,
+            scol, tcol,
+            size: 1.2 + Math.random()*1.5
         });
+    }
 
-        // ═══ ZONE 2: Architecture ═══
+    let t = 0;
+
+    function updateCloud(zone){
+        zone.nodes.forEach(n => {
+            // Drift
+            n.x = n.bx + n.vx * 100;
+            n.y = n.by + n.vy * 100;
+            // Slow organic movement
+            n.bx += n.vx + Math.sin(t*0.4+n.phase)*0.08;
+            n.by += n.vy + Math.cos(t*0.3+n.phase)*0.06;
+            // Spring back towards original zone area
+            const zoneCenter = zone.ox + zoneW/2;
+            const yCent = H/2;
+            n.vx += (zoneCenter - n.bx)*n.spring;
+            n.vy += (yCent - n.by)*n.spring*0.5;
+            // Damping
+            n.vx *= 0.995;
+            n.vy *= 0.995;
+            // Bounds (soft)
+            if(n.bx < zone.ox+15) n.vx += 0.02;
+            if(n.bx > zone.ox+zoneW-15) n.vx -= 0.02;
+            if(n.by < 20) n.vy += 0.02;
+            if(n.by > H-15) n.vy -= 0.02;
+            n.x = n.bx; n.y = n.by;
+        });
+    }
+
+    function drawCloud(zone, baseAlpha){
+        const {nodes, edges} = zone;
         // Edges
-        ctx.strokeStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.35)`;
-        ctx.lineWidth=1.2;
-        archEdges.forEach(([a,b])=>{
-            ctx.beginPath(); ctx.moveTo(archNodes[a].x,archNodes[a].y); ctx.lineTo(archNodes[b].x,archNodes[b].y); ctx.stroke();
+        edges.forEach(([i,j,w])=>{
+            const a=nodes[i], b=nodes[j];
+            const dx=a.x-b.x, dy=a.y-b.y;
+            const d=Math.sqrt(dx*dx+dy*dy);
+            if(d>130) return;
+            const alpha = Math.max(0,(130-d)/130)*w*baseAlpha*0.2;
+            // Use average color
+            const col = a.col;
+            ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;
+            ctx.lineWidth=0.6+w*0.6;
+            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
         });
-
         // Nodes
-        archNodes.forEach(n => {
-            const sz = n.r===0?8 : n.r===1?6 : 4;
+        nodes.forEach(n => {
+            const pulse = Math.sin(t*1.0+n.phase)*0.12+0.88;
+            const a = baseAlpha * pulse;
             // Glow
-            ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.06)`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,sz+5,0,Math.PI*2); ctx.fill();
-            // Box shape for formal
-            ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.5)`;
-            ctx.fillRect(n.x-sz/2,n.y-sz/2,sz,sz);
-            ctx.strokeStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.7)`;
-            ctx.lineWidth=0.7;
-            ctx.strokeRect(n.x-sz/2,n.y-sz/2,sz,sz);
+            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.06})`;
+            ctx.beginPath(); ctx.arc(n.x,n.y,n.r+6,0,Math.PI*2); ctx.fill();
+            // Core
+            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.55})`;
+            ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
             // Label
-            ctx.font='7px Inter, sans-serif';
-            ctx.textAlign='center';
-            ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},0.4)`;
-            ctx.fillText(n.label, n.x, n.y+sz/2+10);
+            if(n.label && n.r>3){
+                ctx.font='7px Inter, sans-serif';
+                ctx.textAlign='center';
+                ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.35})`;
+                ctx.fillText(n.label, n.x, n.y - n.r - 4);
+            }
+        });
+    }
+
+    function draw(){
+        t += 0.012;
+        ctx.fillStyle = 'rgba(11,15,20,0.92)';
+        ctx.fillRect(0,0,W,H);
+
+        // Soft zone dividers (very subtle)
+        for(let i=1;i<3;i++){
+            const dx = zoneW*i;
+            ctx.strokeStyle = 'rgba(200,169,110,0.04)';
+            ctx.setLineDash([2,6]);
+            ctx.beginPath(); ctx.moveTo(dx,15); ctx.lineTo(dx,H-15); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Zone labels
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        const zLabels = [
+            {text:'MEANING', col:GOLD},
+            {text:'ARCHITECTURE', col:TEAL},
+            {text:'TENSIONS', col:ROSE}
+        ];
+        zLabels.forEach((z,i)=>{
+            ctx.fillStyle = `rgba(${z.col[0]},${z.col[1]},${z.col[2]},0.25)`;
+            ctx.fillText(z.text, zoneW*i+zoneW/2, 12);
         });
 
-        // Capability flow pulse along edges
-        const ePulse = (t*2)%1;
-        archEdges.forEach(([a,b])=>{
-            const na=archNodes[a], nb=archNodes[b];
-            const px=na.x+(nb.x-na.x)*ePulse, py=na.y+(nb.y-na.y)*ePulse;
-            const pa=Math.sin(ePulse*Math.PI)*0.4;
-            ctx.fillStyle=`rgba(${TEAL[0]},${TEAL[1]},${TEAL[2]},${pa})`;
-            ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2); ctx.fill();
-        });
+        // Update and draw all three clouds
+        allZones.forEach(z => updateCloud(z));
+        allZones.forEach(z => drawCloud(z, 1.0));
 
-        // ═══ ZONE 3: Tensions ═══
-        // Edges with arrows
-        tensionEdges.forEach(([a,b,type],ei)=>{
-            const na=tensionNodes[a], nb=tensionNodes[b];
-            const col = type==='+' ? ROSE : AMBER;
-            const dx=nb.x-na.x, dy=nb.y-na.y;
-            const len=Math.sqrt(dx*dx+dy*dy)||1;
-            // Shorten to not overlap nodes
-            const off=12;
-            const sx=na.x+dx/len*off, sy=na.y+dy/len*off;
-            const ex=nb.x-dx/len*off, ey=nb.y-dy/len*off;
+        // ── Cross-zone signals ──
+        // Spawn new signals
+        if(Math.random()<0.08) spawnSignal();
 
-            // Curved edge
-            const px=-dy/len, py=dx/len;
-            const curve = Math.sin(t*0.8+ei)*8+8;
-            const cpx=(sx+ex)/2+px*curve, cpy=(sy+ey)/2+py*curve;
+        // Update signals
+        for(let i=signals.length-1;i>=0;i--){
+            const s = signals[i];
+            s.p += s.speed;
+            if(s.p>=1){ signals.splice(i,1); continue; }
 
-            ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},0.35)`;
-            ctx.lineWidth=1.2;
-            ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(cpx,cpy,ex,ey); ctx.stroke();
+            // Interpolate position with slight curve
+            const u = s.p;
+            const bend = Math.sin(u*Math.PI)*20*(Math.sin(t+i)*0.5+0.5);
+            const dx = s.tx-s.sx, dy = s.ty-s.sy;
+            const len = Math.sqrt(dx*dx+dy*dy)||1;
+            const px = -dy/len, py = dx/len;
+            const x = s.sx + dx*u + px*bend;
+            const y = s.sy + dy*u + py*bend;
 
-            // Arrowhead
-            const arrA = Math.atan2(ey-cpy, ex-cpx);
-            ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},0.4)`;
-            ctx.beginPath();
-            ctx.moveTo(ex,ey);
-            ctx.lineTo(ex-5*Math.cos(arrA-0.4), ey-5*Math.sin(arrA-0.4));
-            ctx.lineTo(ex-5*Math.cos(arrA+0.4), ey-5*Math.sin(arrA+0.4));
-            ctx.fill();
+            // Color interpolation
+            const r = Math.round(s.scol[0]*(1-u)+s.tcol[0]*u);
+            const g = Math.round(s.scol[1]*(1-u)+s.tcol[1]*u);
+            const b = Math.round(s.scol[2]*(1-u)+s.tcol[2]*u);
+            const alpha = Math.sin(u*Math.PI)*0.55;
 
-            // +/- label at midpoint
-            ctx.font='bold 8px Inter, sans-serif';
-            ctx.textAlign='center';
-            ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},0.3)`;
-            ctx.fillText(type, cpx, cpy-4);
-        });
-
-        // Tension arc particles
-        tensionParts.forEach(tp => {
-            tp.update();
-            const [a,b,type] = tensionEdges[tp.ei];
-            const na=tensionNodes[a], nb=tensionNodes[b];
-            const col = type==='+' ? ROSE : AMBER;
-            const dx=nb.x-na.x, dy=nb.y-na.y;
-            const len=Math.sqrt(dx*dx+dy*dy)||1;
-            const off=12;
-            const sx=na.x+dx/len*off, sy=na.y+dy/len*off;
-            const ex=nb.x-dx/len*off, ey=nb.y-dy/len*off;
-            const px=-dy/len, py=dx/len;
-            const curve = Math.sin(t*0.8+tp.ei)*8+8;
-            const cpx=(sx+ex)/2+px*curve, cpy=(sy+ey)/2+py*curve;
-            // Quadratic bezier point
-            const u=tp.p;
-            const bx=(1-u)*(1-u)*sx + 2*(1-u)*u*cpx + u*u*ex;
-            const by=(1-u)*(1-u)*sy + 2*(1-u)*u*cpy + u*u*ey;
-            const pa=Math.sin(u*Math.PI)*0.5;
-            ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${pa})`;
-            ctx.beginPath(); ctx.arc(bx,by,1.5,0,Math.PI*2); ctx.fill();
-        });
-
-        // Tension nodes
-        tensionNodes.forEach(n => {
-            const pulse = Math.sin(t*1.5+n.x*0.01)*0.2+0.8;
-            // Glow
-            ctx.fillStyle=`rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},0.06)`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,14,0,Math.PI*2); ctx.fill();
-            // Node
-            ctx.fillStyle=`rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${0.5*pulse})`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,5,0,Math.PI*2); ctx.fill();
-            ctx.strokeStyle=`rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},${0.4*pulse})`;
-            ctx.lineWidth=1;
-            ctx.beginPath(); ctx.arc(n.x,n.y,8,0,Math.PI*2); ctx.stroke();
-            // Label
-            ctx.font='7px Inter, sans-serif';
-            ctx.textAlign='center';
-            ctx.fillStyle=`rgba(${ROSE[0]},${ROSE[1]},${ROSE[2]},0.45)`;
-            ctx.fillText(n.label, n.x, n.y-12);
-        });
-
-        // ═══ Flow particles across all zones ═══
-        flowParts.forEach(fp => {
-            fp.update();
-            // Color transitions as particles cross zones
-            const z = fp.x / zoneW;
-            let col;
-            if(z<1) col=GOLD;
-            else if(z<2) col=TEAL;
-            else col=ROSE;
-            ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${fp.alpha})`;
-            ctx.beginPath(); ctx.arc(fp.x,fp.y,fp.size,0,Math.PI*2); ctx.fill();
-        });
+            // Trail glow
+            ctx.fillStyle=`rgba(${r},${g},${b},${alpha*0.15})`;
+            ctx.beginPath(); ctx.arc(x,y,s.size+4,0,Math.PI*2); ctx.fill();
+            // Core
+            ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;
+            ctx.beginPath(); ctx.arc(x,y,s.size,0,Math.PI*2); ctx.fill();
+        }
 
         requestAnimationFrame(draw);
     }
