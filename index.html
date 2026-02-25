@@ -1823,141 +1823,173 @@ function drawLayerViz(containerId, drawFn) {
     const W = c.width, H = c.height;
     const GOLD=[200,169,110], TEAL=[91,200,180], ROSE=[200,110,139], BLUE=[110,170,200], AMBER=[200,140,80];
     const zoneW = W/3;
+    const PAD_X = 25, PAD_Y = 22;
 
-    // ── Generic dense cloud generator ──
+    // ── Cloud generator with proper physics ──
     function makeCloud(count, zoneIdx, labels, colors, sizeRange){
         const ox = zoneIdx*zoneW;
         const nodes = [];
         for(let i=0;i<count;i++){
             const col = colors[i%colors.length];
+            // Distribute evenly across the zone area
+            const x = ox + PAD_X + Math.random()*(zoneW-PAD_X*2);
+            const y = PAD_Y + Math.random()*(H-PAD_Y*2);
             nodes.push({
-                bx: ox + 40 + Math.random()*(zoneW-80),
-                by: 25 + Math.random()*(H-50),
-                x:0, y:0,
-                vx: (Math.random()-0.5)*0.18,
-                vy: (Math.random()-0.5)*0.12,
+                x, y,
+                vx: (Math.random()-0.5)*0.4,
+                vy: (Math.random()-0.5)*0.3,
                 r: sizeRange[0] + Math.random()*(sizeRange[1]-sizeRange[0]),
-                col: col,
+                col,
                 phase: Math.random()*Math.PI*2,
-                label: labels ? labels[i%labels.length] : null,
-                spring: 0.0003 + Math.random()*0.0003 // rigidity — pull back to base
+                wanderAngle: Math.random()*Math.PI*2,
+                wanderSpeed: 0.01+Math.random()*0.02,
+                label: labels[i%labels.length]
             });
         }
-        // Pre-compute some edges (denser connectivity)
-        const edges = [];
-        for(let i=0;i<nodes.length;i++){
-            for(let j=i+1;j<nodes.length;j++){
-                const dx=nodes[i].bx-nodes[j].bx, dy=nodes[i].by-nodes[j].by;
-                const d=Math.sqrt(dx*dx+dy*dy);
-                if(d<120 && Math.random()<0.55){
-                    edges.push([i,j, 0.5+Math.random()*0.5]); // weight
-                }
-            }
-        }
-        return {nodes, edges, ox};
+        return {nodes, ox, zoneIdx};
     }
 
     // Zone 1: Meaning
-    const meaningLabels = ['Purpose','Growth','Trust','Innovation','Culture','Risk','Autonomy','Alignment','Value','Speed','Quality','Agility','Vision','Belief','Narrative'];
-    const z1 = makeCloud(15, 0, meaningLabels, [GOLD,GOLD,AMBER], [2,5]);
+    const z1 = makeCloud(15, 0,
+        ['Purpose','Growth','Trust','Innovation','Culture','Risk','Autonomy','Alignment','Value','Speed','Quality','Agility','Vision','Belief','Narrative'],
+        [GOLD,GOLD,AMBER], [2,5]);
 
-    // Zone 2: Architecture — dense, varied colors
-    const archLabels = ['Teams','Processes','Capabilities','Roles','Governance','Tech','Data','Products','Services','APIs','Workflows','Units','Skills','Domains','Platforms'];
-    const z2 = makeCloud(18, 1, archLabels, [TEAL,BLUE,TEAL,BLUE], [2,6]);
+    // Zone 2: Architecture
+    const z2 = makeCloud(18, 1,
+        ['Teams','Processes','Capabilities','Roles','Governance','Tech','Data','Products','Services','APIs','Workflows','Units','Skills','Domains','Platforms','Systems','Ops','Delivery'],
+        [TEAL,BLUE,TEAL,BLUE], [2,6]);
 
-    // Zone 3: Tensions — rose/amber
-    const tensionLabels = ['Speed','Quality','Trust','Debt','Growth','Burnout','Risk','Agility','Control','Autonomy','Alignment','Innovation','Friction','Inertia','Leverage'];
-    const z3 = makeCloud(16, 2, tensionLabels, [ROSE,AMBER,ROSE,AMBER], [2,5.5]);
+    // Zone 3: Tensions
+    const z3 = makeCloud(16, 2,
+        ['Speed','Quality','Trust','Debt','Growth','Burnout','Risk','Agility','Control','Autonomy','Alignment','Innovation','Friction','Inertia','Leverage','Entropy'],
+        [ROSE,AMBER,ROSE,AMBER], [2,5.5]);
 
     const allZones = [z1,z2,z3];
 
-    // ── Cross-zone signal particles — move in ALL directions ──
+    // ── Cross-zone signals ──
     const signals = [];
     function spawnSignal(){
-        // Pick random source and target zone
         const sz = Math.floor(Math.random()*3);
         const tz = (sz + (Math.random()<0.5 ? 1 : 2)) % 3;
         const sn = allZones[sz].nodes[Math.floor(Math.random()*allZones[sz].nodes.length)];
         const tn = allZones[tz].nodes[Math.floor(Math.random()*allZones[tz].nodes.length)];
-        // Color blend — start with source zone color, end with target zone color
-        const scol = sn.col, tcol = tn.col;
         signals.push({
-            sx: sn.x||sn.bx, sy: sn.y||sn.by,
-            tx: tn.x||tn.bx, ty: tn.y||tn.by,
-            p: 0, speed: 0.004 + Math.random()*0.005,
-            scol, tcol,
-            size: 1.2 + Math.random()*1.5
+            sx:sn.x, sy:sn.y, tx:tn.x, ty:tn.y,
+            p:0, speed: 0.003+Math.random()*0.005,
+            scol:sn.col, tcol:tn.col,
+            size: 1.2+Math.random()*1.5
         });
     }
 
     let t = 0;
 
     function updateCloud(zone){
-        zone.nodes.forEach(n => {
-            // Drift
-            n.x = n.bx + n.vx * 100;
-            n.y = n.by + n.vy * 100;
-            // Slow organic movement
-            n.bx += n.vx + Math.sin(t*0.4+n.phase)*0.08;
-            n.by += n.vy + Math.cos(t*0.3+n.phase)*0.06;
-            // Spring back towards original zone area
-            const zoneCenter = zone.ox + zoneW/2;
-            const yCent = H/2;
-            n.vx += (zoneCenter - n.bx)*n.spring;
-            n.vy += (yCent - n.by)*n.spring*0.5;
-            // Damping
-            n.vx *= 0.995;
-            n.vy *= 0.995;
-            // Bounds (soft)
-            if(n.bx < zone.ox+15) n.vx += 0.02;
-            if(n.bx > zone.ox+zoneW-15) n.vx -= 0.02;
-            if(n.by < 20) n.vy += 0.02;
-            if(n.by > H-15) n.vy -= 0.02;
-            n.x = n.bx; n.y = n.by;
-        });
+        const {nodes, ox} = zone;
+        const xMin = ox+PAD_X, xMax = ox+zoneW-PAD_X;
+        const yMin = PAD_Y, yMax = H-PAD_Y;
+
+        for(let i=0;i<nodes.length;i++){
+            const n = nodes[i];
+
+            // Wander: slowly rotating drive direction — keeps nodes exploring
+            n.wanderAngle += (Math.random()-0.5)*0.3;
+            n.vx += Math.cos(n.wanderAngle)*0.012;
+            n.vy += Math.sin(n.wanderAngle)*0.012;
+
+            // Perlin-like organic drift
+            n.vx += Math.sin(t*0.31+n.phase)*0.008 + Math.sin(t*0.73+n.phase*2.1)*0.005;
+            n.vy += Math.cos(t*0.27+n.phase)*0.006 + Math.cos(t*0.61+n.phase*1.7)*0.004;
+
+            // Repulsion from other nodes — prevents clustering
+            for(let j=0;j<nodes.length;j++){
+                if(i===j) continue;
+                const dx=n.x-nodes[j].x, dy=n.y-nodes[j].y;
+                const d2=dx*dx+dy*dy;
+                const minDist=28;
+                if(d2<minDist*minDist && d2>0.1){
+                    const d=Math.sqrt(d2);
+                    const force=0.08*(minDist-d)/minDist;
+                    n.vx+=dx/d*force;
+                    n.vy+=dy/d*force;
+                }
+            }
+
+            // Soft wall bounce (zone boundaries) — elastic, not dead stop
+            if(n.x<xMin+10){ n.vx+=0.04*(xMin+10-n.x); }
+            if(n.x>xMax-10){ n.vx-=0.04*(n.x-(xMax-10)); }
+            if(n.y<yMin+8){ n.vy+=0.04*(yMin+8-n.y); }
+            if(n.y>yMax-8){ n.vy-=0.04*(n.y-(yMax-8)); }
+
+            // Gentle pull toward zone center (very weak — just prevents drift out)
+            const cx = ox+zoneW/2, cy=H/2;
+            n.vx += (cx-n.x)*0.00004;
+            n.vy += (cy-n.y)*0.00003;
+
+            // Speed limit + damping
+            const speed = Math.sqrt(n.vx*n.vx+n.vy*n.vy);
+            const maxSpeed = 0.6;
+            if(speed>maxSpeed){ n.vx*=maxSpeed/speed; n.vy*=maxSpeed/speed; }
+            n.vx *= 0.992;
+            n.vy *= 0.992;
+
+            // Apply
+            n.x += n.vx;
+            n.y += n.vy;
+
+            // Hard clamp as safety net
+            n.x = Math.max(xMin, Math.min(xMax, n.x));
+            n.y = Math.max(yMin, Math.min(yMax, n.y));
+        }
     }
 
-    function drawCloud(zone, baseAlpha){
-        const {nodes, edges} = zone;
-        // Edges
-        edges.forEach(([i,j,w])=>{
-            const a=nodes[i], b=nodes[j];
-            const dx=a.x-b.x, dy=a.y-b.y;
-            const d=Math.sqrt(dx*dx+dy*dy);
-            if(d>130) return;
-            const alpha = Math.max(0,(130-d)/130)*w*baseAlpha*0.2;
-            // Use average color
-            const col = a.col;
-            ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;
-            ctx.lineWidth=0.6+w*0.6;
-            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-        });
+    function drawCloud(zone){
+        const {nodes} = zone;
+
+        // Dynamic edges: draw between nodes that are close enough
+        for(let i=0;i<nodes.length;i++){
+            for(let j=i+1;j<nodes.length;j++){
+                const a=nodes[i], b=nodes[j];
+                const dx=a.x-b.x, dy=a.y-b.y;
+                const d=Math.sqrt(dx*dx+dy*dy);
+                const maxD = 100;
+                if(d>maxD) continue;
+                const alpha = ((maxD-d)/maxD)*0.18;
+                const col = a.col;
+                ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;
+                ctx.lineWidth=0.5+((maxD-d)/maxD)*0.8;
+                ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+            }
+        }
+
         // Nodes
         nodes.forEach(n => {
-            const pulse = Math.sin(t*1.0+n.phase)*0.12+0.88;
-            const a = baseAlpha * pulse;
+            const pulse = Math.sin(t*0.8+n.phase)*0.15+0.85;
+            // Size breathing — nodes slowly grow/shrink
+            const breathe = 1 + Math.sin(t*0.4+n.phase*1.3)*0.2;
+            const rr = n.r * breathe;
             // Glow
-            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.06})`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,n.r+6,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${pulse*0.05})`;
+            ctx.beginPath(); ctx.arc(n.x,n.y,rr+7,0,Math.PI*2); ctx.fill();
             // Core
-            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.55})`;
-            ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
-            // Label
-            if(n.label && n.r>3){
+            ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${pulse*0.55})`;
+            ctx.beginPath(); ctx.arc(n.x,n.y,rr,0,Math.PI*2); ctx.fill();
+            // Label for bigger nodes
+            if(rr>2.8){
                 ctx.font='7px Inter, sans-serif';
                 ctx.textAlign='center';
-                ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${a*0.35})`;
-                ctx.fillText(n.label, n.x, n.y - n.r - 4);
+                ctx.fillStyle=`rgba(${n.col[0]},${n.col[1]},${n.col[2]},${pulse*0.3})`;
+                ctx.fillText(n.label, n.x, n.y-rr-4);
             }
         });
     }
 
     function draw(){
         t += 0.012;
-        ctx.fillStyle = 'rgba(11,15,20,0.92)';
+        // Slight trail effect instead of full clear — gives a living feel
+        ctx.fillStyle = 'rgba(11,15,20,0.88)';
         ctx.fillRect(0,0,W,H);
 
-        // Soft zone dividers (very subtle)
+        // Very subtle zone dividers
         for(let i=1;i<3;i++){
             const dx = zoneW*i;
             ctx.strokeStyle = 'rgba(200,169,110,0.04)';
@@ -1969,49 +2001,33 @@ function drawLayerViz(containerId, drawFn) {
         // Zone labels
         ctx.font = 'bold 9px Inter, sans-serif';
         ctx.textAlign = 'center';
-        const zLabels = [
-            {text:'MEANING', col:GOLD},
-            {text:'ARCHITECTURE', col:TEAL},
-            {text:'TENSIONS', col:ROSE}
-        ];
-        zLabels.forEach((z,i)=>{
-            ctx.fillStyle = `rgba(${z.col[0]},${z.col[1]},${z.col[2]},0.25)`;
+        [{text:'MEANING',col:GOLD},{text:'ARCHITECTURE',col:TEAL},{text:'TENSIONS',col:ROSE}].forEach((z,i)=>{
+            ctx.fillStyle = `rgba(${z.col[0]},${z.col[1]},${z.col[2]},0.22)`;
             ctx.fillText(z.text, zoneW*i+zoneW/2, 12);
         });
 
-        // Update and draw all three clouds
-        allZones.forEach(z => updateCloud(z));
-        allZones.forEach(z => drawCloud(z, 1.0));
+        // Update + draw clouds
+        allZones.forEach(updateCloud);
+        allZones.forEach(drawCloud);
 
         // ── Cross-zone signals ──
-        // Spawn new signals
-        if(Math.random()<0.08) spawnSignal();
-
-        // Update signals
+        if(Math.random()<0.1) spawnSignal();
         for(let i=signals.length-1;i>=0;i--){
             const s = signals[i];
             s.p += s.speed;
             if(s.p>=1){ signals.splice(i,1); continue; }
-
-            // Interpolate position with slight curve
-            const u = s.p;
-            const bend = Math.sin(u*Math.PI)*20*(Math.sin(t+i)*0.5+0.5);
-            const dx = s.tx-s.sx, dy = s.ty-s.sy;
-            const len = Math.sqrt(dx*dx+dy*dy)||1;
-            const px = -dy/len, py = dx/len;
-            const x = s.sx + dx*u + px*bend;
-            const y = s.sy + dy*u + py*bend;
-
-            // Color interpolation
-            const r = Math.round(s.scol[0]*(1-u)+s.tcol[0]*u);
-            const g = Math.round(s.scol[1]*(1-u)+s.tcol[1]*u);
-            const b = Math.round(s.scol[2]*(1-u)+s.tcol[2]*u);
-            const alpha = Math.sin(u*Math.PI)*0.55;
-
-            // Trail glow
+            const u=s.p;
+            const bend = Math.sin(u*Math.PI)*25*(Math.sin(t*0.7+i)*0.5+0.5);
+            const dx=s.tx-s.sx, dy=s.ty-s.sy;
+            const len=Math.sqrt(dx*dx+dy*dy)||1;
+            const px=-dy/len, py=dx/len;
+            const x=s.sx+dx*u+px*bend, y=s.sy+dy*u+py*bend;
+            const r=Math.round(s.scol[0]*(1-u)+s.tcol[0]*u);
+            const g=Math.round(s.scol[1]*(1-u)+s.tcol[1]*u);
+            const b=Math.round(s.scol[2]*(1-u)+s.tcol[2]*u);
+            const alpha=Math.sin(u*Math.PI)*0.5;
             ctx.fillStyle=`rgba(${r},${g},${b},${alpha*0.15})`;
             ctx.beginPath(); ctx.arc(x,y,s.size+4,0,Math.PI*2); ctx.fill();
-            // Core
             ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;
             ctx.beginPath(); ctx.arc(x,y,s.size,0,Math.PI*2); ctx.fill();
         }
