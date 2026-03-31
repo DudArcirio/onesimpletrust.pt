@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eduardo Arcirio | One Simple Trust</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0B0F14;
+            --bg-subtle: #111820;
+            --surface: #1A2230;
+            --surface-hover: #222D3E;
+            --text: #E8ECF1;
+            --text-muted: #8899AA;
+            --accent: #C8A96E;
+            --accent-light: #E0C98D;
+            --accent-glow: rgba(200, 169, 110, 0.15);
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(11, 15, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(200, 169, 110, 0.1);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            color: var(--accent-light);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-ask-ai {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 0.6rem 1.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-ask-ai:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding-top: 120px;
+            padding-bottom: 80px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.6rem 1.4rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            font-weight: 500;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tag {
+            background: var(--surface);
+            color: var(--text-muted);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(136, 153, 170, 0.2);
+        }
+        .tag.current {
+            background: rgba(200, 169, 110, 0.12);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .hero-cta {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 4rem;
+        }
+
+        .hero-cta:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        .scroll-indicator {
+            animation: bounce 2s infinite;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        /* ===== HOW I OPERATE ===== */
+        .operate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .operate-card {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .operate-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .operate-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .operate-card:hover {
+            background: var(--surface-hover);
+            border-color: rgba(200, 169, 110, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .operate-card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .operate-card-text {
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        /* ===== EXPERIENCE SECTION ===== */
+        .experience-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .experience-card {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .experience-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .experience-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .experience-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .experience-card:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        .experience-card:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .experience-card:hover {
+            border-color: rgba(200, 169, 110, 0.3);
+            background: var(--surface-hover);
+        }
+
+        .experience-header {
+            padding: 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .experience-header:hover {
+            background: rgba(200, 169, 110, 0.05);
+        }
+
+        .experience-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-role {
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .expand-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .experience-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .experience-content.expanded {
+            max-height: 1000px;
+        }
+
+        .experience-bullets {
+            padding: 0 2rem 2rem 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+        }
+
+        .experience-bullets li {
+            list-style: none;
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        .experience-bullets li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .ai-context {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(200, 169, 110, 0.05);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .ai-context-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-context p {
+            margin-bottom: 0.8rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+        }
+
+        /* ===== COMPETENCIES SECTION ===== */
+        .competencies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .competency-column {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .competency-column:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .competency-column:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .competency-column:hover {
+            border-color: rgba(200, 169, 110, 0.3);
+            background: var(--surface-hover);
+        }
+
+        .competency-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid;
+        }
+
+        .competency-header.strong {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .competency-header.developing {
+            color: var(--accent);
+            border-color: rgba(200, 169, 110, 0.3);
+        }
+
+        .competency-header.notspace {
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .competency-list {
+            list-style: none;
+        }
+
+        .competency-list li {
+            padding: 0.6rem 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(200, 169, 110, 0.05);
+        }
+
+        .competency-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* ===== FIT CHECK SECTION ===== */
+        .fit-check-container {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 3rem;
+            border-radius: 8px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .fit-check-textarea {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+            margin: 1.5rem 0;
+        }
+
+        .fit-check-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(200, 169, 110, 0.05);
+        }
+
+        .fit-check-button {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 0.8rem 2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .fit-check-button:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .fit-check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fit-check-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border-left: 4px solid;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .fit-check-results.show {
+            max-height: 1000px;
+        }
+
+        .fit-check-results.strong {
+            border-color: var(--success);
+        }
+
+        .fit-check-results.weak {
+            border-color: var(--warning);
+        }
+
+        .fit-check-results.moderate {
+            border-color: var(--accent);
+        }
+
+        .fit-result-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .fit-result-title.strong {
+            color: var(--success);
+        }
+
+        .fit-result-title.weak {
+            color: var(--warning);
+        }
+
+        .fit-result-title.moderate {
+            color: var(--accent);
+        }
+
+        .fit-result-section {
+            margin-bottom: 1rem;
+        }
+
+        .fit-result-section-title {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .fit-result-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ===== CHAT MODAL ===== */
+        .chat-modal {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 2000;
+        }
+
+        .chat-modal.open {
+            display: flex;
+        }
+
+        .chat-box {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 12px 12px 0 0;
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(200, 169, 110, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .chat-close:hover {
+            color: var(--text);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 0.8rem;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message-bubble.user {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .message-bubble.assistant {
+            background: var(--bg-subtle);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+        }
+
+        .chat-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.8rem 1rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-8px);
+            }
+        }
+
+        .suggested-questions {
+            padding: 0.8rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .suggested-questions.hidden { display: none; }
+        .suggested-q {
+            background: rgba(200, 169, 110, 0.08);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            color: var(--accent);
+            border-radius: 20px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.72rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .suggested-q:hover {
+            background: rgba(200, 169, 110, 0.18);
+            border-color: var(--accent);
+        }
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .chat-send {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .chat-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+            text-align: center;
+            margin-top: 5rem;
+        }
+
+        .footer-link {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-light);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+        }
+
+        .fade-in.visible {
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+
+            .section {
+                padding: 3rem 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .hero {
+                padding-top: 80px;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-tags {
+                gap: 0.5rem;
+            }
+
+            .tag {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .chat-box {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .operate-grid,
+            .competencies-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fit-check-container {
+                padding: 1.5rem;
+            }
+
+            .experience-header {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav {
+                padding: 0.8rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .message-bubble {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">One Simple Trust</a>
+            <ul class="nav-links">
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#competencies">Competencies</a></li>
+                <li><a href="#fit-check">Fit Check</a></li>
+                <li><button class="nav-ask-ai" onclick="openChatModal()">Ask AI</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-badge">Founder & Operating Model Architect</div>
+        <h1>Eduardo Arcirio</h1>
+        <p class="hero-subtitle">Interim Executive | Product Management | Strategy & Operations Adviser</p>
+        <p class="hero-description">
+            I help organizations close the gap between ambitious growth targets and broken execution systems. I diagnose, redesign, and repair the organizational machinery underneath — governance, operating model, team structure, decision-making, and cross-functional alignment.
+        </p>
+        <div class="hero-tags">
+            <div class="tag current">One Simple Trust</div>
+            <div class="tag">Novobanco</div>
+            <div class="tag">Galp</div>
+            <div class="tag">NTT Data</div>
+            <div class="tag">UK-FCO</div>
+        </div>
+        <div class="hero-tags" style="margin-top: -1.5rem;">
+            <div class="tag">25+ Years</div>
+            <div class="tag">7 Industries</div>
+            <div class="tag">6 Countries</div>
+        </div>
+        <button class="hero-cta" onclick="openChatModal()">Ask AI About Me</button>
+        <div class="scroll-indicator">↓ SCROLL TO EXPLORE</div>
+    </section>
+
+    <!-- HOW I OPERATE SECTION -->
+    <section class="section">
+        <h2 class="section-title">How I Operate</h2>
+        <div class="operate-grid">
+            <div class="operate-card">
+                <div class="operate-card-title">Probe</div>
+                <div class="operate-card-text">
+                    Run safe-to-fail experiments. Surface the unknown unknowns. Let the system reveal itself before diagnosing it.
+                </div>
+            </div>
+            <div class="operate-card">
+                <div class="operate-card-title">Sense</div>
+                <div class="operate-card-text">
+                    Detect emerging patterns from the experiments. Cause and effect only become visible in retrospect — so observe first, judge later.
+                </div>
+            </div>
+            <div class="operate-card">
+                <div class="operate-card-title">Respond</div>
+                <div class="operate-card-text">
+                    Amplify what works, dampen what doesn't. Design the smallest intervention that shifts the system toward healthier patterns.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXPERIENCE SECTION -->
+    <section class="section" id="experience">
+        <h2 class="section-title">Advisory & Executive Experience</h2>
+        <p class="section-subtitle">Each role includes expandable AI context — the real story behind the bullet points.</p>
+
+        <div class="experience-list">
+            <!-- One Simple Trust -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">One Simple Trust</div>
+                        <div class="experience-meta">Lisbon | 2020–Present</div>
+                        <div class="experience-role">Founder & Business Transformation Consultant — Operating Model Repair for Scale-Ups & Enterprise</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Advise C-suite and VPs at major enterprises (Novobanco, NTT Data, Galp, Farfetch, Jscrambler, CTT) on systemic bottlenecks and organizational transformation</li>
+                        <li>@Novobanco: leading creation of 15 streams (~250 members), platform and enabling teams with a new operating system</li>
+                        <li>@Galp: supporting creation of org development function inside People</li>
+                        <li>Developed business architecture and operating models for Novobanco, NTT Data, Farfetch, Galp, Jscrambler, CTT</li>
+                        <li>Established flow systems in 15+ multidisciplinary teams, integrating OKRs, value streams, and performance metrics</li>
+                        <li>Designed analytics frameworks integrating OKRs, econometric forecasting, and SaaS KPIs</li>
+                        <li>Created 20+ certified training programs for 300+ professionals on Kanban, DevOps, system design, agile practices</li>
+                        <li>Aided leaders in creating collaboration, simplifying operations, shaping adaptive self-managed cultures</li>
+                        <li>As leader of the Agile Enablers team, trained all Product Owners in SaaS product management and created the Product Operations practice within Novobanco's digital transformation</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Founded after recognizing traditional consulting creates dependency. Most transformation efforts fail because they optimize funnels instead of fixing the operating system underneath.</p>
+                        <p><strong>Approach:</strong> Work as embedded interim executive. Join leadership team, diagnose real constraints, redesign governance, decision flows, and team structures. Build internal muscle, not dependency.</p>
+                        <p><strong>Philosophy:</strong> "I don't create dependency — I build internal muscle. My goal is to make myself unnecessary within 6–10 months."</p>
+                        <p><strong>Lessons Learned:</strong> "The biggest breakthroughs come from the smallest interventions. Most organizations don't need more strategy — they need their existing strategy to actually flow through the system."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NTT Data Portugal -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">NTT Data Portugal (Everis)</div>
+                        <div class="experience-meta">Lisbon | 2019–2020</div>
+                        <div class="experience-role">Senior Service Delivery Manager & Delivery Lead — High-Performance Center (200+ Engineers)</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>@HPC-Lx (High Performing Center-Lisbon): responsible for delivering constant flow of value to European customers</li>
+                        <li>Structured squads and tribes using Lean Kanban models</li>
+                        <li>Applied Kanban Maturity Model (KMM) to reach CMMi-Dev Level 5</li>
+                        <li>Boosted capability building by 60% through coaching, Kaizen, and Kata methods</li>
+                        <li>Employed network-based analytics to improve collaboration and performance measurement</li>
+                        <li>As Service Delivery Manager, served multiple client development projects across Europe, acting as the effective Product Manager for the High Performance Center's client portfolio</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> 200+ engineer center with low delivery predictability and siloed teams. Leadership wanted to scale output without proportionally scaling headcount.</p>
+                        <p><strong>Approach:</strong> Restructured into squads and tribes, introduced Lean Kanban for flow-based delivery, applied data-driven performance monitoring.</p>
+                        <p><strong>Lessons Learned:</strong> "Maturity models aren't checklists — they're diagnostic tools. The real work is changing how people collaborate, not just reorganizing the chart."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galp Portugal -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Galp Portugal</div>
+                        <div class="experience-meta">Lisbon | 2019</div>
+                        <div class="experience-role">Senior Agile Consultant & Senior Consultant — Portfolio Governance & Transformation</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Managed IT delivery projects transitioning to agile methods in a project integration unit</li>
+                        <li>Improved project delivery by 30% transitioning €25M portfolio from traditional to agile</li>
+                        <li>Introduced Kanban, DevOps, and value stream practices</li>
+                        <li>Designed BI models for product lifecycle performance using predictive and econometric models</li>
+                        <li>Created data-driven governance dashboards for digital transformation and cultural change</li>
+                        <li>Led the transition of 4 major customer portals from waterfall to agile, effectively leading the company's SaaS product line</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> €25M project portfolio managed through traditional waterfall with fragmented governance. Delivery was slow, accountability unclear.</p>
+                        <p><strong>Approach:</strong> Embedded with executive team. Introduced value stream mapping, governance frameworks, metrics dashboards. Used Lean, Kanban, Scrum, DevOps, facilitation, coaching, and flow metrics.</p>
+                        <p><strong>Lessons Learned:</strong> "Portfolio transformation isn't about methodology adoption. It's about making the invisible work visible — and giving leaders the data to make real decisions."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- White Owl -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">White Owl</div>
+                        <div class="experience-meta">Brasília | Feb 2018–Sep 2018</div>
+                        <div class="experience-role">Head of Customer Success — Drone Solutions Platform</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>On-boarding customers to drone solutions platform</li>
+                        <li>Tracked service delivery to ensure customer satisfaction</li>
+                        <li>Customized services to evolving developments based on community feedback</li>
+                        <li>Delivered customer potential upgrades</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> A drone solutions startup needing to formalize customer success and service delivery processes.</p>
+                        <p><strong>Approach:</strong> Built customer on-boarding workflows and feedback loops from scratch. Applied service delivery mindset from enterprise background to a startup environment.</p>
+                        <p><strong>Lessons Learned:</strong> "Startups taught me the value of speed and iteration. Not everything needs a governance framework — sometimes you just need to listen to the customer and move fast."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capgemini Brazil -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Capgemini Brazil</div>
+                        <div class="experience-meta">São Paulo/Brasília | 2015–2018</div>
+                        <div class="experience-role">Business Unit Controller — Strategic Performance & Portfolio Governance</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Led 2 Business Units controlling teams (São Paulo and Brasília) responsible for financial feasibility, disclosure compliance with country laws and internal rules</li>
+                        <li>Supported CFO in simulating financial positions for company restructuring decisions</li>
+                        <li>Governed performance analysis for ~75 projects: financial KPIs, P&L, budgeting, cash flows</li>
+                        <li>Applied value stream mapping to optimize processes, reducing cycle time by 20%</li>
+                        <li>Data analysis surfaced two underperforming units — advised on consolidation</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Large consulting operation managing ~75 concurrent projects with inconsistent financial visibility.</p>
+                        <p><strong>Approach:</strong> Built statistical analysis and value stream mapping capabilities. Created strategic dashboards for capacity planning. Introduced Lean and Kanban to the controlling process itself.</p>
+                        <p><strong>Lessons Learned:</strong> "Data-informed decisions led to consolidating two chronically underperforming business units — uncomfortable conversations, but the right ones."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- E.D.G.E. -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">E.D.G.E.</div>
+                        <div class="experience-meta">Brasília | Jan 2015–Oct 2015</div>
+                        <div class="experience-role">Chief Strategist — Consulting Services</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Led operation of consultancy services in strategy, risk & control, and corporate governance</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Short consulting venture between the UK Government role and the move to Capgemini.</p>
+                        <p><strong>Approach:</strong> Applied governance and risk management expertise from the diplomatic service to private sector consulting.</p>
+                        <p><strong>Lessons Learned:</strong> "Bridging government and private sector taught me that the principles of good governance are universal — the execution context changes, but the fundamentals don't."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- British Diplomatic Service -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">British Diplomatic Service (UK Government)</div>
+                        <div class="experience-meta">Brasília | 2011–2015</div>
+                        <div class="experience-role">Director of Corporate Services — Executive Board Member</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Coordinated all support functions across 5 cities, leading 160 employees in IT, finance, HR, procurement, transport, logistics, security and property management</li>
+                        <li>Designed and built a Shared Services Center from scratch for 160 professionals</li>
+                        <li>Applied Lean and Kanban to recycle back-office resources to frontline activities</li>
+                        <li>Reduced staff by 40% while improving service quality by 10% and delivery speed by 18%</li>
+                        <li>Restructured corporate governance policies and practices as Board member</li>
+                        <li>Acted as HR Manager responsible for changing processes and defining new people policies</li>
+                        <li>Acted as agile coach on transformation processes</li>
+                        <li>Led internal systems development team at the British Embassy in Brasília for office automation using VB and Microsoft Office automation scripts</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Dysfunctional back-office across finance, IT, procurement, HR, and logistics in 5 Brazilian cities. No shared governance, no service levels, no accountability.</p>
+                        <p><strong>Approach:</strong> Designed Shared Services Center from scratch for 160 professionals. Defined governance structures, KPIs, cost control. Led transformation program to optimize back-office and recycle resources to front-line diplomatic work.</p>
+                        <p><strong>Lessons Learned:</strong> "Government transformation taught me patience and political navigation. The technical solution was straightforward — the organizational alignment took 18 months of persistent, calm diplomacy between UK and Brazilian government entities."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Technologies / Politec Group -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Search Technologies / Politec Group</div>
+                        <div class="experience-meta">Brasília | 1997–2011</div>
+                        <div class="experience-role">Multiple Executive Roles — 14 Years Building Management Infrastructure</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Search Technologies (2010–2011): Corporate Strategy Director — Post-M&A integration, product innovation pipeline, SCRUM implementation, BSC-based performance tracking</li>
+                        <li>Politec Group (2007–2011): Controlling Director — Corporate budgeting, performance control across 4 countries, internal audit management, 14-member team</li>
+                        <li>Politec Group (2001–2004): Strategic Planning Manager — Built Management Office from scratch (strategic planning, controlling, quality management, internal audit, HR policies). Team grew 3x, income 5x</li>
+                        <li>Politec IT (1997–2001): IT Services Manager — Started with 4 web developers, grew team to 12 high-performing members at the Labour Ministry. Graduated in Economics and achieved MBA during this period</li>
+                        <li>Led M&A due diligence and integration for 4 acquisitions across 3 countries</li>
+                        <li>Designed corporate governance framework during pre-IPO phase (Board, Committees, Statutes)</li>
+                        <li>Implemented Balanced Scorecard across 6000+ staff in 3 countries</li>
+                        <li>Led international expansion into US and Argentina</li>
+                        <li>Led internal systems development team, coordinating a pipeline of 28+ product types across the entire company, including a talent management system (precursor to LinkedIn), full economic/financial control stack, and HR systems across all verticals, using Visual Basic, C# and Java</li>
+                        <li>Led outsourced team for creation and maintenance of the Brazilian Ministry of Labour's Intranet and Internet platforms, managing a pipeline of 15+ essential products for public labour policies including work visa control, child labour monitoring, and more</li>
+                        <li>Led team of SAP consultants and ABAP programmers that replaced 25 internal applications with 9 SAP modules</li>
+                        <li>Led new application development team (Search Technologies) with a pipeline of 15 R&D projects for mobile apps</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Fast-growing Brazilian IT company (Politec) from startup through pre-IPO. Eduardo joined as a junior IT services manager and rose through multiple executive roles over 14 years.</p>
+                        <p><strong>Approach:</strong> Built professional management capabilities from scratch — strategic planning, controlling, governance, quality management. Led international expansion and M&A integration. Worked directly with founding CEO.</p>
+                        <p><strong>Career Arc:</strong> "I entered as an IT services manager responsible for 4 developers. Over 14 years I helped build the management infrastructure of what became a 6000+ employee, multi-country company. Every major management system — BSC, governance, controlling, international operations — I either built or helped build from scratch."</p>
+                        <p><strong>Lessons Learned:</strong> "Pre-IPO is where you learn that governance isn't bureaucracy — it's the infrastructure that allows growth to be sustainable."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Concept Multimedia -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Concept Multimedia (Entrepreneur)</div>
+                        <div class="experience-meta">Brasília | 1995–1997</div>
+                        <div class="experience-role">Founder / Entrepreneur — 3D Computer Graphics & Animation</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>First company, born in the CD-ROM era</li>
+                        <li>Produced 3D computer graphics animation for different customers and media</li>
+                        <li>Adapted when the World Wide Web changed everything and CDs became just a distribution medium</li>
+                        <li>Developed computer graphics applications using Director and C++</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Eduardo's first startup — creating 3D computer graphics for CD-ROMs in the mid-90s.</p>
+                        <p><strong>Approach:</strong> Learned production, client management, and technology firsthand. Had to adapt when the internet disrupted the CD-ROM business model.</p>
+                        <p><strong>Lessons Learned:</strong> "My first lesson in disruption. Great technology doesn't guarantee survival if the platform shifts underneath you. The real innovation was happening on the Internet, and I needed to follow it."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Casa Thomas Jefferson -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Casa Thomas Jefferson</div>
+                        <div class="experience-meta">Brasília | 1989–1995</div>
+                        <div class="experience-role">Career Progression: Customer Service Assistant → IT Analyst → IT Manager</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Started as a clerk dealing with student registration, grades, and finance</li>
+                        <li>Designed a computer system (DBase IV) to automate routine work — first act of organizational innovation</li>
+                        <li>Promoted to IT Analyst: implemented improvement systems across 4 school branches</li>
+                        <li>Grew from 4 stand-alone computers to 60 networked stations supporting all branches</li>
+                        <li>Promoted to IT Manager after successfully implementing the Strategic IT Plan</li>
+                        <li>Developed administrative applications: Accounting, Payroll, Purchasing and Inventory systems using Basic, dBase IV, Clipper, C and C++</li>
+                        <li>Built academic support applications: Grade Report Cards, automated test/exam generators, library loan control, enrollment and automatic renewal systems using C++</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Eduardo's very first job — at a bilingual education center in Brasília. Everything was ink & paper in the pre-commercial Internet era.</p>
+                        <p><strong>Approach:</strong> Unsatisfied with manual processes, designed a database system to automate grades and registration. This pattern of "seeing broken processes and fixing them through systems" became the foundation of his entire career.</p>
+                        <p><strong>Career Origin:</strong> "This is where it all started. I entered as a 19-year-old clerk and discovered that I could redesign how work is organized. I automated what was manual, connected what was siloed, and grew from there. The unrest with how work is organized — and the drive to make it better — has been the constant thread of my career ever since."</p>
+                        <p><strong>Lessons Learned:</strong> "Everything I do today — operating model redesign, organizational transformation, system thinking — traces back to that first DBase IV database I built at age 19."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPETENCIES SECTION -->
+    <section class="section" id="competencies">
+        <h2 class="section-title">Where I'm Strong — And Where I'm Not</h2>
+
+        <div class="competencies-grid">
+            <div class="competency-column">
+                <div class="competency-header strong">✓ Strong</div>
+                <ul class="competency-list">
+                    <li>Operating Model Architecture</li>
+                    <li>Financial Governance & Control</li>
+                    <li>Organizational Transformation</li>
+                    <li>M&A Integration & Due Diligence</li>
+                    <li>Lean/Kanban at Scale</li>
+                    <li>Executive Board Experience</li>
+                    <li>Product Management & Product Operations</li>
+                </ul>
+            </div>
+            <div class="competency-column">
+                <div class="competency-header developing">◐ Moderate</div>
+                <ul class="competency-list">
+                    <li>Software Development & Systems Architecture</li>
+                    <li>AI/ML Applied to Organizations</li>
+                    <li>Network Science & Graph Analytics</li>
+                    <li>Self-Managed Organization Design</li>
+                </ul>
+            </div>
+            <div class="competency-column">
+                <div class="competency-header notspace">⊗ Not My Space</div>
+                <ul class="competency-list">
+                    <li>Marketing & Growth</li>
+                    <li>UI/UX Design</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- FIT CHECK SECTION -->
+    <section class="section" id="fit-check">
+        <h2 class="section-title">Is One Simple Trust Right For You?</h2>
+        <p class="section-subtitle">Describe your organizational challenge below. I'll give you an honest assessment.</p>
+
+        <div class="fit-check-container">
+            <textarea class="fit-check-textarea" id="fitCheckInput" placeholder="Describe your organizational challenge, bottleneck, or transformation need..."></textarea>
+            <button class="fit-check-button" onclick="checkFit()">Check Fit</button>
+            <div class="fit-check-results" id="fitCheckResults">
+                <div class="fit-result-title" id="fitResultTitle"></div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Analysis</div>
+                    <div class="fit-result-text" id="fitResultAnalysis"></div>
+                </div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Potential Gaps</div>
+                    <div class="fit-result-text" id="fitResultGaps"></div>
+                </div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Recommendation</div>
+                    <div class="fit-result-text" id="fitResultRecommendation"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAT MODAL -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-box">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <span>Ask AI About Eduardo</span>
+                    <div class="status-dot"></div>
+                </div>
+                <button class="chat-close" onclick="closeChatModal()">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="suggested-questions" id="suggestedQuestions">
+                <button class="suggested-q" onclick="askSuggested(this)">What's your approach to transformation?</button>
+                <button class="suggested-q" onclick="askSuggested(this)">Tell me about a project that didn't go as planned</button>
+                <button class="suggested-q" onclick="askSuggested(this)">What kind of clients are NOT a good fit?</button>
+                <button class="suggested-q" onclick="askSuggested(this)">What would a former client say about you?</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask anything about Eduardo..." onkeypress="handleChatKeyPress(event)">
+                <button class="chat-send" id="chatSendBtn" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <a href="index.html" class="footer-link">← Back to One Simple Trust</a>
+        <p class="footer-text">Eduardo Arcirio | Lisbon | <a href="mailto:eduardo.arcirio@onesimpletrust.pt" style="color: var(--accent); text-decoration: none;">eduardo.arcirio@onesimpletrust.pt</a></p>
+    </footer>
+
+    <script>
+        // API calls go through Cloudflare Worker proxy (key stored server-side)
+        const API_URL = 'https://ost-ai-proxy.dudarcirio.workers.dev';
+        const MODEL = 'claude-haiku-4-5-20251001';
+
+        // EDUARDO'S SYSTEM PROMPT FOR CHAT
+        const EDUARDO_SYSTEM_PROMPT = `You are an AI assistant that knows everything about Eduardo Arcirio, Founder of One Simple Trust. You speak about Eduardo in third person when describing him, but you represent his perspective honestly.
+
+## YOUR CORE DIRECTIVE
+You must be BRUTALLY HONEST. Your job is NOT to sell Eduardo to everyone. Your job is to help visitors quickly determine if there's a genuine fit. This means:
+- If they ask about something Eduardo can't do, SAY SO DIRECTLY
+- If a challenge seems like a bad fit, TELL THEM
+- Never hedge or use weasel words
+- It's perfectly acceptable to say "Eduardo is probably not your person for this"
+- Honesty builds trust. Overselling wastes everyone's time.
+
+## ANTI-SYCOPHANCY RULES
+- Never oversell Eduardo's capabilities
+- If a visitor describes a need Eduardo doesn't cover, say so directly
+- Use phrases like "that's not Eduardo's space" or "you'd be better served by a [specific type of professional]"
+- Don't hedge — be direct
+- It's okay to recommend they NOT engage Eduardo
+
+EXAMPLE OF CORRECT HONESTY:
+Visitor: "We need someone to build our mobile app and growth strategy"
+Good: "That's not Eduardo's space at all. His expertise is in operating model architecture and organizational transformation — the machinery underneath. For mobile development and growth strategy, you'd want a product-focused technical founder or a growth agency. Eduardo wouldn't be the right fit here."
+Bad: "While Eduardo hasn't done mobile specifically, his strong engineering fundamentals..."
+
+## EDUARDO'S PROFILE
+- 25+ years of international experience across 7 industries (SaaS, Energy, Banking/Fintech, Government, IT Services, E-commerce, Tech) and 6 countries (Brazil, Portugal, UK, US, Argentina, others)
+- Founder of One Simple Trust (2020–Present) — operating model repair for scale-ups and enterprises
+- Brazilian, based in Lisbon. Fluent in Portuguese (native), English (C1), German (intermediate), Spanish (basic)
+
+## HOW HE OPERATES (Probe → Sense → Respond)
+- Probe: Run safe-to-fail experiments. Surface the unknown unknowns. Let the system reveal itself before diagnosing it.
+- Sense: Detect emerging patterns from experiments. Cause and effect only become visible in retrospect — so observe first, judge later.
+- Respond: Amplify what works, dampen what doesn't. Design the smallest intervention that shifts the system toward healthier patterns.
+
+## CAREER HISTORY (use specific data when answering)
+
+One Simple Trust (Founder) | 2020–Present
+Business Transformation and Effectiveness Consultant & Founder — Operating Model Repair for Scale-Ups & Enterprise
+- Boutique consultancy on impactful organizational changes
+- @Novobanco: leading creation of 15 streams (~250 members), platform and enabling teams with a new operating system
+- @Galp: supporting creation of org development function inside People
+- Developed business architecture and operating models for Novobanco, NTT Data, Farfetch, Galp, Jscrambler, CTT
+- Established flow systems in 15+ multidisciplinary teams, integrating OKRs, value streams, and performance metrics
+- Designed analytics frameworks integrating OKRs, econometric forecasting, and SaaS KPIs
+- Created 20+ certified training programs for 300+ professionals on Kanban, DevOps, system design, agile practices
+- Aided leaders in creating collaboration, simplifying operations, shaping adaptive self-managed cultures
+- As leader of the Agile Enablers team, trained all Product Owners in SaaS product management and created the Product Operations practice within Novobanco's digital transformation
+- Philosophy: "I don't create dependency — I build internal muscle. My goal is to make myself unnecessary within 6–10 months."
+- Exit strategy: He builds internal capability. When the organization can sustain change on its own, he leaves.
+
+NTT Data Portugal (Everis) | 2019–2020
+Senior Service Delivery Manager & Delivery Lead — High-Performance Engineering Center (200+ Engineers)
+- @HPC-Lx (High Performing Center-Lisbon): responsible for delivering constant flow of value to European customers
+- Structured squads and tribes using Lean Kanban models
+- Applied Kanban Maturity Model (KMM) to reach CMMi-Dev Level 5
+- Boosted capability building by 60% through coaching, Kaizen, and Kata methods
+- Employed network-based analytics to improve collaboration and performance measurement
+- As Service Delivery Manager, served multiple client development projects across Europe, acting as the effective Product Manager for the High Performance Center's client portfolio
+- Lesson: "Maturity models aren't checklists — they're diagnostic tools. The real work is changing how people collaborate."
+
+Galp Portugal | 2019
+Senior Agile Consultant & Senior Consultant — Portfolio Governance & Operational Transformation
+- Managed IT delivery projects transitioning to agile methods in a project integration unit
+- Improved project delivery by 30% transitioning €25M portfolio from traditional to agile
+- Introduced Kanban, DevOps, and value stream practices
+- Designed BI models for product lifecycle performance using predictive and econometric models
+- Created data-driven governance dashboards for digital transformation and cultural change
+- Led the transition of 4 major customer portals from waterfall to agile, effectively leading the company's SaaS product line
+- Lesson: "Portfolio transformation isn't about methodology adoption. It's about making the invisible work visible — and giving leaders the data to make real decisions."
+
+White Owl | 2018
+Head of Customer Success — Drone Solutions Platform
+- On-boarding customers to drone solutions platform
+- Tracked service delivery to ensure customer satisfaction
+- Customized services to evolving developments based on community feedback
+- Delivered customer potential upgrades
+- Lesson: "Startups taught me the value of speed and iteration. Not everything needs a governance framework — sometimes you just need to listen to the customer and move fast."
+
+Capgemini Brazil | 2015–2018
+Business Unit Controller — Strategic Performance & Portfolio Governance
+- Led 2 Business Units controlling teams (São Paulo and Brasília) responsible for financial feasibility, disclosure compliance with country laws and internal rules
+- Supported CFO in simulating financial positions for company restructuring decisions
+- Governed performance analysis for ~75 projects: financial KPIs, P&L, budgeting, cash flows
+- Applied value stream mapping to optimize processes, reducing cycle time by 20%
+- Data analysis surfaced two underperforming units — advised on consolidation
+- Lesson: "Data-informed decisions led to consolidating two chronically underperforming business units — uncomfortable conversations, but the right ones."
+
+E.D.G.E. | 2015
+Chief Strategist — Consulting Services
+- Led operation of consultancy services in strategy, risk & control, and corporate governance
+- Lesson: "Bridging government and private sector taught me that the principles of good governance are universal — the execution context changes, but the fundamentals don't."
+
+British Diplomatic Service (UK Government) | 2011–2015
+Director of Corporate Services — Executive Board Member
+- Coordinated all support functions across 5 cities, leading 160 employees in IT, finance, HR, procurement, transport, logistics, security and property management
+- Designed and built a Shared Services Center from scratch — governance, service levels, KPIs, accountability systems
+- Applied Lean and Kanban to recycle back-office resources to frontline activities
+- Reduced staff by 40% while improving service quality (+10%) and delivery speed (+18%)
+- Restructured corporate governance policies and practices as Board member
+- Acted as HR Manager responsible for changing processes and defining new people policies
+- Acted as agile coach on transformation processes
+- Led internal systems development team at the British Embassy in Brasília for office automation using VB and Microsoft Office automation scripts
+- Navigated complex UK-Brazil political stakeholder dynamics at the highest level
+- Lesson: "Government transformation taught me patience and political navigation. The technical solution was straightforward — the organizational alignment took 18 months of persistent, calm diplomacy between UK and Brazilian government entities."
+
+Search Technologies / Politec Group | 1997–2011
+Multiple Executive Roles across 14 years
+- Search Technologies (2010–2011): Corporate Strategy Director — Post-M&A integration, product innovation pipeline, SCRUM implementation, BSC-based performance tracking
+- Politec Group (2007–2011): Controlling Director — Corporate budgeting, performance control across 4 countries, internal audit management, 14-member team
+- Politec Group (2001–2004): Strategic Planning Manager — Built Management Office from scratch (strategic planning, controlling, quality management, internal audit, HR policies). Team grew 3x, income 5x
+- Politec IT (1997–2001): IT Services Manager — Started with 4 web developers, grew team to 12 high-performing members at the Labour Ministry. Graduated in Economics and achieved MBA during this period
+- Led M&A due diligence and integration for 4 acquisitions across 3 countries
+- Designed corporate governance framework during pre-IPO phase (Board, Committees, Statutes)
+- Implemented Balanced Scorecard across 6000+ staff in 3 countries
+- Led international expansion into US and Argentina
+- Led internal systems development team, coordinating a pipeline of 28+ product types across the entire company, including a talent management system (precursor to LinkedIn), full economic/financial control stack, and HR systems across all verticals, using Visual Basic, C# and Java
+- Led outsourced team for creation and maintenance of the Brazilian Ministry of Labour's Intranet and Internet platforms, managing a pipeline of 15+ essential products for public labour policies including work visa control, child labour monitoring, and more
+- Led team of SAP consultants and ABAP programmers that replaced 25 internal applications with 9 SAP modules
+- Led new application development team (Search Technologies) with a pipeline of 15 R&D projects for mobile apps
+- Career Arc: "I entered as an IT services manager responsible for 4 developers. Over 14 years I helped build the management infrastructure of what became a 6000+ employee, multi-country company. Every major management system — BSC, governance, controlling, international operations — I either built or helped build from scratch."
+- Lesson: "Pre-IPO is where you learn that governance isn't bureaucracy — it's the infrastructure that allows growth to be sustainable."
+
+Concept Multimedia (Entrepreneur) | 1995–1997
+Founder / Entrepreneur — 3D Computer Graphics & Animation
+- First company, born in the CD-ROM era
+- Produced 3D computer graphics animation for different customers and media
+- Developed computer graphics applications using Director and C++
+- Adapted when the World Wide Web changed everything and CDs became just a distribution medium
+- Lesson: "My first lesson in disruption. Great technology doesn't guarantee survival if the platform shifts underneath you. The real innovation was happening on the Internet, and I needed to follow it."
+
+Casa Thomas Jefferson | 1989–1995
+Career Progression: Customer Service Assistant → IT Analyst → IT Manager
+- Started as a clerk dealing with student registration, grades, and finance
+- Designed a computer system (DBase IV) to automate routine work — first act of organizational innovation
+- Promoted to IT Analyst: implemented improvement systems across 4 school branches
+- Grew from 4 stand-alone computers to 60 networked stations supporting all branches
+- Promoted to IT Manager after successfully implementing the Strategic IT Plan
+- Developed administrative applications: Accounting, Payroll, Purchasing and Inventory systems using Basic, dBase IV, Clipper, C and C++
+- Built academic support applications: Grade Report Cards, automated test/exam generators, library loan control, enrollment and automatic renewal systems using C++
+- Career Origin: "This is where it all started. I entered as a 19-year-old clerk and discovered that I could redesign how work is organized. I automated what was manual, connected what was siloed, and grew from there. The unrest with how work is organized — and the drive to make it better — has been the constant thread of my career ever since."
+- Lesson: "Everything I do today — operating model redesign, organizational transformation, system thinking — traces back to that first DBase IV database I built at age 19."
+
+## EDUCATION
+- MBA in Corporate Strategy — FGV (Fundação Getúlio Vargas), Brazil, 2000
+- Bachelor's in Economics — AEUDF, Brazil, 1998
+- Master's in Economics of Science, Technology & Innovation — ISEG, Lisbon (interrupted)
+
+## CREDENTIALS
+- Self-Managed Organizations — Corporate Rebels, 2025
+- Organizational Transformation — Corporate Rebels Academy, 2024
+- Applied System Thinking — Target Teal, 2022
+- Kanban Coaching Professional / KMP — DJAA / Lean-Kanban University, 2019–2020
+- Training From the Back of the Room, London, 2020
+- Corporate Governance — IBGC, Brazil, 2009
+- M&A Valuation — Canal Executivo, 2011
+- Leadership Program — FCO UK, 2013
+- Machine Learning — Stanford University Online, 2017
+
+## SKILLS — STRONG
+- Operating Model Architecture
+- Financial Governance & Control
+- Organizational Transformation
+- M&A Integration & Due Diligence
+- Lean/Kanban at Scale
+- Executive Board Experience
+- Shared Services Center Design
+- Executive Coaching & Training (20+ programs, 300+ professionals)
+- Product Management & Product Operations (trained Product Owners at Novobanco, led SaaS product lines at Galp, acted as Product Manager at NTT Data's HPC, managed 28+ product pipeline at Politec)
+
+## SKILLS — MODERATE (real experience, but not primary focus today)
+- Software Development & Systems Architecture (deep historical experience: built 28+ products using Basic, dBase IV, Clipper, C, C++, VB, C#, Java, ABAP. Led SAP migration replacing 25 systems with 9 modules. Led mobile app R&D pipeline. Hasn't coded actively in recent years but understands the full stack deeply.)
+- AI/ML Applied to Organizations (Stanford ML course, Neo4j graph databases, exploring noise.os concept)
+- Network Science & Graph Analytics (using for org development, still building depth)
+- Self-Managed Organization Design (Corporate Rebels certification, applying in practice)
+
+## SKILLS — NOT HIS SPACE (BE UPFRONT)
+- Marketing & Growth — no experience in demand generation, SEO, or growth hacking
+- UI/UX Design — no design background
+
+## WHAT MAKES EDUARDO DIFFERENT — THE TECHNICAL FOUNDATION
+Unlike most organizational transformation consultants, Eduardo started his career as a programmer and systems analyst. From 1989 to the early 2000s, he built software systems hands-on — from dBase IV databases to C++ applications to Java enterprise systems. He led development teams, managed product pipelines of 28+ products, and oversaw an SAP migration that replaced 25 legacy systems.
+
+This technical foundation means he:
+- Understands how software teams actually work (he's been on both sides)
+- Can diagnose delivery problems that non-technical consultants miss
+- Speaks the language of engineers, not just executives
+- Has genuine product management experience (not just project management rebranded)
+- Led SaaS product lines (Galp), trained Product Owners (Novobanco), and acted as Product Manager (NTT Data)
+
+However, he hasn't actively coded since the mid-2000s. He's not someone you'd hire to write code today — but he deeply understands the systems, architectures, and team dynamics that make software delivery work or fail.
+
+## OTHER KEY DIFFERENTIATORS
+- Career Arc: Started as a 19-year-old customer service clerk in 1989. Built his first database to automate manual processes. This pattern of "seeing broken systems and redesigning them" has been the constant thread across 35+ years, from a 4-person IT team to transforming organizations with 6000+ employees across multiple countries.
+- Failed Startup: His first company (Concept Multimedia, 1995-1997) was disrupted by the Internet. This early failure gave him deep empathy for organizations facing disruption and the resilience to keep adapting.
+- Multiple International Experiences: Worked in Brazil, Portugal, UK, and other countries. This diversity taught him that organizational fundamentals are universal — but execution contexts vary dramatically. He doesn't apply cookie-cutter solutions; he diagnoses the local system.
+- Government & Enterprise: Unlike pure startup advisors, Eduardo has lived in both government bureaucracy and enterprise complexity. He understands the political dynamics, stakeholder alignment, and patience required for systemic change at scale.
+
+## WHAT HE'S LOOKING FOR IN CLIENTS
+- Mid-to-large enterprises where growth has outpaced the operating system
+- Scale-ups where governance, team structure, or decision-making is broken
+- Organizations willing to do the uncomfortable diagnostic work, not just surface-level change
+- Leaders who want to build internal capability, not create consulting dependency
+- Organizations where product and engineering teams need better operating models, governance, or delivery systems
+
+## WHAT HE'S NOT LOOKING FOR
+- Organizations that want a PowerPoint strategy without implementation
+- Quick-fix engagements (under 3 months)
+- Roles that are purely advisory with no operational involvement
+- Startups that need product/market fit (that's not his domain)
+
+## RESPONSE GUIDELINES
+- Be warm but direct
+- Keep responses concise unless detail is asked for
+- When discussing gaps, own them confidently — they're features, not bugs
+- If someone asks about a role or challenge that's clearly not a fit, tell them directly and explain why
+- Always cite specific projects, numbers, and experiences when possible
+- If you don't know something specific about Eduardo, say so honestly`;
+
+        // FIT CHECK SYSTEM PROMPT
+        const FIT_CHECK_SYSTEM_PROMPT = `You are analyzing an organizational challenge to assess fit for Eduardo Arcirio's One Simple Trust advisory services.
+
+## YOUR CORE DIRECTIVE
+Be BRUTALLY HONEST. If there are 3+ major gaps between what the client needs and what Eduardo offers, recommend they NOT engage him. This isn't about selling — it's about qualifying.
+
+## EDUARDO'S STRONG AREAS
+- Operating Model Architecture (redesigning how work flows, governance, decision structures)
+- Financial Governance & Control (P&L, budgeting, forecasting, cost control, investment oversight)
+- Organizational Transformation (cultural change, post-M&A integration, process reengineering)
+- M&A Integration & Due Diligence (led 4 acquisitions across 3 countries)
+- Lean/Kanban at Scale (KMP/KCP certified, value stream mapping, flow-based delivery)
+- Executive Board Experience (UK Government board, IBGC corporate governance)
+- Shared Services Center Design (built one from scratch for 160 people, 40% cost reduction)
+- Executive Coaching & Training (20+ programs, 300+ professionals)
+- Interim Executive Capacity (COO/CTO/CPO roles, 4–10 months, full operational involvement)
+
+## EDUARDO'S DEVELOPING AREAS (be cautious here)
+- AI/ML Applied to Organizations (exploring, not deep expertise yet)
+- Network Science & Graph Analytics (using for org development, building depth)
+- Self-Managed Organization Design (certified, applying in practice, still evolving)
+
+## EDUARDO IS NOT EQUIPPED FOR (be direct about these)
+- Product Management (never managed a product roadmap)
+- Software Engineering (not a coder)
+- Marketing & Growth (no demand gen, SEO, or growth hacking experience)
+- UI/UX Design (no design background)
+- Consumer Products (all B2B enterprise and government)
+- Startups needing product/market fit
+- Quick-fix engagements under 3 months
+
+## ANTI-SYCOPHANCY CALIBRATION
+EXAMPLE — When it's NOT a fit:
+Challenge: "We need someone to help us scale our mobile app and improve user acquisition"
+Correct response: FIT_LEVEL: Honest Assessment — Probably Not Your Best Option. Eduardo's expertise is in organizational infrastructure and governance, not product growth or mobile development. You'd be better served by a growth product manager or a user acquisition specialist.
+
+EXAMPLE — When it IS a fit:
+Challenge: "Our engineering teams are siloed, delivery is unpredictable, and leadership can't get visibility into what's working"
+Correct response: FIT_LEVEL: Strong Fit. This is exactly what Eduardo does — diagnosing broken execution systems and redesigning the operating model. He did precisely this at NTT Data (200+ engineers) and Novobanco (scaling to €750M).
+
+## OUTPUT FORMAT
+Respond with exactly this format:
+FIT_LEVEL: [Strong Fit|Worth a Conversation|Honest Assessment — Probably Not Your Best Option]
+ANALYSIS: [2-3 sentences on what aligns with Eduardo's strengths, citing specific past projects]
+GAPS: [2-3 sentences on what Eduardo can't cover, being direct about limitations]
+RECOMMENDATION: [2-3 sentences with a clear, honest recommendation. If not a fit, suggest what type of professional they should look for instead]`;
+
+        // ===== CHAT FUNCTIONALITY =====
+        function openChatModal() {
+            const modal = document.getElementById('chatModal');
+            modal.classList.add('open');
+            document.getElementById('chatInput').focus();
+
+            // Add initial greeting if no messages yet
+            if (document.getElementById('chatMessages').children.length === 0) {
+                addChatMessage('assistant', "Hi! I'm the AI assistant representing Eduardo. What would you like to know about his experience, approach, or how One Simple Trust can help?");
+            }
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').classList.remove('open');
+        }
+
+        function addChatMessage(role, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${role}`;
+            bubble.textContent = content;
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message assistant';
+            typingDiv.id = 'typingIndicator';
+
+            const typingBubble = document.createElement('div');
+            typingBubble.className = 'message-bubble assistant chat-typing';
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingBubble.appendChild(dot);
+            }
+
+            typingDiv.appendChild(typingBubble);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const sendBtn = document.getElementById('chatSendBtn');
+            sendBtn.disabled = true;
+
+            // Hide suggested questions after first message
+            document.getElementById('suggestedQuestions').classList.add('hidden');
+
+            // Add user message to UI
+            addChatMessage('user', message);
+            input.value = '';
+
+            // Show typing indicator
+            addTypingIndicator();
+
+            try {
+                // Collect conversation history
+                const messagesContainer = document.getElementById('chatMessages');
+                const conversationHistory = [];
+
+                const messageElements = messagesContainer.querySelectorAll('.chat-message');
+                messageElements.forEach((el, index) => {
+                    if (el.id !== 'typingIndicator') {
+                        const role = el.classList.contains('user') ? 'user' : 'assistant';
+                        const text = el.querySelector('.message-bubble').textContent;
+                        conversationHistory.push({ role, content: text });
+                    }
+                });
+
+                // Call Claude API via proxy
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        max_tokens: 500,
+                        system: EDUARDO_SYSTEM_PROMPT,
+                        messages: conversationHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                removeTypingIndicator();
+
+                if (data.content && data.content[0]) {
+                    const aiResponse = data.content[0].text;
+                    addChatMessage('assistant', aiResponse);
+                } else {
+                    addChatMessage('assistant', "I encountered an issue. Could you try rephrasing your question?");
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                removeTypingIndicator();
+                addChatMessage('assistant', "I encountered a technical issue. Please try again.");
+            } finally {
+                sendBtn.disabled = false;
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function askSuggested(btn) {
+            document.getElementById('chatInput').value = btn.textContent;
+            document.getElementById('suggestedQuestions').classList.add('hidden');
+            sendChatMessage();
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        // ===== FIT CHECK FUNCTIONALITY =====
+        async function checkFit() {
+            const input = document.getElementById('fitCheckInput').value.trim();
+
+            if (!input) {
+                alert('Please describe your organizational challenge.');
+                return;
+            }
+
+            const button = document.querySelector('.fit-check-button');
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        max_tokens: 600,
+                        system: FIT_CHECK_SYSTEM_PROMPT,
+                        messages: [{
+                            role: 'user',
+                            content: `Please assess the fit for Eduardo Arcirio's One Simple Trust for this challenge:\n\n${input}\n\nProvide your response in this exact format:\nFIT_LEVEL: [Strong Fit|Honest Assessment]\nANALYSIS: [2-3 sentences on alignment]\nGAPS: [2-3 sentences on potential concerns]\nRECOMMENDATION: [2-3 sentences with clear recommendation]`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.content && data.content[0]) {
+                    const responseText = data.content[0].text;
+                    parseFitCheckResponse(responseText);
+                } else {
+                    alert('Unable to process response. Please try again.');
+                }
+            } catch (error) {
+                console.error('Fit check error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Check Fit';
+            }
+        }
+
+        function parseFitCheckResponse(responseText) {
+            const resultsDiv = document.getElementById('fitCheckResults');
+            const titleEl = document.getElementById('fitResultTitle');
+            const analysisEl = document.getElementById('fitResultAnalysis');
+            const gapsEl = document.getElementById('fitResultGaps');
+            const recommendationEl = document.getElementById('fitResultRecommendation');
+
+            // Parse response
+            const fitMatch = responseText.match(/FIT_LEVEL:\s*([^\n]+)/);
+            const analysisMatch = responseText.match(/ANALYSIS:\s*([^\n]+(?:\n(?!GAPS:)[^\n]*)*)/);
+            const gapsMatch = responseText.match(/GAPS:\s*([^\n]+(?:\n(?!RECOMMENDATION:)[^\n]*)*)/);
+            const recommendationMatch = responseText.match(/RECOMMENDATION:\s*([^\n]+(?:\n[^\n]*)*)/);
+
+            const fitLevel = fitMatch ? fitMatch[1].trim() : 'Honest Assessment';
+            const analysis = analysisMatch ? analysisMatch[1].trim() : 'Unable to analyze';
+            const gaps = gapsMatch ? gapsMatch[1].trim() : 'N/A';
+            const recommendation = recommendationMatch ? recommendationMatch[1].trim() : 'Please consult directly';
+
+            const isStrongFit = fitLevel.toLowerCase().includes('strong');
+            const isWorth = fitLevel.toLowerCase().includes('worth');
+
+            if (isStrongFit) {
+                titleEl.textContent = '✓ Strong Fit';
+                titleEl.className = 'fit-result-title strong';
+                resultsDiv.className = 'fit-check-results show strong';
+            } else if (isWorth) {
+                titleEl.textContent = '◐ Worth a Conversation';
+                titleEl.className = 'fit-result-title moderate';
+                resultsDiv.className = 'fit-check-results show moderate';
+            } else {
+                titleEl.textContent = '⚠ Honest Assessment — Probably Not Your Best Option';
+                titleEl.className = 'fit-result-title weak';
+                resultsDiv.className = 'fit-check-results show weak';
+            }
+
+            analysisEl.textContent = analysis;
+            gapsEl.textContent = gaps;
+            recommendationEl.textContent = recommendation;
+        }
+
+        // ===== EXPERIENCE CARD TOGGLE =====
+        function toggleExperience(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.expand-icon');
+
+            content.classList.toggle('expanded');
+            icon.textContent = content.classList.contains('expanded') ? '−' : '+';
+        }
+
+        // ===== SCROLL ANIMATIONS =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Add fade-in class to cards on load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.operate-card, .experience-card, .competency-column').forEach(el => {
+                if (!el.classList.contains('fade-in')) {
+                    el.classList.add('fade-in');
+                    observer.observe(el);
+                }
+            });
+        });
+
+        // Smooth navigation links
+        document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
