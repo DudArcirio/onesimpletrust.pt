@@ -1778,12 +1778,15 @@ RECOMMENDATION: [2-3 sentences with a clear, honest recommendation. If not a fit
                 const conversationHistory = [];
 
                 const messageElements = messagesContainer.querySelectorAll('.chat-message');
-                messageElements.forEach((el, index) => {
-                    if (el.id !== 'typingIndicator') {
-                        const role = el.classList.contains('user') ? 'user' : 'assistant';
-                        const text = el.querySelector('.message-bubble').textContent;
-                        conversationHistory.push({ role, content: text });
-                    }
+                let foundFirstUser = false;
+                messageElements.forEach((el) => {
+                    if (el.id === 'typingIndicator') return;
+                    const role = el.classList.contains('user') ? 'user' : 'assistant';
+                    const text = el.querySelector('.message-bubble').textContent;
+                    // Skip assistant messages before the first user message (greeting)
+                    if (!foundFirstUser && role === 'assistant') return;
+                    if (role === 'user') foundFirstUser = true;
+                    conversationHistory.push({ role, content: text });
                 });
 
                 // Call Claude API via proxy
