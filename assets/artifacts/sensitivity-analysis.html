@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Análise de Sensibilidade — La Vie</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:#0f172a; color:#e2e8f0; padding:24px; }
+  h1 { font-size:28px; color:#f8fafc; margin-bottom:4px; }
+  h2 { font-size:20px; color:#94a3b8; margin:32px 0 16px; border-bottom:1px solid #334155; padding-bottom:8px; }
+  h3 { font-size:16px; color:#cbd5e1; margin:20px 0 10px; }
+  .subtitle { color:#64748b; font-size:14px; margin-bottom:24px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card { background:#1e293b; border-radius:12px; padding:20px; border:1px solid #334155; }
+  .card.full { grid-column:1/-1; }
+  .kpi-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+  .kpi { background:#1e293b; border-radius:10px; padding:16px 20px; border:1px solid #334155; min-width:140px; flex:1; }
+  .kpi .label { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
+  .kpi .value { font-size:28px; font-weight:700; margin-top:4px; }
+  .kpi .delta { font-size:12px; margin-top:2px; }
+  .red { color:#f87171; } .green { color:#4ade80; } .yellow { color:#fbbf24; } .blue { color:#60a5fa; }
+  canvas { width:100%; height:280px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; color:#64748b; padding:8px; border-bottom:1px solid #334155; font-weight:600; }
+  td { padding:6px 8px; border-bottom:1px solid #1e293b; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .insight { background:#1e3a5f; border-left:3px solid #3b82f6; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; font-size:14px; line-height:1.6; }
+  .tornado-bar { display:flex; align-items:center; height:22px; margin:2px 0; }
+  .tornado-label { width:160px; text-align:right; padding-right:8px; font-size:12px; color:#94a3b8; }
+  .tornado-center { width:1px; background:#475569; }
+  .tornado-left { display:flex; justify-content:flex-end; width:200px; }
+  .tornado-right { width:200px; }
+  .t-bar { height:18px; border-radius:3px; min-width:2px; }
+  .tornado-val { font-size:11px; color:#64748b; padding:0 4px; min-width:45px; }
+  .legend { display:flex; gap:20px; font-size:12px; color:#94a3b8; margin:8px 0; }
+  .legend-dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:4px; vertical-align:middle; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head><body>
+
+<h1>Análise de Sensibilidade — La Vie</h1>
+<p class="subtitle">noise.os · System Dynamics · Identificação de alavancas para crescimento sustentável</p>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Alunos Hoje</div><div class="value">500</div></div>
+  <div class="kpi"><div class="label">Cenário Base M36</div><div class="value red">32</div><div class="delta red">-93.6%</div></div>
+  <div class="kpi"><div class="label">Meta M36</div><div class="value green">625</div><div class="delta green">+25.0%</div></div>
+  <div class="kpi"><div class="label">NPS Necessário</div><div class="value blue">8.2</div><div class="delta">(hoje: 5.9)</div></div>
+  <div class="kpi"><div class="label">Retenção Necessária</div><div class="value blue">96.3%</div><div class="delta">(hoje: 87.2%)</div></div>
+  <div class="kpi"><div class="label">Caixa M36 Meta</div><div class="value green">R$ 316k</div><div class="delta green">vs R$ -1.5M base</div></div>
+</div>
+
+<!-- DIAGNOSIS -->
+<h2>Diagnóstico: Por que a escola perde 93% dos alunos?</h2>
+<div class="insight">
+  <strong>Causa raiz:</strong> O NPS actual de 5.9 gera uma retenção mensal de apenas 87.2%. Isso significa que a escola perde 12.8% dos alunos por mês (~64 alunos), mas só adquire ~30 novos. O <strong>saldo líquido é de -34 alunos/mês</strong>. O loop de reforço negativo B1 (churn → menos receita → menos investimento → menos qualidade → mais churn) domina o sistema. A aquisição, mesmo com R$ 5.000/mês em marketing, não compensa a saída massiva.
+</div>
+
+<!-- SENSITIVITY TORNADO -->
+<h2>Tornado de Sensibilidade — Top 12 Alavancas</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px">Variação nos alunos M36 quando cada parâmetro muda ±20% isoladamente</p>
+<div class="card full">
+  <div class="legend">
+    <span><span class="legend-dot" style="background:#f87171"></span>Parâmetro −20%</span>
+    <span><span class="legend-dot" style="background:#4ade80"></span>Parâmetro +20%</span>
+  </div>
+  <div id="tornado"></div>
+</div>
+
+<!-- CHARTS -->
+<h2>Projecção: Base vs Meta (+25%)</h2>
+<div class="grid">
+  <div class="card"><h3>Alunos Ativos</h3><canvas id="chartAlunos"></canvas></div>
+  <div class="card"><h3>Resultado Mensal (R$)</h3><canvas id="chartResultado"></canvas></div>
+  <div class="card"><h3>Caixa Acumulado (R$)</h3><canvas id="chartCaixa"></canvas></div>
+  <div class="card">
+    <h3>Aquisição vs Churn (Cenário Meta)</h3>
+    <canvas id="chartFlows"></canvas>
+  </div>
+</div>
+
+<!-- CHANGES TABLE -->
+<h2>Cenário Meta +25% — Alterações Necessárias</h2>
+<div class="card full">
+  <table>
+    <tr><th>Parâmetro</th><th>Actual</th><th>Meta</th><th>Variação</th><th>Magnitude</th></tr>
+    <tr><td>Invest. Formação</td><td class="num">2,000</td><td class="num">4,950</td><td class="num" style="color:#4ade80">+147.5%</td><td><div style="width:147.49948485534162px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Referência NPS=5</td><td class="num">1.0%</td><td class="num">2.5%</td><td class="num" style="color:#4ade80">+147.5%</td><td><div style="width:147.49948485534156px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Referência NPS=7</td><td class="num">2.0%</td><td class="num">4.2%</td><td class="num" style="color:#4ade80">+110.6%</td><td><div style="width:110.62461364150616px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Invest. Marketing</td><td class="num">5,000</td><td class="num">8,687</td><td class="num" style="color:#4ade80">+73.7%</td><td><div style="width:73.74974242767078px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Referência NPS=8</td><td class="num">3.5%</td><td class="num">6.1%</td><td class="num" style="color:#4ade80">+73.7%</td><td><div style="width:73.74974242767078px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Referência NPS=9</td><td class="num">5.0%</td><td class="num">8.7%</td><td class="num" style="color:#4ade80">+73.7%</td><td><div style="width:73.74974242767077px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Referência NPS=10</td><td class="num">7.0%</td><td class="num">10.7%</td><td class="num" style="color:#4ade80">+52.7%</td><td><div style="width:52.67838744833628px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Eficiência Marketing</td><td class="num">0.0020</td><td class="num">0.0027</td><td class="num" style="color:#4ade80">+36.9%</td><td><div style="width:36.87487121383539px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Taxa de Conversão</td><td class="num">15.0%</td><td class="num">18.7%</td><td class="num" style="color:#4ade80">+24.6%</td><td><div style="width:24.583247475890268px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Capacidade (vagas)</td><td class="num">800</td><td class="num">947</td><td class="num" style="color:#4ade80">+18.4%</td><td><div style="width:18.437435606917685px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Qualidade de Ensino</td><td class="num">7.0</td><td class="num">8.1</td><td class="num" style="color:#4ade80">+15.8%</td><td><div style="width:15.803516234500869px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Retenção NPS=5</td><td class="num">85.0%</td><td class="num">90.2%</td><td class="num" style="color:#4ade80">+6.1%</td><td><div style="width:6.073508199925826px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Retenção NPS=7</td><td class="num">90.0%</td><td class="num">92.9%</td><td class="num" style="color:#4ade80">+3.3%</td><td><div style="width:3.2777663301187143px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Retenção NPS=8</td><td class="num">93.0%</td><td class="num">95.9%</td><td class="num" style="color:#4ade80">+3.2%</td><td><div style="width:3.172031932372943px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Retenção NPS=9</td><td class="num">96.0%</td><td class="num">97.5%</td><td class="num" style="color:#4ade80">+1.5%</td><td><div style="width:1.5364529672431404px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+<tr><td>Retenção NPS=10</td><td class="num">98.0%</td><td class="num">98.7%</td><td class="num" style="color:#4ade80">+0.8%</td><td><div style="width:0.7525483921190901px;height:14px;background:#4ade80;border-radius:3px;"></div></td></tr>
+
+  </table>
+</div>
+
+<!-- STRATEGIC RECOMMENDATIONS -->
+<h2>Recomendações Estratégicas</h2>
+<div class="card full">
+  <div class="insight">
+    <strong>1. RETENÇÃO É A SUPER-ALAVANCA</strong> (elasticidade 14.3x)<br>
+    A retenção na faixa NPS=5 é o parâmetro mais sensível do sistema inteiro. Subir a retenção mensal de 87% para 96% elimina o loop de declínio e estabiliza a base. Isso exige elevar o NPS de 5.9 para 8.2 — uma transformação na experiência do aluno.
+  </div>
+  <div class="insight">
+    <strong>2. QUALIDADE DE ENSINO É O MOTOR</strong> (elasticidade 2.5x)<br>
+    A qualidade base (hoje 7/10) alimenta directamente o NPS, que por sua vez controla retenção, referências e frequência. Subir para 8.1/10 (+16%) requer investir 2.5x mais em formação de professores (R$ 2k → R$ 5k/mês) — é o investimento com maior retorno sistémico.
+  </div>
+  <div class="insight">
+    <strong>3. MARKETING AMPLIFICA, NÃO RESOLVE</strong> (elasticidade 0.8x)<br>
+    Aumentar marketing de R$ 5k para R$ 8.7k/mês (+74%) é necessário mas não suficiente sozinho. Marketing sem retenção é "encher um balde furado". A eficiência do marketing também precisa melhorar (de 0.002 para 0.0027 leads/R$) — conteúdo orgânico, SEO, parcerias locais.
+  </div>
+  <div class="insight">
+    <strong>4. CONVERSÃO E REFERÊNCIAS FECHAM O CICLO</strong><br>
+    A taxa de conversão de leads precisa subir de 15% para 19% (melhor processo de matrícula, aula experimental, follow-up). Referências orgânicas multiplicam-se com NPS alto — de 1.4% para 4.2% dos alunos trazendo novos leads. Estes dois efeitos criam o loop de reforço positivo R2.
+  </div>
+  <div class="insight">
+    <strong>5. CAPACIDADE DEVE ACOMPANHAR</strong><br>
+    Expandir de 800 para 947 vagas (+18%) previne que o loop balanceador B1 (pressão de capacidade → queda de qualidade) anule os ganhos de qualidade quando a escola crescer.
+  </div>
+</div>
+
+<h2>Sequência de Implementação Recomendada</h2>
+<div class="card full">
+  <table>
+    <tr><th>Fase</th><th>Período</th><th>Foco</th><th>Investimento</th><th>Impacto Esperado</th></tr>
+    <tr><td><strong>1. Estancar</strong></td><td>M1-M3</td><td>Formação de professores + processo de matrícula</td><td>+R$ 3k/mês</td><td>NPS 5.9→7.0, retenção 87%→92%</td></tr>
+    <tr><td><strong>2. Estabilizar</strong></td><td>M4-M9</td><td>Qualidade de ensino + programa de referências</td><td>+R$ 2k/mês</td><td>NPS 7.0→8.0, net positivo</td></tr>
+    <tr><td><strong>3. Crescer</strong></td><td>M10-M18</td><td>Ampliar marketing + eficiência de conversão</td><td>+R$ 3.7k/mês</td><td>Aquisição > Churn consistente</td></tr>
+    <tr><td><strong>4. Escalar</strong></td><td>M19-M36</td><td>Expandir capacidade + manter qualidade</td><td>Variável</td><td>625 alunos, caixa positivo</td></tr>
+  </table>
+</div>
+
+<script>
+const bA = [{"m": 0, "a": 500}, {"m": 1, "a": 466.0}, {"m": 2, "a": 425.4}, {"m": 3, "a": 384.0}, {"m": 4, "a": 344.4}, {"m": 5, "a": 307.9}, {"m": 6, "a": 274.9}, {"m": 7, "a": 245.4}, {"m": 8, "a": 219.2}, {"m": 9, "a": 196.1}, {"m": 10, "a": 175.7}, {"m": 11, "a": 157.7}, {"m": 12, "a": 141.8}, {"m": 13, "a": 127.9}, {"m": 14, "a": 115.7}, {"m": 15, "a": 104.9}, {"m": 16, "a": 95.5}, {"m": 17, "a": 87.2}, {"m": 18, "a": 79.9}, {"m": 19, "a": 73.4}, {"m": 20, "a": 67.8}, {"m": 21, "a": 62.9}, {"m": 22, "a": 58.5}, {"m": 23, "a": 54.7}, {"m": 24, "a": 51.3}, {"m": 25, "a": 48.4}, {"m": 26, "a": 45.8}, {"m": 27, "a": 43.5}, {"m": 28, "a": 41.5}, {"m": 29, "a": 39.8}, {"m": 30, "a": 38.2}, {"m": 31, "a": 36.9}, {"m": 32, "a": 35.7}, {"m": 33, "a": 34.6}, {"m": 34, "a": 33.7}, {"m": 35, "a": 32.9}, {"m": 36, "a": 32.2}];
+const tA = [{"m": 0, "a": 500}, {"m": 1, "a": 519.0}, {"m": 2, "a": 529.8}, {"m": 3, "a": 536.6}, {"m": 4, "a": 541.5}, {"m": 5, "a": 545.4}, {"m": 6, "a": 548.7}, {"m": 7, "a": 551.9}, {"m": 8, "a": 554.9}, {"m": 9, "a": 557.8}, {"m": 10, "a": 560.7}, {"m": 11, "a": 563.5}, {"m": 12, "a": 566.3}, {"m": 13, "a": 569.0}, {"m": 14, "a": 571.8}, {"m": 15, "a": 574.5}, {"m": 16, "a": 577.1}, {"m": 17, "a": 579.8}, {"m": 18, "a": 582.4}, {"m": 19, "a": 585.0}, {"m": 20, "a": 587.5}, {"m": 21, "a": 590.1}, {"m": 22, "a": 592.6}, {"m": 23, "a": 595.0}, {"m": 24, "a": 597.5}, {"m": 25, "a": 599.9}, {"m": 26, "a": 602.3}, {"m": 27, "a": 604.7}, {"m": 28, "a": 607.0}, {"m": 29, "a": 609.4}, {"m": 30, "a": 611.7}, {"m": 31, "a": 614.0}, {"m": 32, "a": 616.2}, {"m": 33, "a": 618.4}, {"m": 34, "a": 620.7}, {"m": 35, "a": 622.8}, {"m": 36, "a": 625.0}];
+const bR = [{"m": 0, "v": -722}, {"m": 1, "v": -6023}, {"m": 2, "v": -11424}, {"m": 3, "v": -16574}, {"m": 4, "v": -21319}, {"m": 5, "v": -25607}, {"m": 6, "v": -29440}, {"m": 7, "v": -32842}, {"m": 8, "v": -35851}, {"m": 9, "v": -38504}, {"m": 10, "v": -40841}, {"m": 11, "v": -42898}, {"m": 12, "v": -44706}, {"m": 13, "v": -46295}, {"m": 14, "v": -47693}, {"m": 15, "v": -48920}, {"m": 16, "v": -49999}, {"m": 17, "v": -50947}, {"m": 18, "v": -51780}, {"m": 19, "v": -52512}, {"m": 20, "v": -53154}, {"m": 21, "v": -53719}, {"m": 22, "v": -54216}, {"m": 23, "v": -54652}, {"m": 24, "v": -55035}, {"m": 25, "v": -55371}, {"m": 26, "v": -55667}, {"m": 27, "v": -55927}, {"m": 28, "v": -56155}, {"m": 29, "v": -56355}, {"m": 30, "v": -56531}, {"m": 31, "v": -56686}, {"m": 32, "v": -56822}, {"m": 33, "v": -56942}, {"m": 34, "v": -57047}, {"m": 35, "v": -57139}, {"m": 36, "v": -57220}];
+const tR = [{"m": 0, "v": 257}, {"m": 1, "v": 1414}, {"m": 2, "v": 2161}, {"m": 3, "v": 2706}, {"m": 4, "v": 3150}, {"m": 5, "v": 3544}, {"m": 6, "v": 3912}, {"m": 7, "v": 4265}, {"m": 8, "v": 4608}, {"m": 9, "v": 4946}, {"m": 10, "v": 5279}, {"m": 11, "v": 5608}, {"m": 12, "v": 5933}, {"m": 13, "v": 6254}, {"m": 14, "v": 6572}, {"m": 15, "v": 6887}, {"m": 16, "v": 7198}, {"m": 17, "v": 7506}, {"m": 18, "v": 7811}, {"m": 19, "v": 8113}, {"m": 20, "v": 8412}, {"m": 21, "v": 8707}, {"m": 22, "v": 8999}, {"m": 23, "v": 9289}, {"m": 24, "v": 9575}, {"m": 25, "v": 9858}, {"m": 26, "v": 10139}, {"m": 27, "v": 10416}, {"m": 28, "v": 10691}, {"m": 29, "v": 10963}, {"m": 30, "v": 11231}, {"m": 31, "v": 11498}, {"m": 32, "v": 11761}, {"m": 33, "v": 12021}, {"m": 34, "v": 12279}, {"m": 35, "v": 12534}, {"m": 36, "v": 12787}];
+const bC = [{"m": 0, "v": 50000}, {"m": 1, "v": 49278}, {"m": 2, "v": 43255}, {"m": 3, "v": 31831}, {"m": 4, "v": 15257}, {"m": 5, "v": -6062}, {"m": 6, "v": -31670}, {"m": 7, "v": -61110}, {"m": 8, "v": -93952}, {"m": 9, "v": -129802}, {"m": 10, "v": -168307}, {"m": 11, "v": -209148}, {"m": 12, "v": -252045}, {"m": 13, "v": -296751}, {"m": 14, "v": -343047}, {"m": 15, "v": -390739}, {"m": 16, "v": -439660}, {"m": 17, "v": -489659}, {"m": 18, "v": -540606}, {"m": 19, "v": -592385}, {"m": 20, "v": -644897}, {"m": 21, "v": -698051}, {"m": 22, "v": -751771}, {"m": 23, "v": -805986}, {"m": 24, "v": -860638}, {"m": 25, "v": -915672}, {"m": 26, "v": -971043}, {"m": 27, "v": -1026710}, {"m": 28, "v": -1082637}, {"m": 29, "v": -1138791}, {"m": 30, "v": -1195147}, {"m": 31, "v": -1251678}, {"m": 32, "v": -1308364}, {"m": 33, "v": -1365187}, {"m": 34, "v": -1422128}, {"m": 35, "v": -1479175}, {"m": 36, "v": -1536314}];
+const tC = [{"m": 0, "v": 50000}, {"m": 1, "v": 50257}, {"m": 2, "v": 51671}, {"m": 3, "v": 53832}, {"m": 4, "v": 56537}, {"m": 5, "v": 59688}, {"m": 6, "v": 63232}, {"m": 7, "v": 67144}, {"m": 8, "v": 71409}, {"m": 9, "v": 76017}, {"m": 10, "v": 80963}, {"m": 11, "v": 86242}, {"m": 12, "v": 91850}, {"m": 13, "v": 97782}, {"m": 14, "v": 104036}, {"m": 15, "v": 110608}, {"m": 16, "v": 117495}, {"m": 17, "v": 124693}, {"m": 18, "v": 132200}, {"m": 19, "v": 140011}, {"m": 20, "v": 148124}, {"m": 21, "v": 156536}, {"m": 22, "v": 165243}, {"m": 23, "v": 174242}, {"m": 24, "v": 183531}, {"m": 25, "v": 193106}, {"m": 26, "v": 202965}, {"m": 27, "v": 213104}, {"m": 28, "v": 223520}, {"m": 29, "v": 234211}, {"m": 30, "v": 245173}, {"m": 31, "v": 256405}, {"m": 32, "v": 267902}, {"m": 33, "v": 279663}, {"m": 34, "v": 291685}, {"m": 35, "v": 303964}, {"m": 36, "v": 316498}];
+const sens = [{"label": "Reten\u00e7\u00e3o NPS=5", "dn": -52.3, "up": 518.2, "elast": 14.261}, {"label": "Reten\u00e7\u00e3o NPS=7", "dn": -48.2, "up": 117.1, "elast": 4.132}, {"label": "Qualidade Base", "dn": -29.3, "up": 68.7, "elast": 2.45}, {"label": "Fator NPS", "dn": -29.3, "up": 68.7, "elast": 2.45}, {"label": "Efeito Forma\u00e7\u00e3o M\u00edn", "dn": -20.8, "up": 35.8, "elast": 1.415}, {"label": "Efici\u00eancia Mkt", "dn": -16.6, "up": 16.6, "elast": 0.83}, {"label": "Invest. Marketing", "dn": -16.6, "up": 16.6, "elast": 0.83}, {"label": "Efeito Forma\u00e7\u00e3o M\u00e1x", "dn": -12.8, "up": 17.4, "elast": 0.754}, {"label": "Perda Leads", "dn": 14.7, "up": -11.0, "elast": 0.641}, {"label": "Taxa Convers\u00e3o", "dn": -13.1, "up": 11.5, "elast": 0.615}, {"label": "Forma\u00e7\u00e3o Satura\u00e7\u00e3o", "dn": 8.0, "up": -4.7, "elast": 0.317}, {"label": "Invest. Forma\u00e7\u00e3o", "dn": -5.6, "up": 6.3, "elast": 0.297}];
+
+// Tornado chart
+const tornadoDiv = document.getElementById("tornado");
+sens.forEach(s => {
+  const maxRange = 500;
+  const scaleL = Math.min(Math.abs(s.dn), maxRange);
+  const scaleR = Math.min(Math.abs(s.up), maxRange);
+  const wL = scaleL / maxRange * 180;
+  const wR = scaleR / maxRange * 180;
+  const row = document.createElement("div");
+  row.className = "tornado-bar";
+  row.innerHTML = `
+    <span class="tornado-label">${s.label}</span>
+    <div class="tornado-left"><span class="tornado-val">${s.dn > 0 ? '+' : ''}${s.dn.toFixed(0)}%</span><div class="t-bar" style="width:${wL}px;background:#f87171;"></div></div>
+    <div class="tornado-center"></div>
+    <div class="tornado-right"><div class="t-bar" style="width:${wR}px;background:#4ade80;"></div><span class="tornado-val">${s.up > 0 ? '+' : ''}${s.up.toFixed(0)}%</span></div>
+  `;
+  tornadoDiv.appendChild(row);
+});
+
+// Chart defaults
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+const months = bA.map(d => 'M'+d.m);
+
+function makeChart(id, label1, data1, label2, data2, fmt) {
+  new Chart(document.getElementById(id), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: label1, data: data1, borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
+        { label: label2, data: data2, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.1)', fill: true, tension: 0.3, pointRadius: 0 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 12 } },
+        y: { ticks: { callback: v => fmt ? fmt(v) : v } }
+      }
+    }
+  });
+}
+
+makeChart('chartAlunos', 'Base', bA.map(d=>d.a), 'Meta +25%', tA.map(d=>d.a));
+makeChart('chartResultado', 'Base', bR.map(d=>d.v), 'Meta +25%', tR.map(d=>d.v), v => 'R$ '+(v/1000).toFixed(0)+'k');
+makeChart('chartCaixa', 'Base', bC.map(d=>d.v), 'Meta +25%', tC.map(d=>d.v), v => 'R$ '+(v/1000000).toFixed(1)+'M');
+
+// Flows chart
+const targetData = [{"m": 0, "aq": 37.4, "ch": 18.4}, {"m": 1, "aq": 29.9, "ch": 19.1}, {"m": 2, "aq": 26.3, "ch": 19.5}, {"m": 3, "aq": 24.6, "ch": 19.7}, {"m": 4, "aq": 23.8, "ch": 19.9}, {"m": 5, "aq": 23.5, "ch": 20.1}, {"m": 6, "aq": 23.3, "ch": 20.2}, {"m": 7, "aq": 23.3, "ch": 20.3}, {"m": 8, "aq": 23.3, "ch": 20.4}, {"m": 9, "aq": 23.4, "ch": 20.5}, {"m": 10, "aq": 23.4, "ch": 20.6}, {"m": 11, "aq": 23.5, "ch": 20.7}, {"m": 12, "aq": 23.6, "ch": 20.8}, {"m": 13, "aq": 23.7, "ch": 20.9}, {"m": 14, "aq": 23.7, "ch": 21.0}, {"m": 15, "aq": 23.8, "ch": 21.1}, {"m": 16, "aq": 23.9, "ch": 21.2}, {"m": 17, "aq": 23.9, "ch": 21.3}, {"m": 18, "aq": 24.0, "ch": 21.4}, {"m": 19, "aq": 24.1, "ch": 21.5}, {"m": 20, "aq": 24.1, "ch": 21.6}, {"m": 21, "aq": 24.2, "ch": 21.7}, {"m": 22, "aq": 24.3, "ch": 21.8}, {"m": 23, "aq": 24.3, "ch": 21.9}, {"m": 24, "aq": 24.4, "ch": 22.0}, {"m": 25, "aq": 24.5, "ch": 22.1}, {"m": 26, "aq": 24.5, "ch": 22.2}, {"m": 27, "aq": 24.6, "ch": 22.2}, {"m": 28, "aq": 24.7, "ch": 22.3}, {"m": 29, "aq": 24.7, "ch": 22.4}, {"m": 30, "aq": 24.8, "ch": 22.5}, {"m": 31, "aq": 24.8, "ch": 22.6}, {"m": 32, "aq": 24.9, "ch": 22.7}, {"m": 33, "aq": 25.0, "ch": 22.7}, {"m": 34, "aq": 25.0, "ch": 22.8}, {"m": 35, "aq": 25.1, "ch": 22.9}, {"m": 36, "aq": 25.1, "ch": 23.0}];
+new Chart(document.getElementById('chartFlows'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Aquisição', data: targetData.map(d=>d.aq), borderColor: '#4ade80', tension: 0.3, pointRadius: 0 },
+      { label: 'Churn', data: targetData.map(d=>d.ch), borderColor: '#f87171', tension: 0.3, pointRadius: 0 },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { x: { ticks: { maxTicksLimit: 12 } } }
+  }
+});
+</script>
+</body></html>

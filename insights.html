@@ -138,6 +138,13 @@
             padding: 28px 32px 0;
             cursor: pointer;
         }
+        .post-tags {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
         .post-series-tag {
             display: inline-block;
             font-size: 11px;
@@ -145,7 +152,17 @@
             letter-spacing: 1.2px;
             text-transform: uppercase;
             color: var(--accent);
-            margin-bottom: 12px;
+        }
+        .post-type-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            opacity: 0.7;
+            border-left: 1px solid var(--accent-border);
+            padding-left: 8px;
         }
         .post-title {
             font-family: var(--serif);
@@ -228,6 +245,24 @@
             margin-bottom: 8px;
         }
 
+        /* CAROUSEL LINK */
+        .carousel-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 12px;
+            border: 1px solid var(--accent-border);
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .carousel-link:hover {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
         /* SERIES INTRO STYLING */
         .series-intro {
             font-family: var(--serif);
@@ -238,6 +273,76 @@
             margin-bottom: 20px;
             padding-bottom: 16px;
             border-bottom: 1px solid var(--accent-border);
+        }
+
+        /* ARTIFACTS SECTION */
+        .artifacts-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            margin: 48px auto 0;
+            padding: 0 20px;
+            max-width: 760px;
+        }
+        .artifacts-section.visible {
+            max-height: 3000px;
+        }
+        .artifacts-header {
+            font-family: var(--serif);
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--accent-border);
+        }
+        .artifacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 48px;
+        }
+        .artifact-card {
+            border: 1px solid var(--accent-border);
+            background: var(--bg-card);
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .artifact-card:hover { border-color: var(--accent); }
+        .artifact-product {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .artifact-title {
+            font-family: var(--serif);
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .artifact-desc {
+            font-size: 13px;
+            color: var(--text-body);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .artifact-link {
+            display: inline-block;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--accent-border);
+            padding-bottom: 2px;
+            transition: all 0.3s;
+        }
+        .artifact-link:hover {
+            border-bottom-color: var(--accent);
         }
 
         /* FOOTER */
@@ -267,6 +372,7 @@
             .post-body-inner { padding: 0 20px 24px; padding-top: 20px; }
             .nav { padding: 14px 20px; }
             .post-title { font-size: 20px; }
+            .artifacts-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -292,6 +398,7 @@
         <button class="filter-btn" data-filter="its-rare">It's Rare But Happens Often</button>
         <button class="filter-btn" data-filter="marginalia">Marginalia</button>
         <button class="filter-btn" data-filter="running-notes">Running Notes</button>
+        <button class="filter-btn" data-filter="interactive">Interactive Tools</button>
     </div>
 
     <div class="feed">
@@ -299,7 +406,9 @@
         <!-- Running Notes #2 — Anthropic Growth -->
         <article class="post-card" data-series="running-notes">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">Running Notes #2</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">Running Notes #2</div>
+                </div>
                 <h2 class="post-title">The System Is the Strategy</h2>
                 <p class="post-excerpt">Anthropic's Head of Growth tells Lenny that activation — not acquisition, not retention — is the single highest-leverage problem in AI growth. Confirmation of what a causal loop diagram of SaaS revenue systems predicts.</p>
             </div>
@@ -308,7 +417,7 @@
                 <span>6 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
@@ -316,12 +425,10 @@
                     <p>I nearly stopped running. Not because it was new. Because it was confirmation.</p>
                     <p>I've spent months building a causal loop diagram of how SaaS revenue systems work. Thirty variables. Fifty-five links. Fourteen loops. Then someone at the fastest-growing AI company in history says out loud the thing the model predicts.</p>
                     <p>In the system I mapped, there's a loop called R9 — Frictionless Activation. Product quality deepens activation, which lifts conversion, which funds investment, which improves the product. It connects what you build to what you earn.</p>
-                    <p>But Anthropic adds a twist. They're deliberately adding friction to onboarding. Not random friction — friction that helps users understand why the product is for them. Tested at Mercury, MasterClass, Calm. Every time, it improved conversion. The variable isn't "friction." It's activation depth. Shallow activation converts fast and churns faster. Deep activation sticks. In CLD terms, they're strengthening R8 — the Stickiness Moat — by accepting a short-term cost in R9.</p>
-                    <p>$1B to $19B in fourteen months. Already out of date. They've stopped using linear charts internally — too exponential to be useful. That's what happens when reinforcing loops fire before balancing loops activate.</p>
-                    <p>Anthropic indexes 70/30 toward big bets. Most growth teams do the opposite. Amol's logic: when model capabilities grow exponentially, micro-optimizations capture a shrinking share of a growing pie. You can't incrementally optimise your way out of a structural problem.</p>
-                    <p>And then the line that confirmed the map. Anthropic is "very comfortable forgoing metric impact to prioritize safety, brand, quality, and user experience." That's not a values statement. That's a constraint function. In my model, constraints prevent vicious loops from activating. Violate them and the decay spirals start spinning. Anthropic isn't being noble. They're being structurally intelligent.</p>
-                    <p>The smartest growth team in the world is thinking in systems. They're choosing which friction serves activation. Respecting constraints. Placing structural bets, not running experiments.</p>
-                    <p>The system is the strategy.</p>
+                    <p>But Anthropic adds a twist. They're deliberately adding friction to onboarding — friction that helps users understand why the product is for them. Every time, it improved conversion. The variable isn't "friction." It's activation depth. Shallow activation converts fast and churns faster. Deep activation sticks.</p>
+                    <p>$1B to $19B in fourteen months. They've stopped using linear charts internally — too exponential to be useful. That's what happens when reinforcing loops fire before balancing loops activate.</p>
+                    <p>Anthropic indexes 70/30 toward big bets. Most growth teams do the opposite. When model capabilities grow exponentially, micro-optimizations capture a shrinking share of a growing pie. You can't incrementally optimise your way out of a structural problem.</p>
+                    <p>And then the line that confirmed the map. Anthropic is "very comfortable forgoing metric impact to prioritize safety, brand, quality, and user experience." That's not a values statement. That's a constraint function. In my model, constraints prevent vicious loops from activating. The system is the strategy.</p>
                     <div class="post-source">
                         <div class="post-source-title">Source</div>
                         Lenny's Podcast — Anthropic's $1B to $19B Growth Run with Amol Avasare
@@ -333,7 +440,9 @@
         <!-- Marginalia #2 — Three Shadows of Power -->
         <article class="post-card" data-series="marginalia">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">Marginalia #2</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">Marginalia #2</div>
+                </div>
                 <h2 class="post-title">The Three Shadows of Power</h2>
                 <p class="post-excerpt">Every structure carries its own shadow. The formal hierarchy carries rigidity. The informal network carries invisible power. The value creation structure carries the iron cage inverted — peer surveillance, production at any cost.</p>
             </div>
@@ -342,25 +451,21 @@
                 <span>7 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
-                    <p>Last week I wrote about how we built the hierarchy we now take for granted. This week, a reading trail that started with Niels Pflaeging took me somewhere I didn't expect.</p>
-                    <p>Pflaeging argues that every organisation has three structures, not one. The formal hierarchy — which produces compliance. The informal network — which produces influence. And the value creation structure — which produces reputation, through the people closest to the work and the market.</p>
+                    <p>Pflaeging argues that every organisation has three structures. The formal hierarchy — which produces compliance. The informal network — which produces influence. And the value creation structure — which produces reputation.</p>
                     <p>His point is sharp: we over-invest in the formal structure and ignore the other two. Value flows centre-out through networks of teams, not top-down through reporting lines.</p>
-                    <p>I agree with the diagnosis. But the more I sat with it, the more I felt something was missing. What about the shadows of the other two?</p>
-                    <p>So I went digging. And found three uncomfortable truths.</p>
-                    <p>The first came from Jo Freeman. In 1970, she wrote "The Tyranny of Structurelessness" — an essay arguing that there's no such thing as a group without structure. When you remove formal hierarchy, you don't remove power. You make it invisible. Whoever controls the information, whoever belongs to the in-group, whoever knows the unwritten rules — those people govern without mandate and without accountability. The informal structure doesn't just carry influence. It carries exclusion, favouritism, and silent gatekeeping.</p>
-                    <p>The second came from Foucault. His panopticon isn't a building. It's a principle. You don't need a boss watching you if everyone is watching everyone. In informal networks, the disciplinary gaze doesn't come from above. It comes from all sides. And that can be more oppressive, not less.</p>
-                    <p>The third came from James Barker. In 1993, he studied a company that moved from hierarchical control to self-managing teams. What he found: the teams developed normative rules that controlled behaviour more powerfully than the old system ever did. Peers confronted each other, punished deviance, rewarded conformity. Over time, the rules became as bureaucratic as the ones they replaced — but with no visible manager to hold accountable. Barker called it "concertive control." Weber's iron cage didn't open. It tightened.</p>
-                    <p>Here's what stays with me.</p>
-                    <p>Each structure carries its own shadow. The formal hierarchy carries rigidity and bureaucracy. The informal network carries invisible power and social exclusion. The value creation structure carries the iron cage inverted — peer surveillance, production at any cost, people reduced to their output.</p>
-                    <p>The question isn't which structure to privilege. It's how to make the dynamics of power visible across all three. And how to build accountability mechanisms that work in each.</p>
-                    <p>We don't fix organisations by swapping one power structure for another. We fix them by learning to see all three — and the shadows they cast.</p>
+                    <p>But what about the shadows of the other two?</p>
+                    <p>Jo Freeman wrote "The Tyranny of Structurelessness" in 1970. When you remove formal hierarchy, you don't remove power. You make it invisible. Whoever controls information, whoever belongs to the in-group, whoever knows the unwritten rules — those people govern without mandate and without accountability.</p>
+                    <p>Then there's Foucault's panopticon. It's a principle, not a building. You don't need a boss watching you if everyone is watching everyone. In informal networks, the disciplinary gaze doesn't come from above. It comes from all sides.</p>
+                    <p>And James Barker's concertive control. In 1993, he studied a company that moved from hierarchical control to self-managing teams. The teams developed normative rules that controlled behaviour more powerfully than the old system ever did. Peers confronted each other, punished deviance, rewarded conformity. The iron cage didn't open. It tightened.</p>
+                    <p>Each structure carries its own shadow. The formal hierarchy carries rigidity and bureaucracy. The informal network carries invisible power and social exclusion. The value creation structure carries peer surveillance and production at any cost.</p>
+                    <p>The question isn't which structure to privilege. It's how to make the dynamics of power visible across all three.</p>
                     <div class="post-source">
                         <div class="post-source-title">References</div>
-                        Niels Pflaeging — Org Physics / Organize for Complexity<br>
+                        Niels Pflaeging — Org Physics<br>
                         Jo Freeman — The Tyranny of Structurelessness (1970)<br>
                         James Barker — Tightening the Iron Cage (1993)
                     </div>
@@ -371,7 +476,9 @@
         <!-- Running Notes #1 — John Cutler -->
         <article class="post-card" data-series="running-notes">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">Running Notes #1</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">Running Notes #1</div>
+                </div>
                 <h2 class="post-title">The Beautiful Mess</h2>
                 <p class="post-excerpt">John Cutler said something that stopped me mid-stride: "It's more likely that your company will change you than you will change your company." He wasn't being cynical. He was being precise.</p>
             </div>
@@ -380,22 +487,18 @@
                 <span>7 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
-                    <p>Six kilometres into this morning's run, John Cutler said something that stopped me mid-stride.</p>
-                    <p>"It's more likely that your company will change you than you will change your company."</p>
-                    <p>That's a hard sentence if you've spent any part of your career trying to make organizations work better. And he wasn't being cynical. He was being precise.</p>
-                    <p>The episode is a conversation between Cutler and Sam Spurlin on At Work with The Ready, and it's one of the best I've heard on what it actually feels like to work inside organizations — not the theory, but the texture.</p>
-                    <p>A few things that stayed with me past the cool-down.</p>
-                    <p>Companies are gold rush towns, not lasting institutions. We design for permanence when we should be designing for passage. Most of the structures we fight to change were never built to last — they were built to capture a moment. Knowing that changes how you pick your battles.</p>
-                    <p>Leaders should be game designers, not chess players. The job isn't to move pieces. It's to shape the rules and conditions so that better moves become possible for everyone. Cutler connects this to Ashby's Law — the idea that a system's ability to respond has to match the complexity it faces. You don't get that by centralising control. You get it by distributing it. More local autonomy, less global choreography.</p>
-                    <p>There's a reason you never see senior leaders using Jira Align. Not because they're lazy. Because the abstraction layer doesn't match how they actually make decisions. What they need isn't a dashboard — it's a flexible operating system that gives them real signal. Most planning tools give leaders the illusion of control while removing them from the texture of the work.</p>
-                    <p>The most useful framework in the conversation was Cutler's matrix of explicit versus implicit crossed with intentional versus not intentional. Some things in organizations are visible and deliberate — strategy docs, OKRs. Some are invisible but still deliberate — the unwritten norms leaders actively shape. Some are visible but accidental — bureaucratic leftovers nobody questions. And then there's the fourth quadrant: the invisible, unintentional patterns that quietly run the show while everyone looks elsewhere. That's where the real work is. That's where the org actually lives.</p>
-                    <p>And then the sentence I keep coming back to. You probably won't change the company. But you can shape the local environment — your team, your rituals, your standards. And when people look back, those are the moments they remember. Not the reorg. Not the strategy offsite. The Tuesday morning where someone felt safe enough to say the thing everyone was thinking.</p>
-                    <p>Cutler calls it the beautiful mess. I think that's exactly right. The mess isn't the obstacle. The mess is the material.</p>
-                    <p>Worth a listen if you care about how things actually work, not just how they're supposed to.</p>
+                    <p>Six kilometres into this morning's run, John Cutler said something that stopped me mid-stride: "It's more likely that your company will change you than you will change your company."</p>
+                    <p>That's a hard sentence if you've spent any part of your career trying to make organizations work better.</p>
+                    <p>Companies are gold rush towns, not lasting institutions. We design for permanence when we should be designing for passage. Most of the structures we fight to change were never built to last — they were built to capture a moment.</p>
+                    <p>Leaders should be game designers, not chess players. The job isn't to move pieces. It's to shape the rules and conditions so that better moves become possible for everyone. This connects to Ashby's Law — a system's ability to respond has to match the complexity it faces. You get that by distributing control, not centralising it.</p>
+                    <p>What senior leaders need isn't a dashboard — it's a flexible operating system that gives them real signal. Most planning tools give leaders the illusion of control while removing them from the texture of the work.</p>
+                    <p>Cutler's most useful framework is a matrix of explicit versus implicit crossed with intentional versus not intentional. Some things in organizations are visible and deliberate — strategy docs, OKRs. Some are invisible but still deliberate — the unwritten norms leaders actively shape. Some are visible but accidental — bureaucratic leftovers nobody questions. And then there's the fourth quadrant: the invisible, unintentional patterns that quietly run the show. That's where the org actually lives.</p>
+                    <p>You probably won't change the company. But you can shape the local environment — your team, your rituals, your standards. And when people look back, those are the moments they remember. Not the reorg. The Tuesday morning where someone felt safe enough to say the thing everyone was thinking.</p>
+                    <p>That's the beautiful mess.</p>
                     <div class="post-source">
                         <div class="post-source-title">Source</div>
                         At Work with The Ready, Ep. 46 — "Embracing the Beautiful Mess" with John Cutler
@@ -407,7 +510,9 @@
         <!-- Marginalia #1 — The Genealogy of Command -->
         <article class="post-card" data-series="marginalia">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">Marginalia #1</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">Marginalia #1</div>
+                </div>
                 <h2 class="post-title">The Genealogy of Command</h2>
                 <p class="post-excerpt">For roughly 95% of human history, we organised through "reverse dominance." The group functioned as a collective alpha. We didn't start with hierarchy. We built it. Layer by layer, century by century.</p>
             </div>
@@ -416,27 +521,20 @@
                 <span>7 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
                     <div class="series-intro">I read the way most people read — too much, too fast, too many tabs open. But some things slow me down. A paragraph I read three times. A margin note that turns into a page of my own thinking. This is Marginalia — not reviews, not summaries. Just the notes in the margins, and where they took me.</div>
-                    <p>A post from Jon Smart led me to his "Organising for Outcomes" series. I clicked back through the previous posts until I reached the second one — "How We Got Here." That's the one that got me.</p>
-                    <p>Smart traces how modern management practices emerged from a collision of military doctrine, industrial engineering, and Enlightenment philosophy. Sharp, well-structured. But it left me wanting a wider lens.</p>
-                    <p>So I went digging. And what I found reframed everything.</p>
-                    <p>For roughly 95% of human history, we organised through "reverse dominance." The group functioned as a collective alpha. Anyone who tried to command others was actively suppressed. Work was indistinguishable from play. No managers. No timesheets.</p>
-                    <p>That's not utopian fantasy. That's the anthropological record.</p>
+                    <p>Jon Smart traces how modern management practices emerged from military doctrine, industrial engineering, and Enlightenment philosophy. But I wanted a wider lens.</p>
+                    <p>For roughly 95% of human history, we organised through "reverse dominance." The group functioned as a collective alpha. Anyone who tried to command others was actively suppressed. That's the anthropological record.</p>
                     <p>The shift didn't start with factories. It started when states discovered that certain crops — wheat, barley, rice — were easy to store, transport, and tax. Quantifiable labour is controllable labour.</p>
                     <p>From there, the architecture layered up. Egypt gave us nested supervisory hierarchies. Babylon gave us performance incentives. China built the world's first meritocratic civil service. And then came the Prussians.</p>
                     <p>After Napoleon humiliated them at Jena in 1806, the Prussian military rebuilt itself around two competing philosophies. Befehlstaktik — lead by detailed orders, no discretion. Auftragstaktik — lead by intent, leave the how to the people closest to the work.</p>
                     <p>When American railroads needed organisational models, they hired former military officers. Those officers chose Befehlstaktik. Not because it was better. Because it was familiar.</p>
-                    <p>Taylor formalised it. Fayol structured it. Weber justified it. And the 20th century exported it globally through business schools funded by Ford, Rockefeller, and Carnegie as Cold War soft power.</p>
-                    <p>Here's what stays with me.</p>
+                    <p>Taylor formalised it. Fayol structured it. Weber justified it. And the 20th century exported it globally through business schools as Cold War soft power.</p>
                     <p>The entire command and control model was designed for manual labour — turning bodies into predictable, mechanical output. It was never designed for knowledge work, where productivity depends on judgement, creativity, and intrinsic motivation.</p>
-                    <p>And yet. Here we are. Running 21st-century organisations on 19th-century architecture.</p>
-                    <p>Drucker saw it decades ago. The means of production in a knowledge economy is the brain of the worker. It's portable. It walks out the door every evening. You can't supervise it into compliance.</p>
-                    <p>We didn't start with hierarchy. We built it. Layer by layer, century by century.</p>
-                    <p>We can choose to build something different.</p>
+                    <p>We didn't start with hierarchy. We built it. And we can choose to build something different.</p>
                     <div class="post-source">
                         <div class="post-source-title">References</div>
                         Jon Smart — "Organising for Outcomes" series (soonersaferhappier.com)
@@ -448,7 +546,9 @@
         <!-- It's Rare #2 — Limits to Growth -->
         <article class="post-card" data-series="its-rare">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">It's Rare But Happens Often #2</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">It's Rare But Happens Often #2</div>
+                </div>
                 <h2 class="post-title">Limits to Growth</h2>
                 <p class="post-excerpt">Limits to Growth is the most documented archetype in systems thinking. Yet it keeps catching smart teams off guard. Not because it's hard to understand. Because it's hard to accept.</p>
             </div>
@@ -457,28 +557,23 @@
                 <span>7 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
-                    <p>Last week I described how four systemic archetypes spiral into each other inside growth-obsessed organisations. This week we zoom into the first. The one that starts it all.</p>
-                    <p>Limits to Growth is the most documented archetype in systems thinking. Senge, Meadows, Sterman — they all wrote about it. Yet it keeps catching smart teams off guard. Not because it's hard to understand. Because it's hard to accept.</p>
-                    <p>The structure is simple. A reinforcing loop drives performance. Growth feeds growth. Customers bring customers. Revenue funds the engine that produces more revenue. For a while the curve looks exponential. Dashboards glow. People get promoted.</p>
-                    <p>Then something shifts. Not suddenly — gradually. The same effort yields less. The curve bends. Not because anyone stopped working. Because a balancing loop, one that was always there, started to bite.</p>
-                    <p>That balancing loop is the constraint. And constraints don't announce themselves. They accumulate.</p>
-                    <p>In SaaS, the constraint is often invisible for years. The product hasn't evolved, but acquisition keeps masking it. Customers join, extract what they can, quietly leave. The net number looks fine — until it doesn't.</p>
+                    <p>Last week I described how four systemic archetypes spiral into each other. This week we zoom into the first. The one that starts it all.</p>
+                    <p>A reinforcing loop drives performance. Growth feeds growth. Customers bring customers. For a while the curve looks exponential. Dashboards glow. People get promoted.</p>
+                    <p>Then something shifts. Not suddenly — gradually. The same effort yields less. The curve bends. Because a balancing loop, one that was always there, started to bite. That balancing loop is the constraint.</p>
+                    <p>In SaaS, the constraint is often invisible for years. Acquisition keeps masking it. Customers join, extract what they can, quietly leave. The net number looks fine — until it doesn't.</p>
                     <p>In manufacturing, a factory scales output by adding shifts. Throughput rises. Then quality incidents climb, maintenance gets deferred, experienced workers burn out. The reinforcing loop runs. The constraint tightens around it.</p>
                     <p>In healthcare, a hospital expands patient volume without expanding diagnostic capacity. Admissions go up. Outcomes go down. Growth created the pressure that degrades the service.</p>
-                    <p>Same pattern. Different sectors. Identical mistake: treating the reinforcing loop as the system, instead of one half of it.</p>
-                    <p>Here's what makes this archetype dangerous. The early signal is success. Everything telling you the system works is true — for now. The constraint doesn't show up in the metrics you watch. It shows up in the ones you don't.</p>
-                    <p>Retention you didn't track granularly enough. Engagement that plateaued two quarters ago but got buried under acquisition volume. A team that stopped raising concerns because every town hall celebrated the top line.</p>
-                    <p>The instinct when growth slows is always the same: push harder. More budget. More headcount. More campaigns. For a while that works — which is exactly why the pattern persists. The short-term response masks the structural problem long enough to become permanent.</p>
-                    <p>Senge called it "the harder you push, the harder the system pushes back."</p>
-                    <p>Limits to Growth doesn't kill companies fast. It kills them slowly, while they're still celebrating.</p>
-                    <p>The ones that break the pattern ask an uncomfortable question early: what is the constraint we're not measuring? Not after the curve bends. Before.</p>
-                    <p>That question changes everything. From fuel to friction. From acceleration to architecture.</p>
-                    <p>It's the first thing we look for with noise.os.</p>
-                    <p>Next week: Shifting the Burden — when the fix becomes the problem.</p>
+                    <p>Here's what makes this dangerous. The early signal is success. The constraint doesn't show up in the metrics you watch. It shows up in the ones you don't. Retention you didn't track. Engagement that plateaued two quarters ago. A team that stopped raising concerns because every town hall celebrated the top line.</p>
+                    <p>The instinct when growth slows is always the same: push harder. More budget. More headcount. More campaigns. For a while that works — which is exactly why the pattern persists. Senge called it "the harder you push, the harder the system pushes back."</p>
+                    <p>The ones that break the pattern ask an uncomfortable question early: what is the constraint we're not measuring? Before the curve bends.</p>
+                    <div class="post-source">
+                        <div class="post-source-title">Reference</div>
+                        Peter Senge — "The Fifth Discipline" / Systems Archetypes
+                    </div>
                 </div>
             </div>
         </article>
@@ -486,7 +581,9 @@
         <!-- It's Rare #1 — The Archetype Spiral -->
         <article class="post-card" data-series="its-rare">
             <div class="post-header" onclick="togglePost(this)">
-                <div class="post-series-tag">It's Rare But Happens Often #1</div>
+                <div class="post-tags">
+                    <div class="post-series-tag">It's Rare But Happens Often #1</div>
+                </div>
                 <h2 class="post-title">The Archetype Spiral</h2>
                 <p class="post-excerpt">The budget was signed in December. Targets locked. Everyone aligned. Thirty days later there was already a gap you could see from orbit. That's not an execution failure. What failed was the premise underneath the number.</p>
             </div>
@@ -495,33 +592,131 @@
                 <span>7 min read</span>
             </div>
             <div class="expand-indicator" onclick="togglePost(this)">
-                <span class="expand-arrow">&#9654;</span> Read full post
+                <span class="expand-arrow">▸</span> Read full post
             </div>
             <div class="post-body">
                 <div class="post-body-inner">
                     <p>The budget was signed in December. Targets locked. Everyone aligned. Thirty days later there was already a gap you could see from orbit.</p>
-                    <p>That's not an execution failure. Nobody fails at execution in 30 days. You haven't even figured out the coffee machine yet.</p>
-                    <p>What failed was the premise underneath the number.</p>
+                    <p>That's not an execution failure. What failed was the premise underneath the number.</p>
                     <p>Every growth system runs two forces at the same time. One pushes forward. One pushes back. Companies treat them very differently.</p>
-                    <p>The forward force gets the corner office. New logos, green dashboards, confetti in Slack. It gets a team, a budget, a review where people nod approvingly.</p>
-                    <p>The other force gets nothing. No team, no channel, no confetti. It shows up six months later as a number that should've been higher — and nobody can explain why.</p>
-                    <p>The response is always the same: push harder on the forward loop. More spend. More headcount. More campaigns. The engine needs fuel, so give it more fuel.</p>
-                    <p>Fine. Unless the engine was never the problem.</p>
-                    <p>The engine works. The system it sits inside is broken. You're pouring acquisition into a structure that leaks from every joint. All that effort doesn't compound — it compensates. Filling a bucket while someone drills holes in the bottom.</p>
-                    <p>Systems thinkers call this Limits to Growth. Senge wrote about it decades ago. Yet smart companies keep walking straight into it like it's brand new. Hence the title. It's rare. But it happens often.</p>
-                    <p>Limits to Growth rarely travels alone.</p>
-                    <p>When retention sags, what does the org reach for? Discounts. SPIFFs. Switching promos. Price increases to patch the P&L. These work — for a quarter. Then they erode whatever value was holding the product together, and kill the urgency to invest in what would actually fix it: stickiness, product depth, value customers can feel. Shifting the Burden. The fundamental solution atrophies while the symptomatic one gets a bigger budget every cycle.</p>
-                    <p>Those conversion incentives? They attracted price-sensitive customers who churn faster. That aggressive upselling? It accelerated the very churn you were trying to stop. Those switching promos? They told the market your category is interchangeable. Each fix produced a delayed consequence that worsened the original problem. Fixes that Fail.</p>
-                    <p>And underneath, the quiet killer. Under revenue pressure, the instinct is to defer product investment. But when the product hasn't evolved in years and pricing has been the heavy lifter, that deferral hardens the structural limit every quarter. Growth and Underinvestment. The archetype that makes all the others permanent.</p>
+                    <p>The forward force gets the corner office. New logos, green dashboards, confetti in Slack. The other force gets nothing. No team, no channel. It shows up six months later as a number that should've been higher.</p>
+                    <p>When retention sags, what does the org reach for? Discounts. SPIFFs. Switching promos. These work — for a quarter. Then they erode whatever value was holding the product together, and kill the urgency to invest in what would actually fix it: stickiness, product depth, value customers can feel. This is Shifting the Burden — the fundamental solution atrophies while the symptomatic one gets a bigger budget every cycle.</p>
+                    <p>And those conversion incentives? They attracted price-sensitive customers who churn faster. That aggressive upselling? It accelerated the very churn you were trying to stop. Each fix produced a delayed consequence that worsened the original problem. This is Fixes that Fail.</p>
+                    <p>Underneath, the quiet killer. Under revenue pressure, the instinct is to defer product investment. But when the product hasn't evolved in years and pricing has been the heavy lifter, that deferral hardens the structural limit every quarter. This is Growth and Underinvestment — the archetype that makes all the others permanent.</p>
                     <p>Four patterns. One spiral. Every intervention that ignores the spiral makes it spin faster.</p>
-                    <p>Before you intervene — find both forces. What's accelerating? What's resisting? Where is the resistance actually coming from?</p>
-                    <p>Each answer demands a different response. None of them is "run more ads."</p>
-                    <p>Acceleration is a tactic. Diagnosis is strategy.</p>
+                    <p>Before you intervene — find both forces. What's accelerating? What's resisting? Acceleration is a tactic. Diagnosis is strategy.</p>
                     <p>That's the work we do with noise.os. Less confetti. More stethoscopes.</p>
+                    <div class="post-source">
+                        <div class="post-source-title">Reference</div>
+                        Peter Senge — Four Systemic Archetypes
+                    </div>
                 </div>
             </div>
         </article>
 
+        <!-- Running Notes Series Intro -->
+        <article class="post-card" data-series="running-notes">
+            <div class="post-header" onclick="togglePost(this)">
+                <div class="post-tags">
+                    <div class="post-series-tag">Running Notes</div>
+                    <div class="post-type-tag">Series Intro</div>
+                </div>
+                <h2 class="post-title">Introducing Running Notes</h2>
+                <p class="post-excerpt">I run most mornings. Not fast, not far. Enough to think. These are the notes from those runs.</p>
+            </div>
+            <div class="post-meta">
+                <span>April 2026</span>
+                <span>2 min read</span>
+            </div>
+            <div class="expand-indicator" onclick="togglePost(this)">
+                <span class="expand-arrow">▸</span> Read full post
+            </div>
+            <div class="post-body">
+                <div class="post-body-inner">
+                    <p>I run most mornings. Not fast, not far. Enough to think.</p>
+                    <p>There's something about the rhythm — the breath, the pace, the distance behind and ahead — that makes listening easier. Six kilometres into the run, a podcast becomes conversation. A problem becomes structure. An idea becomes clarity.</p>
+                    <p>These are the notes from those runs. Not summaries. Not reviews. Just the moments where something someone said made me stop mid-stride, and the thinking that followed.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- Marginalia Series Intro -->
+        <article class="post-card" data-series="marginalia">
+            <div class="post-header" onclick="togglePost(this)">
+                <div class="post-tags">
+                    <div class="post-series-tag">Marginalia</div>
+                    <div class="post-type-tag">Series Intro</div>
+                </div>
+                <h2 class="post-title">Introducing Marginalia</h2>
+                <p class="post-excerpt">I read the way most people read — too much, too fast, too many tabs open. But some things slow me down.</p>
+            </div>
+            <div class="post-meta">
+                <span>April 2026</span>
+                <span>2 min read</span>
+            </div>
+            <div class="expand-indicator" onclick="togglePost(this)">
+                <span class="expand-arrow">▸</span> Read full post
+            </div>
+            <div class="post-body">
+                <div class="post-body-inner">
+                    <p>I read the way most people read — too much, too fast, too many tabs open.</p>
+                    <p>But some things slow me down. A paragraph I read three times. A margin note that turns into a page of my own thinking. A citation that leads me backwards through a genealogy of ideas.</p>
+                    <p>This is Marginalia — not reviews, not summaries. Just the notes in the margins, and where they took me. The thinking beneath the thinking. The threads no one else could pull.</p>
+                </div>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- Interactive Tools / Artifacts Section -->
+    <div class="artifacts-section" id="artifactsSection">
+        <div style="max-width: 760px; margin: 0 auto; padding: 0 20px;">
+            <div class="artifacts-header">Interactive Tools</div>
+            <div class="artifacts-grid">
+                <div class="artifact-card">
+                    <div class="artifact-product">noise.os</div>
+                    <div class="artifact-title">SaaS Revenue System Navigator</div>
+                    <div class="artifact-desc">Interactive causal loop diagram of SaaS revenue systems. Explore the reinforcing and balancing loops that drive growth and constrain it.</div>
+                    <a href="assets/artifacts/revenue-system-navigator.html" class="artifact-link">Open Navigator</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">noise.os</div>
+                    <div class="artifact-title">Digital Readiness Navigator</div>
+                    <div class="artifact-desc">Assess organizational readiness for digital transformation. Understand the capability gaps and activation paths.</div>
+                    <a href="assets/artifacts/digital-readiness-navigator.html" class="artifact-link">Open Navigator</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">TAESA</div>
+                    <div class="artifact-title">Corporate Finance Navigator</div>
+                    <div class="artifact-desc">Model financial structures and capital flows. Explore valuation frameworks and investment scenarios.</div>
+                    <a href="assets/artifacts/corporate-finance-navigator.html" class="artifact-link">Open Navigator</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">PMI</div>
+                    <div class="artifact-title">AI Factory Knowledge Graph</div>
+                    <div class="artifact-desc">Map the knowledge landscape of AI implementation in organizations. Understand dependencies, risks, and capabilities.</div>
+                    <a href="assets/artifacts/knowledge-graph-ai-factory.html" class="artifact-link">Open Graph</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">La Vie</div>
+                    <div class="artifact-title">Operational Diagnostic</div>
+                    <div class="artifact-desc">Deep diagnostic of operational systems, structures, and flows. Identify leverage points and system constraints.</div>
+                    <a href="assets/artifacts/diagnostico-operacional.html" class="artifact-link">Open Diagnostic</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">La Vie</div>
+                    <div class="artifact-title">Stocks and Flows Diagram</div>
+                    <div class="artifact-desc">Understand the accumulation dynamics in your system. Track stocks, flows, and feedback loops over time.</div>
+                    <a href="assets/artifacts/stocks-flows-diagram.html" class="artifact-link">Open Diagram</a>
+                </div>
+                <div class="artifact-card">
+                    <div class="artifact-product">La Vie</div>
+                    <div class="artifact-title">Sensitivity Analysis</div>
+                    <div class="artifact-desc">Explore how changes in key variables affect system outcomes. Build intuition for leverage points and policy interventions.</div>
+                    <a href="assets/artifacts/sensitivity-analysis.html" class="artifact-link">Open Analysis</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -536,22 +731,33 @@
             card.classList.toggle('expanded');
         }
 
-        // Series filter
+        // Series filter and artifacts toggle
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
                 const filter = btn.dataset.filter;
-                document.querySelectorAll('.post-card').forEach(card => {
-                    if (filter === 'all' || card.dataset.series === filter) {
-                        card.style.display = 'block';
-                        setTimeout(() => card.classList.add('visible'), 50);
-                    } else {
-                        card.classList.remove('visible');
+                const artifactsSection = document.getElementById('artifactsSection');
+
+                if (filter === 'interactive') {
+                    document.querySelectorAll('.post-card').forEach(card => {
                         card.style.display = 'none';
-                    }
-                });
+                        card.classList.remove('visible');
+                    });
+                    artifactsSection.classList.add('visible');
+                } else {
+                    artifactsSection.classList.remove('visible');
+                    document.querySelectorAll('.post-card').forEach(card => {
+                        if (filter === 'all' || card.dataset.series === filter) {
+                            card.style.display = 'block';
+                            setTimeout(() => card.classList.add('visible'), 50);
+                        } else {
+                            card.classList.remove('visible');
+                            card.style.display = 'none';
+                        }
+                    });
+                }
             });
         });
 
@@ -564,7 +770,10 @@
             });
         }, { threshold: 0.1 });
 
-        document.querySelectorAll('.post-card').forEach(card => observer.observe(card));
+        document.querySelectorAll('.post-card').forEach(card => {
+            card.classList.add('visible');
+            observer.observe(card);
+        });
     </script>
 
 </body>

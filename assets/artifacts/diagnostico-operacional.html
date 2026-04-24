@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Diagnóstico — La Vie Freguesia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px;max-width:1200px;margin:0 auto}
+h1{font-size:26px;color:#f8fafc;margin-bottom:4px}
+h2{font-size:18px;color:#94a3b8;margin:28px 0 14px;border-bottom:1px solid #334155;padding-bottom:8px}
+.sub{color:#64748b;font-size:13px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:#1e293b;border-radius:10px;padding:18px;border:1px solid #334155}
+.card.full{grid-column:1/-1}
+.kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.kpi{background:#1e293b;border-radius:8px;padding:14px 16px;border:1px solid #334155;flex:1;min-width:120px}
+.kpi .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.kpi .v{font-size:24px;font-weight:700;margin-top:3px}
+.kpi .d{font-size:11px;margin-top:2px}
+.red{color:#f87171}.green{color:#4ade80}.yellow{color:#fbbf24}.blue{color:#60a5fa}.orange{color:#fb923c}
+canvas{width:100%;height:260px}
+.insight{background:#1e3a5f;border-left:3px solid #3b82f6;padding:12px 16px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13px;line-height:1.6}
+.insight.warn{background:#3f1e1e;border-left-color:#f87171}
+.insight.ok{background:#1e3f2a;border-left-color:#4ade80}
+.causal{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:16px;font-size:13px}
+.causal .step{background:#334155;padding:6px 12px;border-radius:6px;white-space:nowrap}
+.causal .arrow{color:#64748b;font-size:18px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:#64748b;padding:6px 8px;border-bottom:1px solid #334155;font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid #1e293b}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;font-size:11px;color:#94a3b8;margin:6px 0}
+.ldot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head><body>
+
+<h1>Diagnóstico System Dynamics — La Vie Freguesia</h1>
+<p class="sub">noise.os · Dados reais · Por que o NPS desaba e a ocupação ultrapassa 100%?</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="l">Alunos Hoje</div><div class="v">216</div></div>
+  <div class="kpi"><div class="l">Capacidade</div><div class="v">492</div><div class="d">vagas</div></div>
+  <div class="kpi"><div class="l">Ocupação M0</div><div class="v green">44%</div></div>
+  <div class="kpi"><div class="l">Ocupação M3</div><div class="v red">116%</div><div class="d red">colapso</div></div>
+  <div class="kpi"><div class="l">NPS M0</div><div class="v green">10.0</div></div>
+  <div class="kpi"><div class="l">NPS M3</div><div class="v red">1.0</div><div class="d red">−90%</div></div>
+  <div class="kpi"><div class="l">Conversão</div><div class="v orange">57%</div><div class="d">muito alta</div></div>
+  <div class="kpi"><div class="l">Equilíbrio</div><div class="v red">642</div><div class="d red">130% cap.</div></div>
+</div>
+
+<h2>Cadeia Causal: O que acontece mês a mês</h2>
+<div class="card full">
+  <div class="causal">
+    <span class="step green">NPS 10 ✓</span><span class="arrow">→</span>
+    <span class="step green">Ret 98%</span><span class="arrow">→</span>
+    <span class="step green">Churn 2%</span><span class="arrow">→</span>
+    <span class="step orange">Conv 57%</span><span class="arrow">→</span>
+    <span class="step orange">+24 alunos/mês</span><span class="arrow">→</span>
+    <span class="step red">Ocup > 80% no M2</span><span class="arrow">→</span>
+    <span class="step red">Pressão = 0.1</span><span class="arrow">→</span>
+    <span class="step red">Qualidade 0.85</span><span class="arrow">→</span>
+    <span class="step red">NPS 1.0</span><span class="arrow">→</span>
+    <span class="step red">Churn 27%</span><span class="arrow">→</span>
+    <span class="step red">Porta giratória</span>
+  </div>
+  <div class="insight warn">
+    <strong>A escola é vítima do próprio sucesso.</strong> A qualidade (10/10) e a conversão (57%) são tão boas que a escola cresce rápido demais para a capacidade actual. Em apenas 3 meses, a ocupação salta de 44% para 116%. A pressão de capacidade destrói a qualidade (10 → 0.85) e o NPS desaba para 1.0. A escola entra num equilíbrio tóxico: 642 alunos com NPS péssimo, onde 173 entram e 173 saem todo mês — uma <strong>porta giratória</strong> que acumula 5.666 ex-alunos insatisfeitos em 3 anos.
+  </div>
+</div>
+
+<h2>Evolução: Cenário Actual (com dados reais)</h2>
+<div class="grid">
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">Alunos vs Capacidade</h3><canvas id="c1"></canvas></div>
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">NPS e Retenção</h3><canvas id="c2"></canvas></div>
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">Aquisição vs Churn (mensal)</h3><canvas id="c3"></canvas></div>
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">Ex-Alunos Acumulados</h3><canvas id="c4"></canvas></div>
+</div>
+
+<h2>Diagnóstico Estrutural</h2>
+<div class="card full">
+  <div class="insight">
+    <strong>Por que a ocupação passa de 100%?</strong><br>
+    O modelo permite ocupação &gt;100% (mais alunos que vagas) porque na realidade isso acontece: turmas superlotadas, filas de espera, alunos em horários inadequados. O efeito é a degradação progressiva da experiência — exactamente o que o modelo captura via "pressão de capacidade".
+  </div>
+  <div class="insight">
+    <strong>Por que o NPS desaba de 10 para 1?</strong><br>
+    A fórmula: <code>NPS = Qualidade × Fator_NPS</code>, onde <code>Qualidade = Base(10) × Pressão × Formação(0.85)</code>.<br>
+    Com ocupação a 116%, a Pressão cai para o piso (0.10), então: <code>10 × 0.10 × 0.85 × 1.2 = 1.02</code>.<br>
+    O <strong>piso de qualidade sob pressão (0.10)</strong> é o parâmetro-chave: ele define o quão má fica a experiência quando a escola superlota.
+  </div>
+  <div class="insight">
+    <strong>O dilema real:</strong><br>
+    Este não é um bug do modelo — é um <strong>dilema de gestão real</strong>. A La Vie tem qualidade excepcional (10/10) e conversão altíssima (57%). Sem um mecanismo de controle do crescimento, a escola SEMPRE cresce até bater no tecto e destruir a experiência. As opções são: <strong>(A)</strong> expandir capacidade na mesma velocidade do crescimento, <strong>(B)</strong> moderar o ritmo de aquisição, ou <strong>(C)</strong> combinar as duas.
+  </div>
+</div>
+
+<h2>3 Cenários Estratégicos — Todos com Ocupação ≤ 80%</h2>
+<div class="card full">
+  <table>
+    <tr><th></th><th>Cenário A<br><small>Crescimento Livre</small></th><th>Cenário B<br><small>Crescimento Moderado</small></th><th>Cenário C<br><small>Crescimento Controlado</small></th></tr>
+    <tr><td><strong>Filosofia</strong></td><td>Expandir capacidade para acompanhar a demanda natural</td><td>Reduzir conversão + expandir gradualmente</td><td>Ser seletivo na admissão + foco total em qualidade</td></tr>
+    <tr><td>Conversão</td><td class="n">57% (atual)</td><td class="n">20%</td><td class="n">8%</td></tr>
+    <tr><td>Marketing</td><td class="n">R$ 1.000</td><td class="n">R$ 750</td><td class="n">R$ 500</td></tr>
+    <tr><td>Capacidade necessária</td><td class="n" style="color:#f87171">8.000 vagas</td><td class="n" style="color:#fbbf24">3.982 vagas</td><td class="n" style="color:#4ade80">1.252 vagas</td></tr>
+    <tr><td>Alunos M36</td><td class="n">6.697</td><td class="n">3.186</td><td class="n">1.002</td></tr>
+    <tr><td>Crescimento</td><td class="n">+3.001%</td><td class="n">+1.375%</td><td class="n">+364%</td></tr>
+    <tr><td>NPS M36</td><td class="n">8.5</td><td class="n">10.0</td><td class="n">10.0</td></tr>
+    <tr><td>Max Ocupação</td><td class="n">≤80%</td><td class="n">≤80%</td><td class="n">≤80%</td></tr>
+    <tr><td>Ex-alunos 36m</td><td class="n" style="color:#fbbf24">4.502</td><td class="n">1.101</td><td class="n" style="color:#4ade80">419</td></tr>
+    <tr><td>Resultado M36</td><td class="n">R$ 1.27M/mês</td><td class="n">R$ 585k/mês</td><td class="n">R$ 158k/mês</td></tr>
+    <tr><td>Caixa M36</td><td class="n">R$ 25.5M</td><td class="n">R$ 9.7M</td><td class="n">R$ 2.9M</td></tr>
+    <tr><td><strong>Viabilidade</strong></td><td style="color:#f87171">Requer 16x a capacidade actual. Impraticável sem novas unidades.</td><td style="color:#fbbf24">Requer 8x. Possível com abertura de 2-3 unidades ao longo de 3 anos.</td><td style="color:#4ade80">Requer 2.5x. Possível com expansão de 1 unidade ou ampliação dos horários.</td></tr>
+  </table>
+</div>
+
+<h2>Projecção Comparativa</h2>
+<div class="grid">
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">Alunos Ativos</h3><canvas id="c5"></canvas></div>
+  <div class="card"><h3 style="font-size:14px;color:#cbd5e1;margin-bottom:8px">NPS</h3><canvas id="c6"></canvas></div>
+</div>
+
+<h2>Recomendação para os Sócios</h2>
+<div class="card full">
+  <div class="insight ok">
+    <strong>Cenário C é o mais saudável para começar.</strong> Crescer 364% em 3 anos (216→1.002) com NPS perfeito, ocupação controlada e apenas 419 ex-alunos é muito melhor que o cenário actual (642 alunos com NPS 1.0 e 5.666 ex-alunos descontentes). A chave é: <strong>ser mais seletivo na admissão</strong> (converter 8% dos leads em vez de 57%) e <strong>expandir capacidade gradualmente</strong> (de 492 para ~1.250 vagas em 3 anos). Isso pode significar: aula experimental mais rigorosa, lista de espera, abertura de novos horários/salas, e eventualmente uma segunda unidade.
+  </div>
+  <div class="insight">
+    <strong>Acções imediatas:</strong><br>
+    1. <strong>Criar lista de espera</strong> — parar de matricular acima de 80% de ocupação<br>
+    2. <strong>Redesenhar funil de admissão</strong> — aula experimental como filtro de fit, não só conversão<br>
+    3. <strong>Expandir horários</strong> — mais turnos = mais capacidade sem novo espaço<br>
+    4. <strong>Planear 2ª unidade</strong> — quando atingir ~400 alunos com NPS &gt; 8, é hora de escalar
+  </div>
+</div>
+
+<script>
+const bl=[{"m": 0, "alunos": 216, "ocup": 0.439, "nps": 10, "ret": 0.98, "resultado": 8427.3344, "caixa": 90000, "aq": 28.5, "churn": 4.32, "ex": 0}, {"m": 1, "alunos": 240.18, "ocup": 0.4882, "nps": 10, "ret": 0.98, "resultado": 36054.21, "caixa": 98427.3344, "aq": 161.9484, "churn": 4.8036, "ex": 4.32}, {"m": 2, "alunos": 397.3248, "ocup": 0.8076, "nps": 9.9008, "ret": 0.978, "resultado": 68503.7813, "caixa": 134481.5444, "aq": 180.2615, "churn": 8.7348, "ex": 9.1236}, {"m": 3, "alunos": 568.8515, "ocup": 1.1562, "nps": 1.025, "ret": 0.7308, "resultado": 101880.7397, "caixa": 202985.3258, "aq": 188.4629, "churn": 153.1633, "ex": 17.8584}, {"m": 4, "alunos": 604.1511, "ocup": 1.2279, "nps": 1.025, "ret": 0.7308, "resultado": 106088.0973, "caixa": 304866.0654, "aq": 174.7899, "churn": 162.6677, "ex": 171.0217}, {"m": 5, "alunos": 616.2733, "ocup": 1.2526, "nps": 1.025, "ret": 0.7308, "resultado": 108045.6636, "caixa": 410954.1627, "aq": 173.0536, "churn": 165.9316, "ex": 333.6893}, {"m": 6, "alunos": 623.3954, "ocup": 1.2671, "nps": 1.025, "ret": 0.7308, "resultado": 109335.8667, "caixa": 518999.8263, "aq": 172.8421, "churn": 167.8492, "ex": 499.6209}, {"m": 7, "alunos": 628.3883, "ocup": 1.2772, "nps": 1.025, "ret": 0.7308, "resultado": 110262.7324, "caixa": 628335.693, "aq": 172.8229, "churn": 169.1935, "ex": 667.4701}, {"m": 8, "alunos": 632.0176, "ocup": 1.2846, "nps": 1.025, "ret": 0.7308, "resultado": 110939.4737, "caixa": 738598.4254, "aq": 172.8262, "churn": 170.1707, "ex": 836.6637}, {"m": 9, "alunos": 634.6731, "ocup": 1.29, "nps": 1.025, "ret": 0.7308, "resultado": 111435.0119, "caixa": 849537.8991, "aq": 172.8309, "churn": 170.8857, "ex": 1006.8344}, {"m": 10, "alunos": 636.6183, "ocup": 1.2939, "nps": 1.025, "ret": 0.7308, "resultado": 111798.0484, "caixa": 960972.911, "aq": 172.8346, "churn": 171.4095, "ex": 1177.7202}, {"m": 11, "alunos": 638.0435, "ocup": 1.2968, "nps": 1.025, "ret": 0.7308, "resultado": 112064.0362, "caixa": 1072770.9593, "aq": 172.8374, "churn": 171.7932, "ex": 1349.1297}, {"m": 12, "alunos": 639.0877, "ocup": 1.299, "nps": 1.025, "ret": 0.7308, "resultado": 112258.9219, "caixa": 1184834.9955, "aq": 172.8394, "churn": 172.0744, "ex": 1520.9229}, {"m": 13, "alunos": 639.8527, "ocup": 1.3005, "nps": 1.025, "ret": 0.7308, "resultado": 112401.7123, "caixa": 1297093.9174, "aq": 172.8409, "churn": 172.2803, "ex": 1692.9972}, {"m": 14, "alunos": 640.4133, "ocup": 1.3017, "nps": 1.025, "ret": 0.7308, "resultado": 112506.3333, "caixa": 1409495.6297, "aq": 172.842, "churn": 172.4313, "ex": 1865.2776}, {"m": 15, "alunos": 640.824, "ocup": 1.3025, "nps": 1.025, "ret": 0.7308, "resultado": 112582.9879, "caixa": 1522001.963, "aq": 172.8428, "churn": 172.5419, "ex": 2037.7088}, {"m": 16, "alunos": 641.1249, "ocup": 1.3031, "nps": 1.025, "ret": 0.7308, "resultado": 112639.1519, "caixa": 1634584.9509, "aq": 172.8434, "churn": 172.6229, "ex": 2210.2507}, {"m": 17, "alunos": 641.3454, "ocup": 1.3035, "nps": 1.025, "ret": 0.7308, "resultado": 112680.3026, "caixa": 1747224.1027, "aq": 172.8438, "churn": 172.6822, "ex": 2382.8736}, {"m": 18, "alunos": 641.5069, "ocup": 1.3039, "nps": 1.025, "ret": 0.7308, "resultado": 112710.4533, "caixa": 1859904.4053, "aq": 172.8441, "churn": 172.7257, "ex": 2555.5558}, {"m": 19, "alunos": 641.6253, "ocup": 1.3041, "nps": 1.025, "ret": 0.7308, "resultado": 112732.5443, "caixa": 1972614.8586, "aq": 172.8443, "churn": 172.7576, "ex": 2728.2816}, {"m": 20, "alunos": 641.712, "ocup": 1.3043, "nps": 1.025, "ret": 0.7308, "resultado": 112748.7302, "caixa": 2085347.4029, "aq": 172.8445, "churn": 172.781, "ex": 2901.0392}, {"m": 21, "alunos": 641.7756, "ocup": 1.3044, "nps": 1.025, "ret": 0.7308, "resultado": 112760.5894, "caixa": 2198096.1331, "aq": 172.8446, "churn": 172.7981, "ex": 3073.8201}, {"m": 22, "alunos": 641.8221, "ocup": 1.3045, "nps": 1.025, "ret": 0.7308, "resultado": 112769.2785, "caixa": 2310856.7225, "aq": 172.8447, "churn": 172.8106, "ex": 3246.6182}, {"m": 23, "alunos": 641.8562, "ocup": 1.3046, "nps": 1.025, "ret": 0.7308, "resultado": 112775.6449, "caixa": 2423626.001, "aq": 172.8448, "churn": 172.8198, "ex": 3419.4288}, {"m": 24, "alunos": 641.8812, "ocup": 1.3046, "nps": 1.025, "ret": 0.7308, "resultado": 112780.3095, "caixa": 2536401.6459, "aq": 172.8448, "churn": 172.8265, "ex": 3592.2486}, {"m": 25, "alunos": 641.8995, "ocup": 1.3047, "nps": 1.025, "ret": 0.7308, "resultado": 112783.7272, "caixa": 2649181.9554, "aq": 172.8449, "churn": 172.8314, "ex": 3765.0751}, {"m": 26, "alunos": 641.913, "ocup": 1.3047, "nps": 1.025, "ret": 0.7308, "resultado": 112786.2313, "caixa": 2761965.6826, "aq": 172.8449, "churn": 172.8351, "ex": 3937.9066}, {"m": 27, "alunos": 641.9228, "ocup": 1.3047, "nps": 1.025, "ret": 0.7308, "resultado": 112788.0661, "caixa": 2874751.9139, "aq": 172.8449, "churn": 172.8377, "ex": 4110.7416}, {"m": 28, "alunos": 641.93, "ocup": 1.3047, "nps": 1.025, "ret": 0.7308, "resultado": 112789.4103, "caixa": 2987539.98, "aq": 172.8449, "churn": 172.8396, "ex": 4283.5793}, {"m": 29, "alunos": 641.9353, "ocup": 1.3047, "nps": 1.025, "ret": 0.7308, "resultado": 112790.3953, "caixa": 3100329.3903, "aq": 172.8449, "churn": 172.8411, "ex": 4456.419}, {"m": 30, "alunos": 641.9391, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112791.1169, "caixa": 3213119.7856, "aq": 172.8449, "churn": 172.8421, "ex": 4629.2601}, {"m": 31, "alunos": 641.942, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112791.6457, "caixa": 3325910.9026, "aq": 172.8449, "churn": 172.8429, "ex": 4802.1022}, {"m": 32, "alunos": 641.944, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112792.0331, "caixa": 3438702.5483, "aq": 172.845, "churn": 172.8434, "ex": 4974.945}, {"m": 33, "alunos": 641.9456, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112792.317, "caixa": 3551494.5814, "aq": 172.845, "churn": 172.8438, "ex": 5147.7885}, {"m": 34, "alunos": 641.9467, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112792.5249, "caixa": 3664286.8984, "aq": 172.845, "churn": 172.8441, "ex": 5320.6323}, {"m": 35, "alunos": 641.9475, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112792.6773, "caixa": 3777079.4233, "aq": 172.845, "churn": 172.8444, "ex": 5493.4764}, {"m": 36, "alunos": 641.9481, "ocup": 1.3048, "nps": 1.025, "ret": 0.7308, "resultado": 112792.789, "caixa": 3889872.1006, "aq": 172.845, "churn": 172.8445, "ex": 5666.3208}];
+const sA=[{"m": 0, "alunos": 216, "ocup": 0.027, "nps": 10, "ret": 0.98, "resultado": 8427.3344, "caixa": 90000}, {"m": 1, "alunos": 240.18, "ocup": 0.03, "nps": 10, "ret": 0.98, "resultado": 36054.21, "caixa": 98427.3344}, {"m": 2, "alunos": 397.3248, "ocup": 0.0497, "nps": 10, "ret": 0.98, "resultado": 68503.7813, "caixa": 134481.5444}, {"m": 3, "alunos": 569.6398, "ocup": 0.0712, "nps": 10, "ret": 0.98, "resultado": 102105.4539, "caixa": 202985.3258}, {"m": 4, "alunos": 747.1592, "ocup": 0.0934, "nps": 10, "ret": 0.98, "resultado": 136563.9729, "caixa": 305090.7797}, {"m": 5, "alunos": 929.1283, "ocup": 0.1161, "nps": 10, "ret": 0.98, "resultado": 171872.7827, "caixa": 441654.7526}, {"m": 6, "alunos": 1115.5809, "ocup": 0.1394, "nps": 10, "ret": 0.98, "resultado": 208050.4412, "caixa": 613527.5353}, {"m": 7, "alunos": 1306.6211, "ocup": 0.1633, "nps": 10, "ret": 0.98, "resultado": 245118.1212, "caixa": 821577.9765}, {"m": 8, "alunos": 1502.3611, "ocup": 0.1878, "nps": 10, "ret": 0.98, "resultado": 283097.7009, "caixa": 1066696.0977}, {"m": 9, "alunos": 1702.9165, "ocup": 0.2129, "nps": 10, "ret": 0.98, "resultado": 322011.6124, "caixa": 1349793.7987}, {"m": 10, "alunos": 1908.4057, "ocup": 0.2386, "nps": 10, "ret": 0.98, "resultado": 361882.8409, "caixa": 1671805.4111}, {"m": 11, "alunos": 2118.9501, "ocup": 0.2649, "nps": 10, "ret": 0.98, "resultado": 402734.9374, "caixa": 2033688.2521}, {"m": 12, "alunos": 2334.6742, "ocup": 0.2918, "nps": 10, "ret": 0.98, "resultado": 444592.0319, "caixa": 2436423.1894}, {"m": 13, "alunos": 2555.7052, "ocup": 0.3195, "nps": 10, "ret": 0.98, "resultado": 487478.8483, "caixa": 2881015.2213}, {"m": 14, "alunos": 2782.1738, "ocup": 0.3478, "nps": 10, "ret": 0.98, "resultado": 531420.7189, "caixa": 3368494.0696}, {"m": 15, "alunos": 3014.2137, "ocup": 0.3768, "nps": 10, "ret": 0.98, "resultado": 576443.5987, "caixa": 3899914.7885}, {"m": 16, "alunos": 3251.962, "ocup": 0.4065, "nps": 10, "ret": 0.98, "resultado": 622574.0816, "caixa": 4476358.3872}, {"m": 17, "alunos": 3495.5591, "ocup": 0.4369, "nps": 10, "ret": 0.98, "resultado": 669839.4157, "caixa": 5098932.4688}, {"m": 18, "alunos": 3745.1489, "ocup": 0.4681, "nps": 10, "ret": 0.98, "resultado": 718267.5193, "caixa": 5768771.8846}, {"m": 19, "alunos": 4000.8789, "ocup": 0.5001, "nps": 10, "ret": 0.98, "resultado": 767886.9975, "caixa": 6487039.4039}, {"m": 20, "alunos": 4262.9, "ocup": 0.5329, "nps": 10, "ret": 0.98, "resultado": 818727.1593, "caixa": 7254926.4014}, {"m": 21, "alunos": 4531.3671, "ocup": 0.5664, "nps": 10, "ret": 0.98, "resultado": 870818.0345, "caixa": 8073653.5607}, {"m": 22, "alunos": 4806.4388, "ocup": 0.6008, "nps": 10, "ret": 0.98, "resultado": 924190.3919, "caixa": 8944471.5952}, {"m": 23, "alunos": 5088.2774, "ocup": 0.636, "nps": 10, "ret": 0.98, "resultado": 978875.757, "caixa": 9868661.9871}, {"m": 24, "alunos": 5377.0495, "ocup": 0.6721, "nps": 10, "ret": 0.98, "resultado": 1034906.4309, "caixa": 10847537.7441}, {"m": 25, "alunos": 5672.9257, "ocup": 0.7091, "nps": 10, "ret": 0.98, "resultado": 1092315.5096, "caixa": 11882444.175}, {"m": 26, "alunos": 5976.0807, "ocup": 0.747, "nps": 10, "ret": 0.98, "resultado": 1151136.9029, "caixa": 12974759.6846}, {"m": 27, "alunos": 6286.6936, "ocup": 0.7858, "nps": 10, "ret": 0.98, "resultado": 1211405.3551, "caixa": 14125896.5875}, {"m": 28, "alunos": 6604.9478, "ocup": 0.8256, "nps": 9.0683, "ret": 0.9614, "resultado": 1273156.4652, "caixa": 15337301.9427}, {"m": 29, "alunos": 6807.9611, "ocup": 0.851, "nps": 7.8978, "ret": 0.9269, "resultado": 1301343.7339, "caixa": 16610458.4079}, {"m": 30, "alunos": 6713.1168, "ocup": 0.8391, "nps": 8.4447, "ret": 0.9433, "resultado": 1271416.5377, "caixa": 17911802.1418}, {"m": 31, "alunos": 6664.5882, "ocup": 0.8331, "nps": 8.7245, "ret": 0.9517, "resultado": 1265906.8466, "caixa": 19183218.6794}, {"m": 32, "alunos": 6695.1322, "ocup": 0.8369, "nps": 8.5484, "ret": 0.9465, "resultado": 1274619.1061, "caixa": 20449125.5261}, {"m": 33, "alunos": 6706.2709, "ocup": 0.8383, "nps": 8.4842, "ret": 0.9445, "resultado": 1275478.8038, "caixa": 21723744.6322}, {"m": 34, "alunos": 6696.8775, "ocup": 0.8371, "nps": 8.5383, "ret": 0.9461, "resultado": 1272980.288, "caixa": 22999223.436}, {"m": 35, "alunos": 6694.5661, "ocup": 0.8368, "nps": 8.5516, "ret": 0.9465, "resultado": 1272950.4776, "caixa": 24272203.7241}, {"m": 36, "alunos": 6697.3689, "ocup": 0.8372, "nps": 8.5355, "ret": 0.9461, "resultado": 1273647.0682, "caixa": 25545154.2017}];
+const sB=[{"m": 0, "alunos": 216, "ocup": 0.0542, "nps": 10, "ret": 0.98, "resultado": 5471.9134, "caixa": 90000}, {"m": 1, "alunos": 221.68, "ocup": 0.0557, "nps": 10, "ret": 0.98, "resultado": 13010.0893, "caixa": 95471.9134}, {"m": 2, "alunos": 264.6454, "ocup": 0.0665, "nps": 10, "ret": 0.98, "resultado": 24268.4353, "caixa": 108482.0027}, {"m": 3, "alunos": 325.5305, "ocup": 0.0818, "nps": 10, "ret": 0.98, "resultado": 37342.6157, "caixa": 132750.438}, {"m": 4, "alunos": 395.1889, "ocup": 0.0992, "nps": 10, "ret": 0.98, "resultado": 51333.43, "caixa": 170093.0537}, {"m": 5, "alunos": 469.3021, "ocup": 0.1179, "nps": 10, "ret": 0.98, "resultado": 65816.5253, "caixa": 221426.4837}, {"m": 6, "alunos": 545.8322, "ocup": 0.1371, "nps": 10, "ret": 0.98, "resultado": 80591.8787, "caixa": 287243.009}, {"m": 7, "alunos": 623.8188, "ocup": 0.1567, "nps": 10, "ret": 0.98, "resultado": 95565.4484, "caixa": 367834.8877}, {"m": 8, "alunos": 702.8108, "ocup": 0.1765, "nps": 10, "ret": 0.98, "resultado": 110693.2634, "caixa": 463400.3361}, {"m": 9, "alunos": 782.5972, "ocup": 0.1965, "nps": 10, "ret": 0.98, "resultado": 125955.0103, "caixa": 574093.5995}, {"m": 10, "alunos": 863.0809, "ocup": 0.2167, "nps": 10, "ret": 0.98, "resultado": 141341.5558, "caixa": 700048.6098}, {"m": 11, "alunos": 944.2184, "ocup": 0.2371, "nps": 10, "ret": 0.98, "resultado": 156849.0517, "caixa": 841390.1656}, {"m": 12, "alunos": 1025.9918, "ocup": 0.2577, "nps": 10, "ret": 0.98, "resultado": 172476.1499, "caixa": 998239.2173}, {"m": 13, "alunos": 1108.3949, "ocup": 0.2784, "nps": 10, "ret": 0.98, "resultado": 188222.6872, "caixa": 1170715.3672}, {"m": 14, "alunos": 1191.4273, "ocup": 0.2992, "nps": 10, "ret": 0.98, "resultado": 204089.0637, "caixa": 1358938.0545}, {"m": 15, "alunos": 1275.0915, "ocup": 0.3202, "nps": 10, "ret": 0.98, "resultado": 220075.9491, "caixa": 1563027.1181}, {"m": 16, "alunos": 1359.391, "ocup": 0.3414, "nps": 10, "ret": 0.98, "resultado": 236184.1443, "caixa": 1783103.0672}, {"m": 17, "alunos": 1444.3301, "ocup": 0.3627, "nps": 10, "ret": 0.98, "resultado": 252414.5158, "caixa": 2019287.2116}, {"m": 18, "alunos": 1529.9135, "ocup": 0.3842, "nps": 10, "ret": 0.98, "resultado": 268767.9646, "caixa": 2271701.7273}, {"m": 19, "alunos": 1616.1458, "ocup": 0.4059, "nps": 10, "ret": 0.98, "resultado": 285245.4121, "caixa": 2540469.692}, {"m": 20, "alunos": 1703.032, "ocup": 0.4277, "nps": 10, "ret": 0.98, "resultado": 301847.7927, "caixa": 2825715.1041}, {"m": 21, "alunos": 1790.5769, "ocup": 0.4497, "nps": 10, "ret": 0.98, "resultado": 318576.051, "caixa": 3127562.8968}, {"m": 22, "alunos": 1878.7856, "ocup": 0.4718, "nps": 10, "ret": 0.98, "resultado": 335431.1401, "caixa": 3446138.9478}, {"m": 23, "alunos": 1967.6631, "ocup": 0.4941, "nps": 10, "ret": 0.98, "resultado": 352414.0211, "caixa": 3781570.088}, {"m": 24, "alunos": 2057.2144, "ocup": 0.5166, "nps": 10, "ret": 0.98, "resultado": 369525.6625, "caixa": 4133984.109}, {"m": 25, "alunos": 2147.4447, "ocup": 0.5393, "nps": 10, "ret": 0.98, "resultado": 386767.0404, "caixa": 4503509.7715}, {"m": 26, "alunos": 2238.3591, "ocup": 0.5621, "nps": 10, "ret": 0.98, "resultado": 404139.1384, "caixa": 4890276.8119}, {"m": 27, "alunos": 2329.9628, "ocup": 0.5851, "nps": 10, "ret": 0.98, "resultado": 421642.9476, "caixa": 5294415.9503}, {"m": 28, "alunos": 2422.261, "ocup": 0.6083, "nps": 10, "ret": 0.98, "resultado": 439279.4665, "caixa": 5716058.8978}, {"m": 29, "alunos": 2515.259, "ocup": 0.6317, "nps": 10, "ret": 0.98, "resultado": 457049.7013, "caixa": 6155338.3643}, {"m": 30, "alunos": 2608.9621, "ocup": 0.6552, "nps": 10, "ret": 0.98, "resultado": 474954.6659, "caixa": 6612388.0656}, {"m": 31, "alunos": 2703.3756, "ocup": 0.6789, "nps": 10, "ret": 0.98, "resultado": 492995.3816, "caixa": 7087342.7315}, {"m": 32, "alunos": 2798.5049, "ocup": 0.7028, "nps": 10, "ret": 0.98, "resultado": 511172.8778, "caixa": 7580338.1131}, {"m": 33, "alunos": 2894.3555, "ocup": 0.7269, "nps": 10, "ret": 0.98, "resultado": 529488.1915, "caixa": 8091510.9909}, {"m": 34, "alunos": 2990.9328, "ocup": 0.7511, "nps": 10, "ret": 0.98, "resultado": 547942.3675, "caixa": 8620999.1824}, {"m": 35, "alunos": 3088.2423, "ocup": 0.7756, "nps": 10, "ret": 0.98, "resultado": 566536.4587, "caixa": 9168941.5499}, {"m": 36, "alunos": 3186.2896, "ocup": 0.8002, "nps": 10, "ret": 0.98, "resultado": 585271.5259, "caixa": 9735478.0086}];
+const sC=[{"m": 0, "alunos": 216, "ocup": 0.1725, "nps": 10, "ret": 0.98, "resultado": 4682.3174, "caixa": 90000}, {"m": 1, "alunos": 215.68, "ocup": 0.1723, "nps": 10, "ret": 0.98, "resultado": 6388.2117, "caixa": 94682.3174}, {"m": 2, "alunos": 225.556, "ocup": 0.1802, "nps": 10, "ret": 0.98, "resultado": 9322.446, "caixa": 101070.5292}, {"m": 3, "alunos": 241.5502, "ocup": 0.1929, "nps": 10, "ret": 0.98, "resultado": 12990.2726, "caixa": 110392.9752}, {"m": 4, "alunos": 261.1957, "ocup": 0.2086, "nps": 10, "ret": 0.98, "resultado": 17092.386, "caixa": 123383.2478}, {"m": 5, "alunos": 282.9998, "ocup": 0.226, "nps": 10, "ret": 0.98, "resultado": 21447.7358, "caixa": 140475.6337}, {"m": 6, "alunos": 306.0599, "ocup": 0.2445, "nps": 10, "ret": 0.98, "resultado": 25946.8233, "caixa": 161923.3696}, {"m": 7, "alunos": 329.83, "ocup": 0.2634, "nps": 10, "ret": 0.98, "resultado": 30523.4427, "caixa": 187870.1929}, {"m": 8, "alunos": 353.9799, "ocup": 0.2827, "nps": 10, "ret": 0.98, "resultado": 35137.5831, "caixa": 218393.6356}, {"m": 9, "alunos": 378.3102, "ocup": 0.3022, "nps": 10, "ret": 0.98, "resultado": 39765.0828, "caixa": 253531.2187}, {"m": 10, "alunos": 402.7004, "ocup": 0.3216, "nps": 10, "ret": 0.98, "resultado": 44391.3698, "caixa": 293296.3015}, {"m": 11, "alunos": 427.0779, "ocup": 0.3411, "nps": 10, "ret": 0.98, "resultado": 49007.6742, "caixa": 337687.6713}, {"m": 12, "alunos": 451.399, "ocup": 0.3605, "nps": 10, "ret": 0.98, "resultado": 53608.7365, "caixa": 386695.3455}, {"m": 13, "alunos": 475.6375, "ocup": 0.3799, "nps": 10, "ret": 0.98, "resultado": 58191.4209, "caixa": 440304.082}, {"m": 14, "alunos": 499.7778, "ocup": 0.3992, "nps": 10, "ret": 0.98, "resultado": 62753.8764, "caixa": 498495.5029}, {"m": 15, "alunos": 523.8108, "ocup": 0.4184, "nps": 10, "ret": 0.98, "resultado": 67295.0292, "caixa": 561249.3793}, {"m": 16, "alunos": 547.7309, "ocup": 0.4375, "nps": 10, "ret": 0.98, "resultado": 71814.2756, "caixa": 628544.4085}, {"m": 17, "alunos": 571.5354, "ocup": 0.4565, "nps": 10, "ret": 0.98, "resultado": 76311.2957, "caixa": 700358.684}, {"m": 18, "alunos": 595.2227, "ocup": 0.4754, "nps": 10, "ret": 0.98, "resultado": 80785.9415, "caixa": 776669.9797}, {"m": 19, "alunos": 618.7919, "ocup": 0.4942, "nps": 10, "ret": 0.98, "resultado": 85238.1688, "caixa": 857455.9212}, {"m": 20, "alunos": 642.2431, "ocup": 0.513, "nps": 10, "ret": 0.98, "resultado": 89667.9957, "caixa": 942694.0901}, {"m": 21, "alunos": 665.5761, "ocup": 0.5316, "nps": 10, "ret": 0.98, "resultado": 94075.4778, "caixa": 1032362.0858}, {"m": 22, "alunos": 688.7915, "ocup": 0.5502, "nps": 10, "ret": 0.98, "resultado": 98460.6935, "caixa": 1126437.5636}, {"m": 23, "alunos": 711.8896, "ocup": 0.5686, "nps": 10, "ret": 0.98, "resultado": 102823.7343, "caixa": 1224898.2571}, {"m": 24, "alunos": 734.8708, "ocup": 0.587, "nps": 10, "ret": 0.98, "resultado": 107164.6998, "caixa": 1327721.9914}, {"m": 25, "alunos": 757.7358, "ocup": 0.6052, "nps": 10, "ret": 0.98, "resultado": 111483.694, "caixa": 1434886.6912}, {"m": 26, "alunos": 780.485, "ocup": 0.6234, "nps": 10, "ret": 0.98, "resultado": 115780.8234, "caixa": 1546370.3851}, {"m": 27, "alunos": 803.1191, "ocup": 0.6415, "nps": 10, "ret": 0.98, "resultado": 120056.1961, "caixa": 1662151.2086}, {"m": 28, "alunos": 825.6386, "ocup": 0.6595, "nps": 10, "ret": 0.98, "resultado": 124309.9204, "caixa": 1782207.4047}, {"m": 29, "alunos": 848.044, "ocup": 0.6774, "nps": 10, "ret": 0.98, "resultado": 128542.105, "caixa": 1906517.3251}, {"m": 30, "alunos": 870.336, "ocup": 0.6952, "nps": 10, "ret": 0.98, "resultado": 132752.8582, "caixa": 2035059.4301}, {"m": 31, "alunos": 892.5151, "ocup": 0.7129, "nps": 10, "ret": 0.98, "resultado": 136942.2884, "caixa": 2167812.2883}, {"m": 32, "alunos": 914.5819, "ocup": 0.7305, "nps": 10, "ret": 0.98, "resultado": 141110.5031, "caixa": 2304754.5767}, {"m": 33, "alunos": 936.537, "ocup": 0.748, "nps": 10, "ret": 0.98, "resultado": 145257.6097, "caixa": 2445865.0797}, {"m": 34, "alunos": 958.3808, "ocup": 0.7655, "nps": 10, "ret": 0.98, "resultado": 149383.715, "caixa": 2591122.6894}, {"m": 35, "alunos": 980.1141, "ocup": 0.7828, "nps": 10, "ret": 0.98, "resultado": 153488.9254, "caixa": 2740506.4045}, {"m": 36, "alunos": 1001.7373, "ocup": 0.8001, "nps": 10, "ret": 0.98, "resultado": 157573.3465, "caixa": 2893995.3298}];
+Chart.defaults.color='#94a3b8';Chart.defaults.borderColor='#334155';
+const M=bl.map(d=>'M'+d.m);
+const noPoint={pointRadius:0,tension:0.3};
+
+// Chart 1: Alunos vs Capacity
+new Chart(document.getElementById('c1'),{type:'line',data:{labels:M,datasets:[
+  {label:'Alunos',data:bl.map(d=>d.alunos),borderColor:'#f87171',fill:false,...noPoint},
+  {label:'Capacidade (492)',data:bl.map(()=>492),borderColor:'#334155',borderDash:[5,5],...noPoint},
+  {label:'80% Cap (394)',data:bl.map(()=>394),borderColor:'#fbbf24',borderDash:[3,3],...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}}}}});
+
+// Chart 2: NPS & Retention
+new Chart(document.getElementById('c2'),{type:'line',data:{labels:M,datasets:[
+  {label:'NPS',data:bl.map(d=>d.nps),borderColor:'#60a5fa',yAxisID:'y',...noPoint},
+  {label:'Retenção %',data:bl.map(d=>d.ret*100),borderColor:'#4ade80',yAxisID:'y2',...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}},y:{position:'left',title:{display:true,text:'NPS'}},y2:{position:'right',title:{display:true,text:'Retenção %'},grid:{display:false}}}}});
+
+// Chart 3: Aq vs Churn
+new Chart(document.getElementById('c3'),{type:'line',data:{labels:M,datasets:[
+  {label:'Aquisição',data:bl.map(d=>d.aq),borderColor:'#4ade80',...noPoint},
+  {label:'Churn',data:bl.map(d=>d.churn),borderColor:'#f87171',...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}}}}});
+
+// Chart 4: Ex-alunos
+new Chart(document.getElementById('c4'),{type:'line',data:{labels:M,datasets:[
+  {label:'Ex-Alunos Acumulados',data:bl.map(d=>d.ex),borderColor:'#f87171',backgroundColor:'rgba(248,113,113,0.1)',fill:true,...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}}}}});
+
+// Chart 5: Scenarios - Alunos
+new Chart(document.getElementById('c5'),{type:'line',data:{labels:M,datasets:[
+  {label:'Actual',data:bl.map(d=>d.alunos),borderColor:'#f87171',...noPoint},
+  {label:'C: Controlado',data:sC.map(d=>d.alunos),borderColor:'#4ade80',...noPoint},
+  {label:'B: Moderado',data:sB.map(d=>d.alunos),borderColor:'#fbbf24',...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}}}}});
+
+// Chart 6: Scenarios - NPS
+new Chart(document.getElementById('c6'),{type:'line',data:{labels:M,datasets:[
+  {label:'Actual',data:bl.map(d=>d.nps),borderColor:'#f87171',...noPoint},
+  {label:'C: Controlado',data:sC.map(d=>d.nps),borderColor:'#4ade80',...noPoint},
+  {label:'B: Moderado',data:sB.map(d=>d.nps),borderColor:'#fbbf24',...noPoint},
+]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:12}},y:{min:0,max:10}}}});
+</script>
+</body></html>

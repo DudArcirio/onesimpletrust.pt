@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>noise.os — SaaS Revenue System Navigator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--bgCard:#111827;--bgAlt:#1a2234;--bgHov:#1e293b;--accent:#3b82f6;--accentL:#60a5fa;--success:#10b981;--successL:#34d399;--warn:#f59e0b;--warnL:#fbbf24;--danger:#ef4444;--dangerL:#f87171;--purple:#8b5cf6;--purpleL:#a78bfa;--pink:#ec4899;--cyan:#06b6d4;--text:#f1f5f9;--textDim:#94a3b8;--textMut:#64748b;--border:#1e293b;--gold:#d4a017;--sans:'Inter',system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);overflow-x:hidden}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.top-bar{padding:10px 16px;background:linear-gradient(135deg,var(--bgCard),var(--bgAlt));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:14px;font-weight:800;letter-spacing:-.3px}.logo span{color:var(--textMut);font-weight:400;font-size:12px}
+.lt-bar{background:var(--bgCard);border-bottom:1px solid var(--border);padding:0 12px;display:flex;gap:2px;overflow-x:auto}
+.lt{padding:10px 12px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;color:var(--textMut);font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;transition:all .2s;white-space:nowrap;font-family:var(--sans)}
+.lt:hover{color:var(--textDim)}.lt.on{border-bottom-color:var(--accent);color:var(--accent)}
+.wrap{display:flex;height:calc(100vh - 88px)}
+.content{flex:1;overflow-y:auto;padding:16px}
+.side{width:340px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:rgba(12,16,30,.97);backdrop-filter:blur(20px)}
+.side-inner{padding:20px}
+.side-empty{font-size:11px;color:var(--textMut);line-height:1.7;padding:24px 0}
+.sec{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--textMut);margin:14px 0 6px;font-weight:700}.sec:first-child{margin-top:0}
+h2{font-size:15px;font-weight:800;margin-bottom:4px;letter-spacing:-.2px}
+.desc{font-size:12px;color:var(--textDim);line-height:1.6;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+/* CLD-specific */
+.cld-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg)}
+.cld-svg{width:100%;height:640px;display:block}
+.cld-legend{position:absolute;bottom:12px;left:14px;display:flex;flex-wrap:wrap;gap:10px}
+.cld-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--textMut)}
+.cld-legend-dot{width:8px;height:8px;border-radius:4px}
+.cld-info{position:absolute;bottom:12px;right:14px;font-size:10px;color:#3e4658}
+.cld-filters{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.cld-filter-label{font-size:12px;font-weight:700;color:var(--textDim);margin-right:4px}
+.cld-fbtn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--textMut);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--sans)}
+.cld-fbtn:hover{background:rgba(255,255,255,.06)}.cld-fbtn.on{color:#fff}
+/* Sidebar node card */
+.sn-group{display:inline-flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;padding:4px 10px;border-radius:12px;background:rgba(255,255,255,.06);margin-bottom:12px}
+.sn-title{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px;margin-bottom:8px;line-height:1.3}
+.sn-detail{font-size:13px;color:var(--textMut);line-height:1.6;margin-bottom:6px}
+.sn-meta{display:flex;gap:16px;margin-top:12px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.sn-meta-item{display:flex;flex-direction:column;gap:2px}
+.sn-meta-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#4a5268;font-weight:600}
+.sn-meta-val{font-size:14px;font-weight:600;color:var(--textDim)}
+.sn-sec{padding:16px 0;border-bottom:1px solid rgba(30,41,59,.3)}
+.sn-sec:last-child{border:none}
+.sn-sec-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#4a5268;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sn-sec-count{background:rgba(255,255,255,.06);padding:1px 7px;border-radius:8px;font-size:10px;color:#6a7488}
+.sn-edge{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:8px;background:rgba(255,255,255,.02);cursor:pointer;transition:background .15s}
+.sn-edge:hover{background:rgba(255,255,255,.05)}
+.sn-edge-dot{width:8px;height:8px;border-radius:4px;flex-shrink:0}
+.sn-edge-name{font-size:12px;font-weight:600;color:#d0d8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn-edge-label{font-size:10px;color:#5a6478;margin-top:1px}
+.sn-edge-pol{font-size:11px;font-weight:700}
+.pol-s{color:var(--success)}.pol-o{color:var(--danger)}
+.sn-edge-dir{font-size:11px;color:#3a4258}
+/* Cross-layer links */
+.cl{font-size:11px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.03);margin:3px 0;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s}
+.cl:hover{background:rgba(255,255,255,.06)}
+.cl-layer{font-size:8px;color:var(--textMut);text-transform:uppercase;letter-spacing:.5px;min-width:45px}
+.cl-name{font-weight:600;color:var(--textDim)}
+/* Loop chain */
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin:8px 0}
+.chain-v{padding:3px 8px;border-radius:5px;font-weight:600;font-size:9px}
+.chain-a{color:var(--textMut);font-size:10px}
+/* Other layers */
+.opt-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0}
+.opt-card{border-radius:12px;padding:16px;border:1px solid var(--border);background:var(--bgCard);cursor:pointer;transition:all .2s}
+.opt-card:hover{border-color:var(--textMut)}.opt-card.on{border-color:var(--accent);border-width:2px}
+.opt-card-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.opt-card-q{font-size:10px;color:var(--textMut);font-style:italic;margin-bottom:6px}
+.opt-kpi{font-size:10px;color:var(--textDim);padding:2px 0}
+.opt-north{font-size:11px;font-weight:700;margin-top:6px}
+.matrix{display:grid;grid-template-columns:110px repeat(4,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;margin:10px 0}
+.mx-cell{background:var(--bgCard);padding:10px;font-size:10px;line-height:1.5;cursor:pointer;transition:background .15s}
+.mx-cell:hover{background:var(--bgHov)}.mx-cell.on{outline:2px solid var(--accent);outline-offset:-2px;z-index:1}
+.mx-head{background:var(--bgAlt);font-weight:600;font-size:9px;text-align:center;padding:8px 6px}
+.mx-row-head{background:var(--bgAlt);font-weight:600;font-size:9px;display:flex;align-items:center;padding:8px 10px}
+.mx-metric{font-size:9px;color:var(--textMut);margin-top:3px}
+.tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:600;margin:1px;border:1px solid}
+.org-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.org-card{border-radius:12px;padding:14px;border:1px solid var(--border);background:var(--bgCard);cursor:pointer;transition:all .2s}
+.org-card:hover{border-color:var(--textMut)}.org-card.on{border-color:var(--accent);border-width:2px}
+.org-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.org-sub{font-size:9px;color:var(--textMut);margin-bottom:6px}
+.org-body{font-size:10px;color:var(--textDim);line-height:1.5}
+.org-badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:9px;font-weight:700;margin-bottom:8px}
+.fn-box{background:var(--bgCard);border-radius:12px;padding:16px 20px;margin:12px 0;border-left:3px solid var(--accent)}
+.fn-eq{font-family:Georgia,serif;font-size:14px;color:var(--text);padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin:8px 0;line-height:1.8}
+/* Simulator */
+.sim-layout{display:grid;grid-template-columns:260px 1fr;gap:12px;margin:12px 0}
+.sim-panel{background:var(--bg);border-radius:12px;border:1px solid var(--border);padding:14px;max-height:700px;overflow-y:auto}
+.sim-charts{display:flex;flex-direction:column;gap:10px}
+.sim-chart{background:var(--bg);border-radius:12px;border:1px solid var(--border);padding:14px}
+.sim-chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--textMut);margin-bottom:8px}
+.sim-chart canvas{height:160px!important;width:100%!important}
+.sim-lever{margin-bottom:12px}
+.sim-lever-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.sim-lever-name{font-size:10px;font-weight:600;color:var(--textDim)}
+.sim-lever-val{font-size:11px;font-weight:700}
+.sim-slider{width:100%;height:4px;border-radius:2px;-webkit-appearance:none;appearance:none;background:var(--bgCard);outline:none;cursor:pointer}
+.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:6px;background:#fff;border:2px solid var(--accent);cursor:pointer}
+.sim-slider::-moz-range-thumb{width:12px;height:12px;border-radius:6px;background:#fff;border:2px solid var(--accent);cursor:pointer}
+.sim-lever-desc{font-size:8px;color:var(--textMut);margin-top:1px;line-height:1.3}
+.sc-btns{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:10px}
+.sc-btn{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--textMut);font-size:9px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.sc-btn:hover{background:rgba(255,255,255,.05)}.sc-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sim-run{width:100%;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:8px}
+.sim-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.sim-metric{background:var(--bgAlt);border-radius:8px;padding:8px 10px}
+.sim-metric-label{font-size:8px;color:var(--textMut);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.sim-metric-val{font-size:16px;font-weight:800;margin-top:1px;line-height:1.1}
+.sim-metric-delta{font-size:9px;font-weight:700;margin-top:1px}
+.up{color:var(--success)}.down{color:var(--danger)}.flat{color:var(--textMut)}
+@media(max-width:900px){.wrap{flex-direction:column;height:auto}.side{width:100%;border-left:none;border-top:1px solid var(--border)}.org-grid,.opt-cards{grid-template-columns:1fr}.sim-layout{grid-template-columns:1fr}.sim-metrics{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<div class="logo">noise.os <span>· SaaS revenue system navigator</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span class="badge" style="background:#10b98118;color:#10b981;border:1px solid #10b98130"><span style="width:6px;height:6px;border-radius:3px;background:#10b981;animation:pulse 2s infinite"></span>Interactive</span><span style="font-size:10px;color:var(--textMut)">v3</span></div>
+</div>
+<div class="lt-bar">
+<button class="lt on" onclick="goLayer(0)">🧭 Causal dynamics</button>
+<button class="lt" onclick="goLayer(1)">📊 Optimization</button>
+<button class="lt" onclick="goLayer(2)">🎯 Portfolio</button>
+<button class="lt" onclick="goLayer(3)">🏗️ Org design</button>
+</div>
+<div class="wrap">
+<div class="content" id="content"></div>
+<div class="side"><div class="side-inner" id="side"></div></div>
+</div>
+<script>
+const C={bg:'#0a0e1a',bgCard:'#111827',bgAlt:'#1a2234',bgHov:'#1e293b',accent:'#3b82f6',accentL:'#60a5fa',success:'#10b981',warn:'#f59e0b',danger:'#ef4444',purple:'#8b5cf6',pink:'#ec4899',cyan:'#06b6d4',text:'#f1f5f9',textDim:'#94a3b8',textMut:'#64748b',border:'#1e293b',gold:'#d4a017'};
+const V=[
+{id:'baw',l:'Brand\nawareness',x:.38,y:.06,s:'awareness',r:22,c:'#8b5cf6',d:'Degree to which the target market recognizes and recalls the brand.'},
+{id:'paw',l:'Product\nawareness',x:.56,y:.06,s:'awareness',r:20,c:'#8b5cf6',d:'Degree to which potential customers understand what the product does.'},
+{id:'cq',l:'Content\nquality',x:.46,y:.17,s:'awareness',r:18,c:'#8b5cf6',d:'Quality of content assets — blog posts, guides, knowledge base, thought leadership.'},
+{id:'bc',l:'Brand\nconsistency',x:.26,y:.12,s:'awareness',r:16,c:'#8b5cf6',d:'Consistency of brand messaging and positioning across all touchpoints over time.'},
+{id:'ci',l:'Channel\ninvestment',x:.66,y:.12,s:'awareness',r:18,c:'#8b5cf6',d:'Investment in distribution channels — paid media, events, sponsorships.'},
+{id:'av',l:'Acquisition\nvolume',x:.78,y:.18,s:'acquisition',r:20,c:'#3b82f6',d:'Volume of new prospects entering the funnel — signups, trial starts, demo requests.'},
+{id:'aq',l:'Acquisition\nquality',x:.88,y:.30,s:'acquisition',r:20,c:'#3b82f6',d:'Quality of incoming prospects — ICP fit, intent level, likelihood to activate.'},
+{id:'sf',l:'Signup\nfriction',x:.88,y:.18,s:'acquisition',r:16,c:'#3b82f6',d:'Friction in the signup process — steps, fields, verification requirements.'},
+{id:'pe',l:'Partnership\necosystem',x:.95,y:.42,s:'acquisition',r:20,c:'#3b82f6',d:'Partner relationships — agencies, integrators, tech partners, marketplace integrations.'},
+{id:'ad',l:'Activation\ndepth',x:.92,y:.55,s:'activation',r:22,c:'#06b6d4',d:'How deeply a user has experienced the product\'s core value — the "aha moment".'},
+{id:'of',l:'Onboarding\nfriction',x:.98,y:.42,s:'activation',r:16,c:'#06b6d4',d:'Friction during product setup — technical complexity, configuration steps.'},
+{id:'cr',l:'Conversion\nrate',x:.85,y:.72,s:'conversion',r:22,c:'#10b981',d:'Percentage of activated users that become paying customers.'},
+{id:'sp',l:'Social\nproof',x:.74,y:.80,s:'conversion',r:18,c:'#10b981',d:'Credibility signals — G2 reviews, testimonials, case studies, analyst ratings.'},
+{id:'rv',l:'Revenue',x:.56,y:.90,s:'monetization',r:28,c:'#f59e0b',d:'Total recurring revenue. The central variable — funds all investment. Where all loops converge.'},
+{id:'pl',l:'Pricing\nlevel',x:.38,y:.92,s:'monetization',r:20,c:'#f59e0b',d:'Price points and tier structure. Most tempting — and most dangerous — lever under pressure.'},
+{id:'vg',l:'Value-price\ngap',x:.22,y:.84,s:'monetization',r:18,c:'#f59e0b',d:'Gap between what customers pay and what they perceive they receive.'},
+{id:'pv',l:'Perceived\nvalue',x:.06,y:.56,s:'retention',r:24,c:'#ef4444',d:'Customer\'s subjective assessment of value received. Sustains retention, drives advocacy.'},
+{id:'sq',l:'Support\nquality',x:.02,y:.62,s:'retention',r:14,c:'#ef4444',d:'Quality of customer support — responsiveness, resolution, proactivity.'},
+{id:'sc',l:'Switching\ncosts',x:.03,y:.44,s:'retention',r:16,c:'#ef4444',d:'Cost of switching to a competitor — time, effort, data migration, workflow disruption.'},
+{id:'fa',l:'Feature\nadoption',x:.12,y:.38,s:'retention',r:16,c:'#ef4444',d:'Breadth and depth of product feature usage by the customer.'},
+{id:'rr',l:'Retention\nrate',x:.08,y:.70,s:'retention',r:22,c:'#ef4444',d:'Percentage of customers retained. Where problems from earlier stages become visible.'},
+{id:'ex',l:'Expansion\nrevenue',x:.10,y:.20,s:'expansion',r:20,c:'#ec4899',d:'Revenue growth from existing customers — upsells, cross-sells, seat expansion.'},
+{id:'cg',l:'Customer\ngrowth',x:.03,y:.28,s:'external',r:14,c:'#64748b',d:'Growth of the customer\'s own business. External variable driving organic expansion.'},
+{id:'adv',l:'Advocacy',x:.24,y:.06,s:'advocacy',r:22,c:'#d4a017',d:'Active promotion by satisfied customers — reviews, referrals, word-of-mouth.'},
+{id:'dv',l:'Detractor\nvolume',x:.13,y:.14,s:'advocacy',r:16,c:'#d4a017',d:'Dissatisfied ex-customers actively discouraging others.'},
+{id:'pi',l:'Product\ninvestment',x:.44,y:.60,s:'cross',r:22,c:'#94a3b8',d:'Investment in product development, engineering, UX. The key lever.'},
+{id:'pq',l:'Product\nquality',x:.30,y:.42,s:'cross',r:24,c:'#94a3b8',d:'Overall quality, reliability, capability of the product. The foundation.'},
+{id:'rp',l:'Regulatory\npressure',x:.98,y:.66,s:'external',r:18,c:'#64748b',d:'External regulatory environment — new laws, enforcement, fines.'},
+{id:'ca',l:'Competitive\nalternatives',x:.28,y:.78,s:'external',r:18,c:'#64748b',d:'Number, quality, and pricing of competing products.'},
+{id:'mm',l:'Market\nmaturity',x:.96,y:.22,s:'external',r:16,c:'#64748b',d:'How mature and saturated the market is.'},
+{id:'cb',l:'Customer\nbase',x:.14,y:.52,s:'retention',r:20,c:'#ef4444',d:'Accumulated customer stock. Grows via conversion, decays via churn. The mass that creates both opportunity and constraint.'},
+{id:'pc',l:'Product\ncomplexity',x:.40,y:.50,s:'cross',r:16,c:'#94a3b8',d:'Accumulated technical complexity — features, integrations, edge cases. Each addition makes the next one harder.'},
+{id:'cs',l:'Channel\nsaturation',x:.74,y:.06,s:'awareness',r:16,c:'#8b5cf6',d:'Diminishing returns from channel spend. Early euros capture high-intent prospects; later euros chase lower quality.'},
+{id:'pml',l:'Partner mgmt\nload',x:.98,y:.48,s:'acquisition',r:14,c:'#3b82f6',d:'Overhead of managing partner ecosystem. More partners = more coordination, QA, training, conflict resolution.'}
+];
+const Ed=[
+{f:'baw',t:'av',p:'s',L:['R1','R11'],n:'Awareness drives inbound traffic'},
+{f:'av',t:'ad',p:'s',L:['R1','R11','R12'],n:'Prospects enter onboarding'},
+{f:'ad',t:'cr',p:'s',L:['R1','R9','R10','R11'],n:'Deeper activation → buying readiness'},
+{f:'cr',t:'rv',p:'s',L:['R1','R7','R9','R10','R11'],n:'Conversions generate revenue'},
+{f:'rv',t:'pi',p:'s',L:['R1','R3','R5','R7','R8','R9','R10'],n:'Revenue funds product development'},
+{f:'pi',t:'pq',p:'s',L:['R1','R3','R5','R7','R8','R9'],n:'Investment improves quality'},
+{f:'pq',t:'pv',p:'s',L:['R1','R3','R5','R7'],n:'Better product → higher perceived value'},
+{f:'pv',t:'baw',p:'s',L:['R1'],n:'Satisfied customers spread word-of-mouth'},
+{f:'pv',t:'adv',p:'s',L:['R2','R7'],n:'High value motivates advocacy'},
+{f:'adv',t:'baw',p:'s',L:['R2'],n:'Advocates amplify brand credibility'},
+{f:'baw',t:'aq',p:'s',L:['R2','R6'],n:'Strong brand attracts better-fit leads'},
+{f:'aq',t:'ad',p:'s',L:['R2','R6','R10'],n:'Better leads activate deeper'},
+{f:'ad',t:'pv',p:'s',L:['R2','R6'],n:'Deep experience builds value perception'},
+{f:'pv',t:'rr',p:'s',L:['R3','R4','R5','R6'],n:'Higher value sustains retention'},
+{f:'rr',t:'ex',p:'s',L:['R3','R8'],n:'Retained customers expand usage'},
+{f:'ex',t:'rv',p:'s',L:['R3','R8'],n:'Expansion adds to revenue'},
+{f:'rv',t:'pl',p:'o',L:['B1','R4'],n:'Revenue pressure → price increases'},
+{f:'pl',t:'rv',p:'s',L:['B1'],n:'Higher prices increase revenue short-term'},
+{f:'pl',t:'vg',p:'s',L:['R4'],n:'Higher prices widen the gap'},
+{f:'vg',t:'rr',p:'o',L:['R4'],n:'Wider gap erodes retention'},
+{f:'rr',t:'rv',p:'s',L:['R4','R5'],n:'Retention sustains revenue'},
+{f:'rr',t:'dv',p:'o',L:['R6'],n:'Low retention creates detractors'},
+{f:'dv',t:'baw',p:'o',L:['R6'],n:'Detractors damage brand'},
+{f:'dv',t:'aq',p:'o',L:['R6'],n:'Detractors deter quality prospects'},
+{f:'adv',t:'sp',p:'s',L:['R7'],n:'Advocates generate reviews'},
+{f:'sp',t:'cr',p:'s',L:['R7'],n:'Social proof lifts conversion'},
+{f:'pq',t:'fa',p:'s',L:['R8'],n:'Better product → deeper feature adoption'},
+{f:'fa',t:'sc',p:'s',L:['R8'],n:'Deeper adoption raises switching costs'},
+{f:'sc',t:'rr',p:'s',L:['R8'],n:'Switching costs protect retention'},
+{f:'pq',t:'of',p:'o',L:['R9'],n:'Better product reduces setup complexity'},
+{f:'of',t:'ad',p:'o',L:['R9'],n:'Less friction → deeper activation'},
+{f:'pi',t:'cq',p:'s',L:['R10'],n:'Investment funds content creation'},
+{f:'cq',t:'baw',p:'s',L:['R10'],n:'Content builds visibility via SEO'},
+{f:'cq',t:'paw',p:'s',L:['R10'],n:'Content educates about capabilities'},
+{f:'paw',t:'aq',p:'s',L:['R10'],n:'Product understanding → qualified leads'},
+{f:'cq',t:'ad',p:'s',L:['R10'],n:'Knowledge base aids activation'},
+{f:'rv',t:'ci',p:'s',L:['R11'],n:'Revenue funds channel spend'},
+{f:'ci',t:'baw',p:'s',L:['R11'],n:'Channel spend amplifies brand'},
+{f:'ci',t:'paw',p:'s',L:['R11'],n:'Channel spend → product awareness'},
+{f:'rv',t:'pe',p:'s',L:['R12'],n:'Revenue funds partner programs'},
+{f:'pe',t:'av',p:'s',L:['R12'],n:'Partners drive referral volume'},
+{f:'pe',t:'aq',p:'s',L:['R12'],n:'Partners pre-qualify leads'},
+{f:'pe',t:'sc',p:'s',L:['R12'],n:'Integrations create lock-in'},
+{f:'sf',t:'av',p:'o',L:[],n:'Signup friction reduces acquisition'},
+{f:'pq',t:'sf',p:'o',L:[],n:'Better UX reduces signup barriers'},
+{f:'sq',t:'rr',p:'s',L:[],n:'Good support improves retention'},
+{f:'bc',t:'baw',p:'s',L:[],n:'Consistency compounds recognition'},
+{f:'rr',t:'adv',p:'s',L:[],n:'Retained customers become advocates'},
+{f:'pv',t:'vg',p:'o',L:[],n:'Higher value narrows the gap'},
+{f:'rp',t:'baw',p:'s',L:['EXT'],n:'Regulations increase category awareness'},
+{f:'rp',t:'cr',p:'s',L:['EXT'],n:'Urgency accelerates buying'},
+{f:'rp',t:'pv',p:'s',L:['EXT'],n:'Regulations increase product necessity'},
+{f:'ca',t:'cr',p:'o',L:['EXT'],n:'Alternatives reduce conversion'},
+{f:'ca',t:'rr',p:'o',L:['EXT'],n:'Alternatives increase churn risk'},
+{f:'mm',t:'ca',p:'s',L:['EXT'],n:'Mature markets breed competitors'},
+{f:'mm',t:'av',p:'o',L:['EXT'],n:'Saturation limits prospect pool'},
+{f:'cg',t:'ex',p:'s',L:['EXT'],n:'Customer growth drives expansion'},
+{f:'cr',t:'cb',p:'s',L:['B2','B6'],n:'Conversions grow the customer base'},
+{f:'rr',t:'cb',p:'s',L:['B2','B3','B4'],n:'Retention maintains customer base'},
+{f:'cb',t:'av',p:'o',L:['B2'],n:'Larger base = saturated market = harder to acquire'},
+{f:'cb',t:'sq',p:'o',L:['B3'],n:'More customers overwhelm support capacity'},
+{f:'cb',t:'pq',p:'o',L:['B4'],n:'Customer demands dilute engineering focus'},
+{f:'pi',t:'pc',p:'s',L:['B5'],n:'Product investment adds features and complexity'},
+{f:'pc',t:'of',p:'s',L:['B5'],n:'Complexity increases onboarding friction'},
+{f:'cb',t:'ca',p:'s',L:['B6'],n:'Our success attracts competitive response'},
+{f:'ci',t:'cs',p:'s',L:['B7'],n:'Channel spend saturates available channels'},
+{f:'cs',t:'aq',p:'o',L:['B7'],n:'Saturation degrades acquisition quality'},
+{f:'pe',t:'pml',p:'s',L:['B8'],n:'More partners = more management overhead'},
+{f:'pml',t:'aq',p:'o',L:['B8'],n:'Management overhead degrades partner lead quality'}
+];
+const loops=[
+{id:'R1',n:'R1 — Growth engine',g:1,c:'#3b82f6',d:'Brand awareness → acquisition → activation → conversion → revenue → product investment → perceived value → brand awareness. Zero (o) edges → reinforcing.',ch:['baw','av','ad','cr','rv','pi','pq','pv','baw']},
+{id:'R2',n:'R2 — Advocacy flywheel',g:1,c:'#ec4899',d:'Perceived value → advocacy → brand awareness → acquisition quality → activation → perceived value. Near-zero CAC loop.',ch:['pv','adv','baw','aq','ad','pv']},
+{id:'R3',n:'R3 — Expansion engine',g:1,c:'#f97316',d:'Perceived value → retention → expansion → revenue → product investment → quality → perceived value.',ch:['pv','rr','ex','rv','pi','pq','pv']},
+{id:'R4',n:'R4 — Pricing erosion',g:1,c:'#ef4444',d:'Revenue↓ → pricing↑(o) → value-price gap↑ → retention↓(o) → revenue↓↓. Two (o) edges → reinforcing. Amplifies decline.',ch:['rv','pl','vg','rr','rv']},
+{id:'R5',n:'R5 — Underinvestment',g:1,c:'#94a3b8',d:'Revenue↓ → investment↓ → quality↓ → value↓ → retention↓ → revenue↓↓. Zero (o) edges → reinforcing. The structural brake.',ch:['rv','pi','pq','pv','rr','rv']},
+{id:'R6',n:'R6 — Detractor spiral',g:1,c:'#a78bfa',d:'Retention↓ → detractors↑(o) → brand↓(o) → quality leads↓ → activation↓ → retention↓↓. Two (o) → reinforcing.',ch:['rr','dv','baw','aq','ad','pv','rr']},
+{id:'R7',n:'R7 — Social proof',g:1,c:'#10b981',d:'Advocacy → social proof → conversion → revenue → investment → perceived value → more advocacy.',ch:['adv','sp','cr','rv','pi','pq','pv','adv']},
+{id:'R8',n:'R8 — Stickiness moat',g:1,c:'#b45309',d:'Product quality → feature adoption → switching costs → retention → expansion → revenue → investment.',ch:['pq','fa','sc','rr','ex','rv','pi','pq']},
+{id:'R9',n:'R9 — Frictionless activation',g:1,c:'#06b6d4',d:'Product quality →(o) friction →(o) activation → conversion → revenue → investment. Two (o) → reinforcing.',ch:['pq','of','ad','cr','rv','pi','pq']},
+{id:'R10',n:'R10 — Content engine',g:1,c:'#8b5cf6',d:'Investment → content quality → product awareness + activation. Multiple paths back to revenue.',ch:['pi','cq','paw','aq','ad','cr','rv','pi']},
+{id:'R11',n:'R11 — Channel reinvestment',g:1,c:'#2563eb',d:'Revenue → channel investment → brand + product awareness → acquisition → conversion → revenue.',ch:['rv','ci','baw','av','ad','cr','rv']},
+{id:'R12',n:'R12 — Partnership flywheel',g:1,c:'#7c3aed',d:'Revenue → partnerships → acquisition + switching costs → retention + conversion → revenue.',ch:['rv','pe','av','ad','cr','rv']},
+{id:'B1',n:'B1 — Pricing fix',g:2,c:'#f59e0b',d:'Revenue↓ → pricing↑(o) → revenue↑. One (o) → balancing. Temporary stabilizer that masks root cause.',ch:['rv','pl','rv']},
+{id:'B2',n:'B2 — Market saturation',g:2,c:'#d97706',d:'Conversion → customer base → addressable market shrinks(o) → acquisition↓. Limits R1, R11, R12.',ch:['cr','cb','av','ad','cr']},
+{id:'B3',n:'B3 — Support capacity',g:2,c:'#dc2626',d:'Customer base → support quality↓(o) → retention↓ → base↓. Growth outpaces support. Limits R3, R8.',ch:['cb','sq','rr','cb']},
+{id:'B4',n:'B4 — Engineering bandwidth',g:2,c:'#78716c',d:'Customer base → product quality growth↓(o) → value↓ → retention↓ → base↓. Demands outpace development. Limits R1, R3.',ch:['cb','pq','pv','rr','cb']},
+{id:'B5',n:'B5 — Complexity tax',g:2,c:'#0891b2',d:'Product investment → complexity → onboarding friction↑ → activation↓(o) → conversion↓. More features ≠ better product. Limits R9.',ch:['pi','pc','of','ad','cr','rv','pi']},
+{id:'B6',n:'B6 — Competitive response',g:2,c:'#be123c',d:'Conversion → customer base → competitive alternatives↑ → conversion↓(o). Our success provokes reaction. Limits all R loops.',ch:['cr','cb','ca','cr']},
+{id:'B7',n:'B7 — Channel diminishing returns',g:2,c:'#4338ca',d:'Revenue → channel invest → saturation → quality↓(o) → activation↓ → conversion↓. Limits R11.',ch:['rv','ci','cs','aq','ad','cr','rv']},
+{id:'B8',n:'B8 — Partner mgmt overhead',g:2,c:'#6d28d9',d:'Revenue → partnerships → mgmt load → quality↓(o) → activation↓ → conversion↓. Limits R12.',ch:['rv','pe','pml','aq','ad','cr','rv']},
+{id:'EXT',n:'External forces',g:3,c:'#64748b',d:'Regulatory pressure, competitive alternatives, market maturity, customer growth.',ch:['rp','mm','ca','cg']}
+];
+const GROUPS={awareness:{l:'Awareness',c:'#8b5cf6'},acquisition:{l:'Acquisition',c:'#3b82f6'},activation:{l:'Activation',c:'#06b6d4'},conversion:{l:'Conversion',c:'#10b981'},monetization:{l:'Monetization',c:'#f59e0b'},retention:{l:'Retention',c:'#ef4444'},expansion:{l:'Expansion',c:'#ec4899'},advocacy:{l:'Advocacy',c:'#d4a017'},cross:{l:'Cross-cutting',c:'#94a3b8'},external:{l:'External',c:'#64748b'}};
+const segments=[{id:'free',name:'Free users',c:'#64748b'},{id:'self',name:'Self-serve',c:'#8b5cf6'},{id:'mid',name:'Mid-market',c:'#3b82f6'},{id:'ent',name:'Enterprise',c:'#f97316'}];
+const strategies=[{id:'plg',name:'Product-led',c:'#8b5cf6'},{id:'mlg',name:'Marketing-led',c:'#10b981'},{id:'slg',name:'Sales-led',c:'#f97316'},{id:'flg',name:'Founder-led',c:'#ec4899'}];
+const matrix={'free-plg':{rel:'primary',loops:['R1','R9'],north:'Activation rate'},'free-mlg':{rel:'secondary',loops:['R10'],north:'Content signups'},'self-plg':{rel:'primary',loops:['R1','R9','R10','R8'],north:'NRR'},'self-mlg':{rel:'primary',loops:['R10','R11'],north:'Organic share'},'mid-plg':{rel:'secondary',loops:['R1','R9'],north:'PQL conversion'},'mid-mlg':{rel:'primary',loops:['R10','R11'],north:'Mktg pipeline'},'mid-slg':{rel:'primary',loops:['R3','R12'],north:'NRR'},'ent-plg':{rel:'secondary',loops:['R1'],north:'Reverse demo'},'ent-mlg':{rel:'secondary',loops:['R11'],north:'ABM progression'},'ent-slg':{rel:'primary',loops:['R3','R7','R8','R12'],north:'NRR'},'ent-flg':{rel:'secondary',loops:['R2','R7'],north:'Exec pipeline'}};
+const perspectives=[{id:'growth',name:'Growth efficiency',c:'#3b82f6',q:'Growing sustainably?',north:'Burn multiple',hz:'Quarterly',loops:['R1','R11','R12','B2','B7','B8'],kpis:['ARR growth rate','CAC payback','Burn multiple','Channel ROI','Market saturation index']},{id:'health',name:'Customer health',c:'#ef4444',q:'Customers getting more value?',north:'NRR',hz:'Semi-annual',loops:['R3','R4','R5','R8','B3','B4'],kpis:['Net Revenue Retention','Logo churn','Feature adoption depth','Value-price gap','Support load ratio']},{id:'pipeline',name:'Pipeline quality',c:'#10b981',q:'Right people, right reasons?',north:'Activation (D7)',hz:'Quarterly',loops:['R2','R9','R10','B5','B6'],kpis:['Activation rate','Conversion by cohort','Time-to-value','Product complexity index','Competitive response rate']},{id:'assets',name:'Strategic assets',c:'#f59e0b',q:'Building durable advantages?',north:'Brand recall',hz:'Annual+',loops:['R2','R7','R8','R12','B1'],kpis:['Brand awareness','SUS score','Integration breadth','G2 velocity','Pricing health ratio']}];
+const orgTeams=[{id:'s-self',ty:'stream',name:'Self-serve stream',sub:'No/Low touch · PLG',d:'Owns pipeline for SMBs, developers.',c:'#8b5cf6',loops:['R1','R9','R10'],segs:['free','self'],persp:'pipeline',kpis:['Self-serve ARR','Free-to-paid %','NRR','CAC payback','Time-to-value']},{id:'s-mid',ty:'stream',name:'Mid-market stream',sub:'Low/Mid touch · PLG + Sales',d:'Owns mid-complexity accounts. Manages PLG→Sales handoff.',c:'#3b82f6',loops:['R3','R10','R11','R12'],segs:['mid'],persp:'growth',kpis:['Mid-market ARR','SQL-to-close %','NRR','Sales cycle','Multi-product']},{id:'s-ent',ty:'stream',name:'Enterprise stream',sub:'High touch · Sales-led',d:'Strategic accounts. Relationship-driven. Lighthouse references.',c:'#f97316',loops:['R3','R7','R8','R12'],segs:['ent'],persp:'assets',kpis:['Enterprise ARR','ACV','NRR','Win rate','Executive NPS']},{id:'p-brand',ty:'platform',name:'Brand & Creative',sub:'Platform',d:'Identity, messaging, PR, design system.',c:'#06b6d4',loops:['R11'],segs:[],persp:'assets',kpis:['Brand awareness','Share of voice','PR coverage']},{id:'p-revops',ty:'platform',name:'Strategy, Data & RevOps',sub:'Platform · OS stewardship',d:'Analytics, CRM, billing, OS practices.',c:'#06b6d4',loops:[],segs:[],persp:'growth',kpis:['Forecast accuracy','CRM quality','PQL accuracy']},{id:'p-prodexp',ty:'platform',name:'Product Experience',sub:'Platform',d:'UX/UI, service design, onboarding.',c:'#06b6d4',loops:['R9'],segs:[],persp:'pipeline',kpis:['SUS score','Onboarding completion','Time-to-value']},{id:'e-content',ty:'enabling',name:'Content & SEO',sub:'Enabling',d:'Content, SEO, thought leadership, regulatory intel.',c:'#f59e0b',loops:['R10'],segs:[],persp:'pipeline',kpis:['Organic traffic','Content pipeline','KB deflection']},{id:'e-community',ty:'enabling',name:'Community & Partnerships',sub:'Enabling',d:'Events, partnerships, developer relations, advocacy.',c:'#f59e0b',loops:['R12','R2'],segs:[],persp:'assets',kpis:['Partner ARR','Community health','Event ROI']}];
+const nMap={};V.forEach(v=>nMap[v.id]=v);
+let curLayer=0,selItem=null,d3Refs=null,activeLoops=new Set(),pinned=null;
+
+function goLayer(n){curLayer=n;selItem=null;
+document.querySelectorAll('.lt').forEach((b,i)=>b.classList.toggle('on',i===n));
+renderContent();renderSide();}
+function selectItem(type,id){selItem=(selItem&&selItem.type===type&&selItem.id===id)?null:{type,id};renderContent();renderSide();}
+
+function renderContent(){
+const c=document.getElementById('content');
+if(curLayer===0)renderCLD(c);else if(curLayer===1)renderOpt(c);else if(curLayer===2)renderMatrix(c);else renderOrg(c);
+}
+
+function renderCLD(c){
+let h='<div class="cld-filters"><span class="cld-filter-label">Filter:</span>';
+h+='<button class="cld-fbtn on" data-f="all" onclick="filterCLD(\'all\')">All</button>';
+Object.entries(GROUPS).forEach(([k,g])=>{h+=`<button class="cld-fbtn" data-f="${k}" onclick="filterCLD('${k}')" style="border-color:${g.c}30">${g.l}</button>`;});
+h+='</div>';
+h+=`<div class="cld-wrap"><svg id="cld-svg" class="cld-svg"></svg>`;
+h+='<div class="cld-legend">';
+Object.entries(GROUPS).forEach(([k,g])=>{h+=`<div class="cld-legend-item"><span class="cld-legend-dot" style="background:${g.c}"></span>${g.l}</div>`;});
+h+=`</div><div class="cld-info">${V.length} variables · ${Ed.length} causal links · Drag: reposition · Click: explore · Scroll: zoom</div></div>`;
+// Loop filter buttons
+h+='<div style="margin-top:12px"><div class="sec">Reinforcing loops (even number of opposite polarities)</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">';
+loops.filter(l=>l.g===1).forEach(l=>{h+=`<button class="cld-fbtn" data-loop="${l.id}" onclick="filterLoop('${l.id}')" style="border-color:${l.c}60;color:${l.c}">${l.n}</button>`;});
+h+='</div><div class="sec">Balancing loops (odd number of opposite polarities)</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">';
+loops.filter(l=>l.g===2).forEach(l=>{h+=`<button class="cld-fbtn" data-loop="${l.id}" onclick="filterLoop('${l.id}')" style="border-color:${l.c}60;color:${l.c}">${l.n}</button>`;});
+h+='</div><div class="sec">External</div><div style="display:flex;flex-wrap:wrap;gap:4px">';
+loops.filter(l=>l.g===3).forEach(l=>{h+=`<button class="cld-fbtn" data-loop="${l.id}" onclick="filterLoop('${l.id}')" style="border-color:${l.c}60;color:${l.c}">${l.n}</button>`;});
+h+='</div></div>';
+c.innerHTML=h;
+buildD3Graph();
+}
+
+function buildD3Graph(){
+const svg=d3.select('#cld-svg');if(svg.empty())return;
+svg.selectAll('*').remove();
+const W=960,H=640;
+svg.attr('viewBox',`0 0 ${W} ${H}`);
+const defs=svg.append('defs');
+// Glow filter
+const glow=defs.append('filter').attr('id','glow');
+glow.append('feGaussianBlur').attr('stdDeviation','3').attr('result','blur');
+const merge=glow.append('feMerge');merge.append('feMergeNode').attr('in','blur');merge.append('feMergeNode').attr('in','SourceGraphic');
+// Arrow markers per color
+const colors=new Set();V.forEach(n=>colors.add(n.c));
+colors.forEach(col=>{
+const cid=col.replace(/[^a-zA-Z0-9]/g,'');
+defs.append('marker').attr('id',`arr-${cid}`).attr('viewBox','0 -4 8 8').attr('refX',8).attr('refY',0).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+.append('path').attr('d','M0,-3.5L8,0L0,3.5').attr('fill',col).attr('fill-opacity',.6);
+});
+const g=svg.append('g');
+// Zoom
+const zoom=d3.zoom().scaleExtent([.3,3]).on('zoom',e=>g.attr('transform',e.transform));
+svg.call(zoom);
+// Clone data
+const nodes=V.map(n=>({...n,size:n.r}));
+const edges=Ed.map(e=>({source:e.f,target:e.t,label:e.n,pol:e.p,loops:e.L}));
+// Simulation
+const sim=d3.forceSimulation(nodes)
+.force('link',d3.forceLink(edges).id(d=>d.id).distance(80))
+.force('charge',d3.forceManyBody().strength(-280))
+.force('center',d3.forceCenter(W/2,H/2))
+.force('collision',d3.forceCollide().radius(d=>d.size+14))
+.force('x',d3.forceX(d=>d.x*W).strength(.15))
+.force('y',d3.forceY(d=>d.y*H).strength(.15));
+// Pre-compute curve offsets for parallel/bidirectional edges
+const edgePairs={};
+edges.forEach((e,i)=>{
+const a=eid(e,'s'),b=eid(e,'t');
+const key=[a,b].sort().join('|');
+if(!edgePairs[key])edgePairs[key]=[];
+edgePairs[key].push(i);
+});
+edges.forEach((e,i)=>{
+const a=eid(e,'s'),b=eid(e,'t');
+const key=[a,b].sort().join('|');
+const group=edgePairs[key];
+const idx=group.indexOf(i);
+const count=group.length;
+if(count===1){e._curve=0.12;}// slight curve even for single edges
+else{
+const spread=0.15;
+e._curve=spread*(idx-(count-1)/2)*2 + (a<b?0.08:-0.08);
+}
+});
+// Links as bezier paths
+const linkG=g.append('g');
+const link=linkG.selectAll('path').data(edges).join('path')
+.attr('fill','none')
+.attr('stroke',d=>{const src=nodes.find(n=>n.id===(typeof d.source==='string'?d.source:d.source.id));return src?src.c:C.border;})
+.attr('stroke-width',.8).attr('stroke-opacity',.25)
+.attr('marker-end',d=>{const src=nodes.find(n=>n.id===(typeof d.source==='string'?d.source:d.source.id));return src?`url(#arr-${src.c.replace(/[^a-zA-Z0-9]/g,'')})`:'';});
+// Helper: compute bezier control point and endpoint
+function bezierCalc(d){
+const sx=d.source.x,sy=d.source.y,tx=d.target.x,ty=d.target.y;
+const dx=tx-sx,dy=ty-sy,dist=Math.sqrt(dx*dx+dy*dy)||1;
+// Normal vector (perpendicular)
+const nx=-dy/dist,ny=dx/dist;
+// Control point offset
+const off=dist*d._curve;
+const cx=((sx+tx)/2)+nx*off, cy=((sy+ty)/2)+ny*off;
+// Shorten endpoint to stop at target node edge
+const tdx=tx-cx,tdy=ty-cy,tdist=Math.sqrt(tdx*tdx+tdy*tdy)||1;
+const ex=tx-(tdx/tdist)*(d.target.size+6), ey=ty-(tdy/tdist)*(d.target.size+6);
+// Bezier midpoint (t=0.5): B(0.5) = 0.25*S + 0.5*C + 0.25*T
+const mx=0.25*sx+0.5*cx+0.25*tx, my=0.25*sy+0.5*cy+0.25*ty;
+// Point at t=0.7 for polarity indicator
+const t7=0.7;
+const px=(1-t7)*(1-t7)*sx+2*(1-t7)*t7*cx+t7*t7*tx;
+const py=(1-t7)*(1-t7)*sy+2*(1-t7)*t7*cy+t7*t7*ty;
+return {sx,sy,cx,cy,ex,ey,mx,my,px,py};
+}
+// Edge labels
+const eLabelG=g.append('g');
+const eLabelGrp=eLabelG.selectAll('g').data(edges).join('g').style('opacity',0);
+eLabelGrp.append('rect').attr('fill','rgba(10,14,26,.85)').attr('rx',4);
+eLabelGrp.append('text').attr('text-anchor','middle').attr('fill',C.textDim).attr('font-size',9).attr('font-weight',500).attr('dy',3).text(d=>d.label||'');
+// Polarity indicator on edge
+const polG=g.append('g');
+const polGrp=polG.selectAll('g').data(edges).join('g').style('opacity',0);
+polGrp.append('circle').attr('r',6).attr('fill',C.bg).attr('stroke',d=>d.pol==='o'?C.danger:C.success).attr('stroke-width',1);
+polGrp.append('text').attr('text-anchor','middle').attr('dominant-baseline','central').attr('fill',d=>d.pol==='o'?C.danger:C.success).attr('font-size',8).attr('font-weight',700).text(d=>d.pol);
+// Nodes
+const nodeG=g.append('g');
+const node=nodeG.selectAll('g').data(nodes).join('g');
+// Outer glow circle
+node.append('circle').attr('r',d=>d.size).attr('fill',d=>d.c).attr('fill-opacity',.15).attr('stroke',d=>d.c).attr('stroke-width',1.5).attr('stroke-opacity',.6).style('filter','url(#glow)').style('cursor','pointer');
+// Inner dot
+node.append('circle').attr('r',d=>d.size*.3).attr('fill',d=>d.c).attr('fill-opacity',.6).style('pointer-events','none');
+// Labels
+node.each(function(d){
+const lines=d.l.split('\n');
+d3.select(this).append('text').attr('text-anchor','middle').attr('fill',C.textDim).attr('font-size',d.size>20?10:9).attr('font-weight',500).attr('dy',d.size+14).style('pointer-events','none').style('text-shadow','0 1px 4px rgba(0,0,0,.8),0 0 8px rgba(0,0,0,.6)')
+.selectAll('tspan').data(lines).join('tspan').attr('x',0).attr('dy',(l,i)=>i===0?0:12).text(l=>l);
+});
+// Helpers
+function eid(e,w){const v=w==='s'?e.source:e.target;return typeof v==='string'?v:v.id;}
+function getConnected(d){const c=new Set();edges.forEach(e=>{const s=eid(e,'s'),t=eid(e,'t');if(s===d.id)c.add(t);if(t===d.id)c.add(s);});c.add(d.id);return c;}
+
+// State: multi-select loops + optional pinned node
+let dragging=false;
+
+// Combined state renderer — merges loop highlights + node highlights
+function applyState(hoverNode){
+const aLoops=[...activeLoops];
+const hasLoops=aLoops.length>0;
+const focusNode=hoverNode||pinned;
+const hasNode=!!focusNode;
+const any=hasLoops||hasNode;
+
+// Compute highlighted sets
+const hlNodes=new Set(),hlEdges=new Set();
+const loopEdgeColors={};
+
+// From loops
+if(hasLoops){
+aLoops.forEach(lid=>{
+const l=loops.find(x=>x.id===lid);if(!l)return;
+edges.forEach((e,i)=>{if(e.loops.includes(lid)){hlEdges.add(i);hlNodes.add(eid(e,'s'));hlNodes.add(eid(e,'t'));loopEdgeColors[i]=l.c;}});
+});
+}
+
+// From node
+const nodeConn=focusNode?getConnected(focusNode):new Set();
+if(hasNode){
+nodeConn.forEach(nid=>hlNodes.add(nid));
+edges.forEach((e,i)=>{if(eid(e,'s')===focusNode.id||eid(e,'t')===focusNode.id)hlEdges.add(i);});
+}
+
+// Apply to nodes
+node.select('circle:first-child')
+.attr('fill-opacity',n=>{
+if(!any)return .15;
+const inLoop=hasLoops&&hlNodes.has(n.id);
+const inNode=hasNode&&nodeConn.has(n.id);
+const isPinned=focusNode&&n.id===focusNode.id;
+if(isPinned)return .5;
+if(inNode&&inLoop)return .45;
+if(inNode)return .35;
+if(inLoop)return .35;
+return .03;
+})
+.attr('stroke-opacity',n=>{
+if(!any)return .6;
+return hlNodes.has(n.id)?1:.08;
+})
+.attr('stroke-width',n=>{
+if(focusNode&&n.id===focusNode.id)return 3;
+if(hlNodes.has(n.id))return 2;
+return 1.5;
+});
+node.selectAll('text').style('opacity',n=>any?(hlNodes.has(n.id)?1:.1):1);
+node.select('circle:nth-child(2)').attr('fill-opacity',n=>any?(hlNodes.has(n.id)?.8:.1):.6);
+
+// Apply to edges
+link.attr('stroke-opacity',(e,i)=>{
+if(!any)return .25;
+const isNodeEdge=hasNode&&(eid(e,'s')===focusNode.id||eid(e,'t')===focusNode.id);
+const isLoopEdge=hlEdges.has(i);
+if(isNodeEdge)return .9;
+if(isLoopEdge)return .7;
+return .02;
+})
+.attr('stroke-width',(e,i)=>{
+if(!any)return .8;
+const isNodeEdge=hasNode&&(eid(e,'s')===focusNode.id||eid(e,'t')===focusNode.id);
+if(isNodeEdge)return 2.5;
+if(hlEdges.has(i))return 2;
+return .5;
+})
+.attr('stroke',(e,i)=>{
+const isNodeEdge=hasNode&&(eid(e,'s')===focusNode.id||eid(e,'t')===focusNode.id);
+if(isNodeEdge)return focusNode.c;
+if(loopEdgeColors[i])return loopEdgeColors[i];
+return nodes.find(n=>n.id===eid(e,'s'))?.c||C.border;
+});
+
+// Edge labels & polarity: show for node edges and loop edges when pinned/loop active
+const showLabel=(e,i)=>{
+const isNodeEdge=hasNode&&!hoverNode&&(eid(e,'s')===focusNode.id||eid(e,'t')===focusNode.id);
+const isLoopEdge=hasLoops&&hlEdges.has(i);
+return (isNodeEdge||isLoopEdge)?1:0;
+};
+eLabelGrp.style('opacity',showLabel);
+polGrp.style('opacity',showLabel);
+}
+
+function highlightGroup(grp){
+const catIds=new Set(nodes.filter(n=>n.s===grp).map(n=>n.id));
+const rel=new Set(catIds);
+edges.forEach(e=>{const s=eid(e,'s'),t=eid(e,'t');if(catIds.has(s))rel.add(t);if(catIds.has(t))rel.add(s);});
+node.select('circle:first-child').attr('fill-opacity',n=>catIds.has(n.id)?.4:(rel.has(n.id)?.2:.03)).attr('stroke-opacity',n=>catIds.has(n.id)?1:(rel.has(n.id)?.5:.08)).attr('stroke-width',n=>catIds.has(n.id)?2.5:1.5);
+node.selectAll('text').style('opacity',n=>catIds.has(n.id)?1:(rel.has(n.id)?.6:.1));
+node.select('circle:nth-child(2)').attr('fill-opacity',n=>catIds.has(n.id)?.8:(rel.has(n.id)?.4:.1));
+link.attr('stroke-opacity',e=>(catIds.has(eid(e,'s'))||catIds.has(eid(e,'t')))?.6:.03).attr('stroke-width',e=>(catIds.has(eid(e,'s'))||catIds.has(eid(e,'t')))?1.5:.5);
+eLabelGrp.style('opacity',e=>(catIds.has(eid(e,'s'))||catIds.has(eid(e,'t')))?1:0);
+polGrp.style('opacity',0);
+}
+
+// Store refs
+let animating=false;
+function animateLoop(loopId,cb){
+const l=loops.find(x=>x.id===loopId);if(!l||!l.ch||l.ch.length<2){if(cb)cb();return;}
+animating=true;
+const chain=l.ch;
+// First: dim everything
+node.select('circle:first-child').attr('fill-opacity',.03).attr('stroke-opacity',.08).attr('stroke-width',1.5);
+node.selectAll('text').style('opacity',.1);
+node.select('circle:nth-child(2)').attr('fill-opacity',.1);
+link.attr('stroke-opacity',.02).attr('stroke-width',.5);
+eLabelGrp.style('opacity',0);polGrp.style('opacity',0);
+const litNodes=new Set(),litEdges=new Set();
+const stepTime=350;
+// Animate step by step
+function step(idx){
+if(idx>=chain.length){animating=false;if(cb)cb();return;}
+const nid=chain[idx];
+// Light up node
+litNodes.add(nid);
+node.select('circle:first-child')
+.transition().duration(200)
+.attr('fill-opacity',n=>litNodes.has(n.id)?.5:.03)
+.attr('stroke-opacity',n=>litNodes.has(n.id)?1:.08)
+.attr('stroke-width',n=>n.id===nid?3.5:(litNodes.has(n.id)?2.5:1.5));
+node.select('circle:nth-child(2)')
+.transition().duration(200)
+.attr('fill-opacity',n=>litNodes.has(n.id)?1:.1);
+node.selectAll('text')
+.transition().duration(200)
+.style('opacity',n=>litNodes.has(n.id)?1:.1);
+// Light up edge from previous node to this node
+if(idx>0){
+const prevId=chain[idx-1];
+edges.forEach((e,i)=>{
+if(eid(e,'s')===prevId&&eid(e,'t')===nid){litEdges.add(i);}
+});
+link.transition().duration(250)
+.attr('stroke-opacity',(e,i)=>litEdges.has(i)?.9:.02)
+.attr('stroke-width',(e,i)=>litEdges.has(i)?2.5:.5)
+.attr('stroke',(e,i)=>litEdges.has(i)?l.c:(nodes.find(n=>n.id===eid(e,'s'))?.c||C.border));
+eLabelGrp.transition().duration(200).style('opacity',(e,i)=>litEdges.has(i)?1:0);
+polGrp.transition().duration(200).style('opacity',(e,i)=>litEdges.has(i)?1:0);
+}
+setTimeout(()=>step(idx+1),stepTime);
+}
+step(0);
+}
+d3Refs={applyState,highlightGroup,animateLoop,nodes,edges,eid,sim};
+
+// Interactions
+node.call(d3.drag().on('start',(ev,d)=>{dragging=true;if(!ev.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;}).on('drag',(ev,d)=>{d.fx=ev.x;d.fy=ev.y;}).on('end',(ev,d)=>{dragging=false;if(!ev.active)sim.alphaTarget(0);d.fx=ev.x;d.fy=ev.y;}));
+
+// Hover: preview node connections layered on current state
+node.on('mouseover',(ev,d)=>{if(dragging||animating)return;applyState(d);}).on('mouseout',()=>{if(dragging||animating)return;applyState();});
+
+// Click: toggle pinned node (keeps loops active)
+node.on('click',(ev,d)=>{if(animating)return;ev.stopPropagation();
+if(pinned&&pinned.id===d.id){pinned=null;selItem=activeLoops.size?{type:'loop',id:[...activeLoops][activeLoops.size-1]}:null;}
+else{pinned=d;selItem={type:'variable',id:d.id};}
+applyState();renderSide();
+});
+
+// Background click: clear pinned node only, keep loops
+svg.on('click',()=>{if(animating)return;pinned=null;
+if(activeLoops.size)selItem={type:'loop',id:[...activeLoops][activeLoops.size-1]};
+else selItem=null;
+applyState();renderSide();
+});
+// Tick
+sim.on('tick',()=>{
+// Update bezier paths
+link.attr('d',d=>{
+const b=bezierCalc(d);
+return `M${b.sx.toFixed(1)},${b.sy.toFixed(1)}Q${b.cx.toFixed(1)},${b.cy.toFixed(1)},${b.ex.toFixed(1)},${b.ey.toFixed(1)}`;
+});
+node.attr('transform',d=>`translate(${d.x},${d.y})`);
+// Edge labels at bezier midpoint
+eLabelGrp.attr('transform',d=>{const b=bezierCalc(d);return`translate(${b.mx.toFixed(1)},${b.my.toFixed(1)})`;});
+eLabelGrp.each(function(){const txt=d3.select(this).select('text'),rect=d3.select(this).select('rect'),bb=txt.node()?.getBBox();if(bb)rect.attr('x',bb.x-4).attr('y',bb.y-2).attr('width',bb.width+8).attr('height',bb.height+4);});
+// Polarity indicators at t=0.7 along bezier
+polGrp.attr('transform',d=>{const b=bezierCalc(d);return`translate(${b.px.toFixed(1)},${b.py.toFixed(1)})`;});
+});
+setTimeout(()=>{svg.transition().duration(800).call(zoom.transform,d3.zoomIdentity.translate(W*.05,H*.05).scale(.9));},300);
+}
+
+function filterCLD(f){
+activeLoops.clear();pinned=null;
+document.querySelectorAll('[data-f]').forEach(b=>{b.classList.toggle('on',b.dataset.f===f);if(b.dataset.f!=='all'&&b.dataset.f===f){b.style.background=GROUPS[f]?.c+'20';b.style.borderColor=GROUPS[f]?.c+'60';b.style.color=GROUPS[f]?.c;}else if(b.dataset.f==='all'&&f==='all'){b.style.background='';b.style.color='';}else{b.style.background='';b.style.color='';}});
+document.querySelectorAll('[data-loop]').forEach(b=>{b.classList.remove('on');b.style.background='transparent';});
+if(!d3Refs)return;
+if(f==='all')d3Refs.applyState();else d3Refs.highlightGroup(f);
+selItem=null;renderSide();
+}
+function filterLoop(lid){
+if(!d3Refs)return;
+const btn=document.querySelector(`[data-loop="${lid}"]`);
+if(activeLoops.has(lid)){
+// Deactivate — no animation
+activeLoops.delete(lid);btn.classList.remove('on');btn.style.background='transparent';
+document.querySelectorAll('[data-f]').forEach(b=>{b.classList.remove('on');if(b.dataset.f==='all')b.classList.add('on');b.style.background='';b.style.color='';});
+if(activeLoops.size&&!pinned)selItem={type:'loop',id:[...activeLoops][activeLoops.size-1]};
+else if(!activeLoops.size&&!pinned)selItem=null;
+d3Refs.applyState();renderSide();
+}else{
+// Activate — animate the loop chain, then settle into applyState
+activeLoops.add(lid);const l=loops.find(x=>x.id===lid);
+btn.classList.add('on');btn.style.background=l.c+'20';
+document.querySelectorAll('[data-f]').forEach(b=>{b.classList.remove('on');if(b.dataset.f==='all')b.classList.add('on');b.style.background='';b.style.color='';});
+selItem={type:'loop',id:lid};
+renderSide();
+d3Refs.animateLoop(lid,()=>{d3Refs.applyState();});
+}
+}
+function renderOpt(c){
+let h='<h2>Optimization function & system dynamics simulator</h2><div class="desc">Four perspectives of system health, each measuring specific CLD loops. Adjust levers below to simulate 24-month behaviour-over-time.</div>';
+// Optimization function
+h+=`<div style="background:var(--bgCard);border-radius:12px;padding:14px 18px;margin:8px 0;border-left:3px solid var(--accent)"><div style="font-size:9px;color:var(--textMut);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:4px">Objective function</div><div style="font-family:Georgia,serif;font-size:13px;color:var(--text);line-height:1.8;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin:6px 0"><span style="color:var(--accent);font-style:italic">System Health</span> <span style="color:var(--textMut)">= f(</span><br>&nbsp;&nbsp;<span style="color:#3b82f6">Growth Efficiency</span> <span style="color:var(--warn);font-size:11px">× w₁</span>, <span style="color:#ef4444">Customer Health</span> <span style="color:var(--warn);font-size:11px">× w₂</span>,<br>&nbsp;&nbsp;<span style="color:#10b981">Pipeline Quality</span> <span style="color:var(--warn);font-size:11px">× w₃</span>, <span style="color:#f59e0b">Strategic Assets</span> <span style="color:var(--warn);font-size:11px">× w₄</span><span style="color:var(--textMut)">)</span></div></div>`;
+// 4 perspective cards
+h+='<div class="opt-cards">';
+perspectives.forEach(p=>{const on=selItem?.type==='perspective'&&selItem.id===p.id;
+h+=`<div class="opt-card${on?' on':''}" style="${on?'border-color:'+p.c:''}" onclick="selectItem('perspective','${p.id}')"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="dot" style="background:${p.c}"></span><span class="opt-card-name">${p.name}</span><span style="font-size:8px;color:var(--textMut);padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.05)">${p.hz}</span></div><div class="opt-card-q">${p.q}</div>${p.kpis.map(k=>`<div class="opt-kpi">· ${k}</div>`).join('')}<div class="opt-north">North Star: ${p.north}</div><div style="margin-top:4px">${p.loops.map(lid=>{const l=loops.find(x=>x.id===lid);return l?`<span class="tag" style="color:${l.c};border-color:${l.c}40;font-size:7px">${l.id}</span>`:'';}).join('')}</div></div>`;});
+h+='</div>';
+// Simulator
+h+=`<div class="sec" style="margin-top:16px">System dynamics simulator — 24-month projection</div>`;
+h+=`<div class="sim-metrics"><div class="sim-metric"><div class="sim-metric-label">Revenue (M24)</div><div class="sim-metric-val" id="m-rv" style="color:var(--warn)">—</div><div class="sim-metric-delta" id="md-rv">—</div></div><div class="sim-metric"><div class="sim-metric-label">NRR</div><div class="sim-metric-val" id="m-nrr" style="color:var(--danger)">—</div><div class="sim-metric-delta" id="md-nrr">—</div></div><div class="sim-metric"><div class="sim-metric-label">Product quality</div><div class="sim-metric-val" id="m-pq" style="color:var(--textDim)">—</div><div class="sim-metric-delta" id="md-pq">—</div></div><div class="sim-metric"><div class="sim-metric-label">Brand awareness</div><div class="sim-metric-val" id="m-baw" style="color:var(--purple)">—</div><div class="sim-metric-delta" id="md-baw">—</div></div></div>`;
+h+=`<div class="sim-layout"><div class="sim-panel">`;
+h+=`<div class="sec" style="margin-top:0">Scenarios</div><div class="sc-btns"><button class="sc-btn on" data-sc="baseline" onclick="loadSc('baseline')">Baseline</button><button class="sc-btn" data-sc="cost_cut" onclick="loadSc('cost_cut')">Cost cutting</button><button class="sc-btn" data-sc="invest" onclick="loadSc('invest')">Product invest</button><button class="sc-btn" data-sc="price_hike" onclick="loadSc('price_hike')">Price hike</button><button class="sc-btn" data-sc="balanced" onclick="loadSc('balanced')">Balanced</button></div>`;
+const levers=[
+{k:'pi',n:'Product investment',c:'var(--accent)',d:'% reinvested in product dev'},
+{k:'ci',n:'Channel investment',c:'var(--purple)',d:'Paid channels, events, sponsorships'},
+{k:'cqi',n:'Content investment',c:'var(--purple)',d:'Content, SEO, knowledge base'},
+{k:'pei',n:'Partnership investment',c:'var(--cyan)',d:'Partner ecosystem'},
+{k:'pl',n:'Pricing level',c:'var(--warn)',d:'Relative to market'},
+{k:'sq',n:'Support quality',c:'var(--success)',d:'Support responsiveness & quality'},
+{k:'rp',n:'Regulatory pressure',c:'var(--textDim)',d:'External regulation intensity'},
+{k:'ca',n:'Competitive pressure',c:'var(--textDim)',d:'Alternative quality & quantity'},
+{k:'cg',n:'Customer growth',c:'var(--textDim)',d:'Customer business growth rate'},
+];
+const defs={pi:50,ci:40,cqi:40,pei:30,pl:50,sq:50,rp:50,ca:50,cg:50};
+levers.forEach(lv=>{h+=`<div class="sim-lever"><div class="sim-lever-hdr"><span class="sim-lever-name">${lv.n}</span><span class="sim-lever-val" id="sv-${lv.k}" style="color:${lv.c}">${defs[lv.k]}</span></div><input type="range" class="sim-slider" id="sl-${lv.k}" min="0" max="100" value="${defs[lv.k]}" oninput="updSl()"><div class="sim-lever-desc">${lv.d}</div></div>`;});
+h+=`<button class="sim-run" onclick="runSim()">▶ Run simulation</button></div>`;
+h+=`<div class="sim-charts"><div class="sim-chart"><div class="sim-chart-title" style="color:#3b82f6">Growth efficiency — Revenue & acquisition</div><div style="height:160px"><canvas id="ch-growth"></canvas></div></div>`;
+h+=`<div class="sim-chart"><div class="sim-chart-title" style="color:#ef4444">Customer health — Retention & value</div><div style="height:160px"><canvas id="ch-health"></canvas></div></div>`;
+h+=`<div class="sim-chart"><div class="sim-chart-title" style="color:#10b981">Pipeline quality — Funnel & activation</div><div style="height:160px"><canvas id="ch-pipeline"></canvas></div></div>`;
+h+=`<div class="sim-chart"><div class="sim-chart-title" style="color:#f59e0b">Strategic assets — Slow-moving stocks</div><div style="height:160px"><canvas id="ch-assets"></canvas></div></div>`;
+h+=`</div></div>`;
+c.innerHTML=h;
+setTimeout(()=>runSim(),50);
+}
+function renderMatrix(c){
+let h='<h2>Portfolio matrix — Segment × Growth strategy</h2><div class="desc">Each cell shows dominant CLD loops and North Star metric. Click to explore.</div><div class="matrix"><div class="mx-head"></div>';
+strategies.forEach(s=>{h+=`<div class="mx-head" style="color:${s.c}">${s.name}</div>`;});
+segments.forEach(seg=>{h+=`<div class="mx-row-head"><span class="dot" style="background:${seg.c}"></span>${seg.name}</div>`;
+strategies.forEach(str=>{const k=seg.id+'-'+str.id,cell=matrix[k],on=selItem?.type==='matrix'&&selItem.id===k;
+if(!cell){h+=`<div class="mx-cell" style="opacity:.3;font-size:9px;color:${C.textMut}">—</div>`;return;}
+h+=`<div class="mx-cell${on?' on':''}" onclick="selectItem('matrix','${k}')">`;
+if(cell.rel!=='primary')h+=`<div style="font-size:8px;color:${C.textMut};margin-bottom:2px">${cell.rel}</div>`;
+if(cell.loops)h+=`<div>${cell.loops.map(lid=>{const l=loops.find(x=>x.id===lid);return l?`<span class="tag" style="color:${l.c};border-color:${l.c}40">${(l.n.split(' — ')[1]||l.n).split(' ')[0]}</span>`:'';}).join('')}</div>`;
+if(cell.north)h+=`<div class="mx-metric">${cell.north}</div>`;h+=`</div>`;});});
+h+='</div>';c.innerHTML=h;
+}
+function renderOrg(c){
+let h='<h2>Organizational design — Team Topologies</h2><div class="desc">Click any team to see CLD loops, portfolio segments, optimization perspective, and KPIs.</div>';
+const types=[['stream','Stream-aligned teams','#8b5cf620','#8b5cf6'],['platform','Platform teams','#06b6d420','#06b6d4'],['enabling','Enabling teams','#f59e0b20','#f59e0b']];
+types.forEach(([ty,title,bg,bc])=>{h+=`<div class="sec">${title}</div><div class="org-grid">`;
+orgTeams.filter(t=>t.ty===ty).forEach(t=>{const on=selItem?.type==='org'&&selItem.id===t.id;
+h+=`<div class="org-card${on?' on':''}" onclick="selectItem('org','${t.id}')"><div class="org-badge" style="background:${bg};color:${bc}">${ty}</div><div class="org-title" style="color:${t.c}">${t.name}</div><div class="org-sub">${t.sub}</div><div class="org-body">${t.d}</div></div>`;});
+h+='</div>';});c.innerHTML=h;
+}
+// ==================== SYSTEM DYNAMICS SIMULATOR ====================
+const SIM_MONTHS=24;
+const SIM_INIT={brand_awareness:50,product_awareness:40,product_quality:55,content_quality:40,brand_consistency:45,partnership_ecosystem:30,feature_adoption:35,switching_costs:25,social_proof:40,detractor_volume:15,advocacy:35,acquisition_volume:50,acquisition_quality:50,activation_depth:45,conversion_rate:30,revenue:50,retention_rate:85,expansion_revenue:20,perceived_value:55,value_price_gap:20,onboarding_friction:45,signup_friction:35,customer_base:50,product_complexity:30,channel_saturation:20,partner_mgmt_load:15};
+function cl(v){return Math.max(0,Math.min(100,v));}
+function sm(cur,tgt,a){return cur+a*(tgt-cur);}
+function dimret(x,k=50){return 100*x/(x+k);}
+function simulate(L){
+const hist=[];const S={...SIM_INIT};
+for(let m=0;m<SIM_MONTHS;m++){
+const prodInvest=L.pi,channelInvest=L.ci,contentInvest=L.cqi,partnerInvest=L.pei,pricingLevel=L.pl,supportQuality=L.sq,regPressure=L.rp,compAlt=L.ca,custGrowth=L.cg;
+// B4: customer base dampens product quality growth
+const cbBrake=Math.max(0.5,1-S.customer_base/200);
+S.product_quality=cl(sm(S.product_quality,dimret(prodInvest*1.2*cbBrake,50),0.08));
+S.content_quality=cl(sm(S.content_quality,dimret(contentInvest*1.1,45),0.1));
+S.brand_consistency=cl(sm(S.brand_consistency,(channelInvest*0.3+contentInvest*0.3+S.brand_awareness*0.4),0.05));
+S.partnership_ecosystem=cl(sm(S.partnership_ecosystem,dimret(partnerInvest*1.3,40),0.06));
+// B5: complexity tax
+S.product_complexity=cl(sm(S.product_complexity,prodInvest*0.6+S.product_complexity*0.3,0.07));
+S.onboarding_friction=cl(100-S.product_quality*0.7+S.product_complexity*0.25-15);
+S.signup_friction=cl(100-S.product_quality*0.6-30);
+S.feature_adoption=cl(sm(S.feature_adoption,S.product_quality*0.7+S.content_quality*0.15,0.08));
+S.switching_costs=cl(sm(S.switching_costs,S.feature_adoption*0.5+S.partnership_ecosystem*0.35,0.06));
+// Awareness — detractors dampen (R6), content/channels drive (R10,R11)
+const bawGain=channelInvest*0.25+S.content_quality*0.15+S.brand_consistency*0.15+S.advocacy*0.1+regPressure*0.08;
+const bawLoss=S.detractor_volume*0.12;
+S.brand_awareness=cl(sm(S.brand_awareness,bawGain-bawLoss+S.perceived_value*0.08,0.1));
+S.product_awareness=cl(sm(S.product_awareness,S.content_quality*0.4+channelInvest*0.3+S.brand_awareness*0.15,0.12));
+// B7: channel saturation
+S.channel_saturation=cl(sm(S.channel_saturation,channelInvest*0.7,0.08));
+// B8: partner management load
+S.partner_mgmt_load=cl(sm(S.partner_mgmt_load,S.partnership_ecosystem*0.6,0.07));
+// B2: market saturation — customer base limits acquisition
+const mktCap=Math.max(0.3,1-S.customer_base/180);
+S.acquisition_volume=cl(S.brand_awareness*0.25+S.product_awareness*0.2+S.partnership_ecosystem*0.2+channelInvest*0.15-S.signup_friction*0.1)*mktCap;
+// B7+B8 degrade acquisition quality
+S.acquisition_quality=cl(S.brand_awareness*0.25+S.product_awareness*0.3+S.partnership_ecosystem*0.15-S.detractor_volume*0.15-S.channel_saturation*0.1-S.partner_mgmt_load*0.08+5);
+S.activation_depth=cl(S.acquisition_quality*0.25+S.product_quality*0.2-S.onboarding_friction*0.25+S.content_quality*0.15+15);
+const pvTarget=S.product_quality*0.3+S.activation_depth*0.2+supportQuality*0.15+regPressure*0.1+S.feature_adoption*0.1;
+S.perceived_value=cl(sm(S.perceived_value,pvTarget,0.12));
+S.value_price_gap=cl(pricingLevel-S.perceived_value*0.85+15);
+// B6: competitive response
+const compEff=compAlt+S.customer_base*0.12;
+S.conversion_rate=cl(S.activation_depth*0.25+S.social_proof*0.15-compEff*0.12-S.value_price_gap*0.2+regPressure*0.1+10);
+// B3: support capacity — customer base degrades support
+const effSupport=cl(supportQuality-S.customer_base*0.15);
+const rrTarget=S.perceived_value*0.3+S.switching_costs*0.2+effSupport*0.15-S.value_price_gap*0.25-compEff*0.08+40;
+S.retention_rate=cl(sm(S.retention_rate,cl(rrTarget),0.1));
+S.advocacy=cl(sm(S.advocacy,cl(S.perceived_value*0.35+S.retention_rate*0.3-20),0.08));
+S.social_proof=cl(sm(S.social_proof,S.advocacy*0.6+S.brand_awareness*0.15,0.07));
+S.detractor_volume=cl(sm(S.detractor_volume,cl((100-S.retention_rate)*0.5+(100-S.perceived_value)*0.2),0.1));
+const newRev=S.acquisition_volume*0.3*S.conversion_rate/100;
+const retRev=S.revenue*S.retention_rate/100;
+S.expansion_revenue=cl(S.retention_rate*0.2+custGrowth*0.3+S.feature_adoption*0.15-10);
+const expContrib=S.expansion_revenue*0.15;
+const priceMult=pricingLevel/50;
+S.revenue=cl(sm(S.revenue,(retRev+newRev+expContrib)*priceMult*0.8,0.15));
+// Customer base stock
+S.customer_base=cl(sm(S.customer_base,S.customer_base+S.conversion_rate*0.3-((100-S.retention_rate)*S.customer_base/100)*0.5,0.15));
+const nrr=S.revenue>0?((retRev+expContrib)/(S.revenue||1))*105:100;
+hist.push({month:m+1,revenue:+(S.revenue).toFixed(1),retention_rate:+(S.retention_rate).toFixed(1),nrr:+cl(nrr).toFixed(1),acquisition_volume:+(S.acquisition_volume).toFixed(1),conversion_rate:+(S.conversion_rate).toFixed(1),activation_depth:+(S.activation_depth).toFixed(1),perceived_value:+(S.perceived_value).toFixed(1),value_price_gap:+(S.value_price_gap).toFixed(1),product_quality:+(S.product_quality).toFixed(1),brand_awareness:+(S.brand_awareness).toFixed(1),feature_adoption:+(S.feature_adoption).toFixed(1),switching_costs:+(S.switching_costs).toFixed(1),partnership_ecosystem:+(S.partnership_ecosystem).toFixed(1),social_proof:+(S.social_proof).toFixed(1),advocacy:+(S.advocacy).toFixed(1),detractor_volume:+(S.detractor_volume).toFixed(1),expansion_revenue:+(S.expansion_revenue).toFixed(1),customer_base:+(S.customer_base).toFixed(1),product_complexity:+(S.product_complexity).toFixed(1),channel_saturation:+(S.channel_saturation).toFixed(1)});
+}return hist;}
+const SCENARIOS={baseline:{pi:50,ci:40,cqi:40,pei:30,pl:50,sq:50,rp:50,ca:50,cg:50},cost_cut:{pi:25,ci:20,cqi:20,pei:15,pl:55,sq:30,rp:50,ca:50,cg:50},invest:{pi:75,ci:35,cqi:55,pei:40,pl:45,sq:55,rp:50,ca:50,cg:50},price_hike:{pi:45,ci:40,cqi:35,pei:30,pl:75,sq:45,rp:50,ca:50,cg:50},balanced:{pi:60,ci:45,cqi:50,pei:45,pl:48,sq:55,rp:50,ca:50,cg:50}};
+let simCharts={};
+function updSl(){['pi','ci','cqi','pei','pl','sq','rp','ca','cg'].forEach(k=>{const el=document.getElementById('sl-'+k);if(el)document.getElementById('sv-'+k).textContent=el.value;});}
+function loadSc(name){const sc=SCENARIOS[name];if(!sc)return;document.querySelectorAll('.sc-btn').forEach(b=>b.classList.toggle('on',b.dataset.sc===name));['pi','ci','cqi','pei','pl','sq','rp','ca','cg'].forEach(k=>{const el=document.getElementById('sl-'+k);if(el){el.value=sc[k];document.getElementById('sv-'+k).textContent=sc[k];}});runSim();}
+function sdelta(s,e){const d=e-s;const p=s>0?Math.round(d/s*100):0;const sign=d>0?'+':'';return{text:`${sign}${d.toFixed(1)} (${sign}${p}%)`,cls:d>0.5?'up':(d<-0.5?'down':'flat')};}
+function runSim(){
+const L={pi:+(document.getElementById('sl-pi')?.value||50),ci:+(document.getElementById('sl-ci')?.value||40),cqi:+(document.getElementById('sl-cqi')?.value||40),pei:+(document.getElementById('sl-pei')?.value||30),pl:+(document.getElementById('sl-pl')?.value||50),sq:+(document.getElementById('sl-sq')?.value||50),rp:+(document.getElementById('sl-rp')?.value||50),ca:+(document.getElementById('sl-ca')?.value||50),cg:+(document.getElementById('sl-cg')?.value||50)};
+const hist=simulate(L);if(!hist.length)return;
+const labels=hist.map(h=>`M${h.month}`),last=hist[hist.length-1],first=hist[0];
+const setM=(id,val,fmt)=>{const el=document.getElementById(id);if(el)el.textContent=fmt?fmt(val):val;};
+const setD=(id,s,e)=>{const d=sdelta(s,e);const el=document.getElementById(id);if(el){el.className='sim-metric-delta '+d.cls;el.textContent=d.text;}};
+setM('m-rv',last.revenue.toFixed(1));setD('md-rv',first.revenue,last.revenue);
+setM('m-nrr',last.nrr.toFixed(1)+'%');setD('md-nrr',first.nrr,last.nrr);
+setM('m-pq',last.product_quality.toFixed(1));setD('md-pq',first.product_quality,last.product_quality);
+setM('m-baw',last.brand_awareness.toFixed(1));setD('md-baw',first.brand_awareness,last.brand_awareness);
+const baseOpts={responsive:true,maintainAspectRatio:false,animation:{duration:500},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5268',font:{size:8}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5268',font:{size:8}},min:0,max:100}},plugins:{legend:{labels:{color:'#94a3b8',font:{size:9},boxWidth:10,padding:6}},tooltip:{backgroundColor:'#111827',borderColor:'#1e293b',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',bodyFont:{size:10},padding:8,cornerRadius:6}}};
+function ds(label,data,color,dash){return{label,data,borderColor:color,backgroundColor:color+'15',fill:false,tension:.4,borderWidth:1.5,pointRadius:0,borderDash:dash||[]};}
+Object.values(simCharts).forEach(c=>{try{c.destroy();}catch(e){}});simCharts={};
+const gc=document.getElementById('ch-growth');if(gc)simCharts.growth=new Chart(gc,{type:'line',data:{labels,datasets:[ds('Revenue',hist.map(h=>h.revenue),'#f59e0b'),ds('Expansion',hist.map(h=>h.expansion_revenue),'#ec4899'),ds('Acquisition',hist.map(h=>h.acquisition_volume),'#3b82f6',[4,4]),ds('Customer base',hist.map(h=>h.customer_base),'#64748b',[4,4])]},options:{...baseOpts}});
+const hc=document.getElementById('ch-health');if(hc)simCharts.health=new Chart(hc,{type:'line',data:{labels,datasets:[ds('Retention',hist.map(h=>h.retention_rate),'#ef4444'),ds('NRR',hist.map(h=>h.nrr),'#f97316'),ds('Perceived value',hist.map(h=>h.perceived_value),'#10b981'),ds('Value-price gap',hist.map(h=>h.value_price_gap),'#f59e0b',[4,4]),ds('Detractors',hist.map(h=>h.detractor_volume),'#a78bfa',[4,4])]},options:{...baseOpts}});
+const pc=document.getElementById('ch-pipeline');if(pc)simCharts.pipeline=new Chart(pc,{type:'line',data:{labels,datasets:[ds('Activation depth',hist.map(h=>h.activation_depth),'#06b6d4'),ds('Conversion rate',hist.map(h=>h.conversion_rate),'#10b981'),ds('Acq. quality',hist.map(h=>h.acquisition_quality),'#3b82f6',[4,4]),ds('Social proof',hist.map(h=>h.social_proof),'#d4a017',[4,4])]},options:{...baseOpts}});
+const ac=document.getElementById('ch-assets');if(ac)simCharts.assets=new Chart(ac,{type:'line',data:{labels,datasets:[ds('Product quality',hist.map(h=>h.product_quality),'#94a3b8'),ds('Brand awareness',hist.map(h=>h.brand_awareness),'#8b5cf6'),ds('Switching costs',hist.map(h=>h.switching_costs),'#b45309',[4,4]),ds('Partnerships',hist.map(h=>h.partnership_ecosystem),'#7c3aed',[4,4]),ds('Complexity',hist.map(h=>h.product_complexity),'#ef4444',[2,2])]},options:{...baseOpts}});
+}
+
+function renderSide(){
+const s=document.getElementById('side');
+if(!selItem){s.innerHTML=`<div class="side-empty">Select any element to see cross-layer connections.<br><br>Every element connects across all four layers:<br>· <strong>Layer 1</strong> — Causal dynamics<br>· <strong>Layer 2</strong> — Optimization<br>· <strong>Layer 3</strong> — Portfolio<br>· <strong>Layer 4</strong> — Org design<br><br>On the graph: <strong>hover</strong> to preview, <strong>click</strong> to pin, <strong>drag</strong> to reposition, <strong>scroll</strong> to zoom.</div>`;return;}
+let h='';
+if(selItem.type==='variable'){
+const v=nMap[selItem.id],gc=GROUPS[v.s]||{l:v.s,c:'#999'};
+const inc=Ed.filter(e=>e.t===selItem.id),out=Ed.filter(e=>e.f===selItem.id);
+h+=`<div class="sn-group" style="color:${gc.c}"><div style="width:8px;height:8px;border-radius:4px;background:${v.c}"></div>${gc.l}</div>`;
+h+=`<div class="sn-title">${v.l.replace(/\n/g,' ')}</div>`;
+h+=`<div class="sn-detail">${v.d}</div>`;
+h+=`<div class="sn-meta"><div class="sn-meta-item"><span class="sn-meta-label">Connections</span><span class="sn-meta-val">${inc.length+out.length}</span></div><div class="sn-meta-item"><span class="sn-meta-label">Inbound</span><span class="sn-meta-val">${inc.length}</span></div><div class="sn-meta-item"><span class="sn-meta-label">Outbound</span><span class="sn-meta-val">${out.length}</span></div></div>`;
+if(inc.length){h+=`<div class="sn-sec"><div class="sn-sec-title">← Inbound <span class="sn-sec-count">${inc.length}</span></div>`;
+inc.forEach(e=>{const fn=nMap[e.f];h+=`<div class="sn-edge" onclick="clickSideNode('${fn.id}')"><div class="sn-edge-dot" style="background:${fn.c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${fn.l.replace(/\n/g,' ')}</div><div class="sn-edge-label">${e.n}</div></div><span class="sn-edge-pol ${e.p==='o'?'pol-o':'pol-s'}">(${e.p})</span><div class="sn-edge-dir">←</div></div>`;});h+='</div>';}
+if(out.length){h+=`<div class="sn-sec"><div class="sn-sec-title">→ Outbound <span class="sn-sec-count">${out.length}</span></div>`;
+out.forEach(e=>{const tn=nMap[e.t];h+=`<div class="sn-edge" onclick="clickSideNode('${tn.id}')"><div class="sn-edge-dot" style="background:${tn.c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${tn.l.replace(/\n/g,' ')}</div><div class="sn-edge-label">${e.n}</div></div><span class="sn-edge-pol ${e.p==='o'?'pol-o':'pol-s'}">(${e.p})</span><div class="sn-edge-dir">→</div></div>`;});h+='</div>';}
+const vL=new Set();Ed.forEach(e=>{if(e.f===selItem.id||e.t===selItem.id)e.L.forEach(l=>vL.add(l))});
+if(vL.size){h+=`<div class="sn-sec"><div class="sn-sec-title">Loops</div>`;
+[...vL].forEach(lid=>{const l=loops.find(x=>x.id===lid);if(l)h+=`<div class="cl" onclick="goLayer(0);setTimeout(()=>filterLoop('${lid}'),100)"><span class="cl-layer">CLD</span><span class="dot" style="background:${l.c};width:6px;height:6px"></span><span class="cl-name" style="color:${l.c}">${l.n}</span></div>`;});h+='</div>';}
+const relTeams=orgTeams.filter(t=>t.loops.some(lid=>[...vL].includes(lid)));
+if(relTeams.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Teams</div>`;relTeams.forEach(t=>{h+=`<div class="cl" onclick="goLayer(3);selectItem('org','${t.id}')"><span class="cl-layer">Org</span><span class="dot" style="background:${t.c};width:6px;height:6px"></span><span class="cl-name">${t.name}</span></div>`;});h+='</div>';}
+// Show active loops below variable when both are active
+if(activeLoops.size){h+=`<div class="sn-sec"><div class="sn-sec-title">Active loops (${activeLoops.size})</div>`;
+[...activeLoops].forEach(lid=>{const l=loops.find(x=>x.id===lid);if(!l)return;
+h+=`<div style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border-left:3px solid ${l.c}"><div style="font-size:11px;font-weight:700;color:${l.c};margin-bottom:2px">${l.n}</div><div style="font-size:10px;color:${C.textDim};line-height:1.5">${l.d}</div></div>`;});
+h+='</div>';}
+}
+else if(selItem.type==='loop'){
+const aLoops=[...activeLoops];
+aLoops.forEach(lid=>{
+const l=loops.find(x=>x.id===lid);if(!l)return;
+const tp=l.g===2?'Balancing':l.g===3?'External':'Reinforcing';
+h+=`<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(30,41,59,.3)"><div class="sn-group" style="color:${l.c}"><div style="width:8px;height:8px;border-radius:4px;background:${l.c}"></div>${tp}</div><div class="sn-title" style="color:${l.c};font-size:16px">${l.n}</div><div class="sn-detail">${l.d}</div>`;
+if(l.ch){h+=`<div style="margin-top:8px"><div class="sn-sec-title">Variable chain</div><div class="chain">`;
+l.ch.forEach((vid,i)=>{const v=nMap[vid];if(!v)return;const vc=GROUPS[v.s]||{c:'#999'};
+h+=`<span class="chain-v" style="background:${vc.c}18;color:${vc.c};border:1px solid ${vc.c}30">${v.l.replace(/\n/g,' ')}</span>`;
+if(i<l.ch.length-1){const nv=l.ch[i+1],edge=Ed.find(e=>e.f===vid&&e.t===nv),pol=edge?edge.p:'?';
+h+=`<span class="chain-a">→<sup style="font-size:7px;color:${pol==='o'?C.danger:C.success};font-weight:700">${pol}</sup></span>`;}});h+='</div></div>';}
+h+='</div>';
+});
+// Cross-links for last selected loop
+const lastLid=aLoops[aLoops.length-1];const ll=loops.find(x=>x.id===lastLid);
+if(ll){
+const ps=perspectives.filter(p=>p.loops.includes(ll.id));
+if(ps.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Optimization</div>`;ps.forEach(p=>{h+=`<div class="cl" onclick="goLayer(1);selectItem('perspective','${p.id}')"><span class="cl-layer">Opt</span><span class="dot" style="background:${p.c};width:6px;height:6px"></span><span class="cl-name">${p.name}</span></div>`;});h+='</div>';}
+const teams=orgTeams.filter(t=>t.loops.includes(ll.id));
+if(teams.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Teams</div>`;teams.forEach(t=>{h+=`<div class="cl" onclick="goLayer(3);selectItem('org','${t.id}')"><span class="cl-layer">Org</span><span class="dot" style="background:${t.c};width:6px;height:6px"></span><span class="cl-name">${t.name}</span></div>`;});h+='</div>';}
+}
+}
+else if(selItem.type==='perspective'){
+const p=perspectives.find(x=>x.id===selItem.id);if(!p){s.innerHTML='';return;}
+h+=`<div style="margin-bottom:16px"><span class="dot" style="background:${p.c}"></span><span class="sn-title" style="font-size:16px">${p.name}</span><div style="font-size:11px;font-style:italic;color:${C.textMut};margin:6px 0">${p.q}</div><div style="font-size:12px;font-weight:700;margin-top:8px">North Star: ${p.north}</div><div style="font-size:9px;color:${C.textMut}">Feedback: ${p.hz}</div></div>`;
+h+=`<div class="sn-sec"><div class="sn-sec-title">KPIs</div><div style="font-size:11px;color:${C.textDim};line-height:1.8">${p.kpis.map(k=>`· ${k}`).join('<br>')}</div></div>`;
+h+=`<div class="sn-sec"><div class="sn-sec-title">CLD loops</div>`;p.loops.forEach(lid=>{const l=loops.find(x=>x.id===lid);if(l)h+=`<div class="cl" onclick="goLayer(0);setTimeout(()=>filterLoop('${lid}'),100)"><span class="cl-layer">CLD</span><span class="dot" style="background:${l.c};width:6px;height:6px"></span><span class="cl-name" style="color:${l.c}">${l.n}</span></div>`;});h+='</div>';
+const teams=orgTeams.filter(t=>t.persp===p.id);
+if(teams.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Primary teams</div>`;teams.forEach(t=>{h+=`<div class="cl" onclick="goLayer(3);selectItem('org','${t.id}')"><span class="cl-layer">Org</span><span class="cl-name">${t.name}</span></div>`;});h+='</div>';}
+}
+else if(selItem.type==='matrix'){
+const[sI,stI]=selItem.id.split('-'),seg=segments.find(x=>x.id===sI),str=strategies.find(x=>x.id===stI),cell=matrix[selItem.id];
+if(!seg||!str||!cell){s.innerHTML='';return;}
+h+=`<div style="margin-bottom:16px"><span class="dot" style="background:${seg.c}"></span><span class="sn-title" style="font-size:16px">${seg.name}</span> <span style="color:${C.textMut}">×</span> <span class="sn-title" style="font-size:16px;color:${str.c}">${str.name}</span><div style="font-size:9px;color:${C.textMut};margin-top:4px">${cell.rel}</div></div>`;
+if(cell.north)h+=`<div class="sn-sec"><div class="sn-sec-title">North Star</div><div style="font-size:14px;font-weight:700">${cell.north}</div></div>`;
+if(cell.loops){h+=`<div class="sn-sec"><div class="sn-sec-title">CLD loops</div>`;cell.loops.forEach(lid=>{const l=loops.find(x=>x.id===lid);if(l)h+=`<div class="cl" onclick="goLayer(0);setTimeout(()=>filterLoop('${lid}'),100)"><span class="cl-layer">CLD</span><span class="dot" style="background:${l.c};width:6px;height:6px"></span><span class="cl-name" style="color:${l.c}">${l.n}</span></div>`;});h+='</div>';}
+const teams=orgTeams.filter(t=>t.segs.includes(sI));
+if(teams.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Owned by</div>`;teams.forEach(t=>{h+=`<div class="cl" onclick="goLayer(3);selectItem('org','${t.id}')"><span class="cl-layer">Org</span><span class="dot" style="background:${t.c};width:6px;height:6px"></span><span class="cl-name">${t.name}</span></div>`;});h+='</div>';}
+}
+else if(selItem.type==='org'){
+const t=orgTeams.find(x=>x.id===selItem.id);if(!t){s.innerHTML='';return;}
+const tl={stream:'Stream-aligned',platform:'Platform',enabling:'Enabling'};
+h+=`<div style="margin-bottom:16px"><span class="dot" style="background:${t.c}"></span><span class="sn-title" style="font-size:16px">${t.name}</span><div style="font-size:9px;color:${C.textMut};margin-top:4px">${tl[t.ty]}</div><div class="sn-detail" style="margin-top:8px">${t.d}</div></div>`;
+h+=`<div class="sn-sec"><div class="sn-sec-title">KPIs</div><div style="font-size:11px;color:${C.textDim};line-height:1.8">${t.kpis.map(k=>`· ${k}`).join('<br>')}</div></div>`;
+if(t.loops.length){h+=`<div class="sn-sec"><div class="sn-sec-title">CLD loops</div>`;t.loops.forEach(lid=>{const l=loops.find(x=>x.id===lid);if(l)h+=`<div class="cl" onclick="goLayer(0);setTimeout(()=>filterLoop('${lid}'),100)"><span class="cl-layer">CLD</span><span class="dot" style="background:${l.c};width:6px;height:6px"></span><span class="cl-name" style="color:${l.c}">${l.n}</span></div>`;});h+='</div>';}
+const p=perspectives.find(x=>x.id===t.persp);
+if(p)h+=`<div class="sn-sec"><div class="sn-sec-title">Optimization</div><div class="cl" onclick="goLayer(1);selectItem('perspective','${p.id}')"><span class="cl-layer">Opt</span><span class="dot" style="background:${p.c};width:6px;height:6px"></span><span class="cl-name">${p.name}</span></div></div>`;
+if(t.segs.length){h+=`<div class="sn-sec"><div class="sn-sec-title">Portfolio segments</div>`;
+t.segs.forEach(sid=>{const seg=segments.find(x=>x.id===sid);if(seg){const cells=Object.entries(matrix).filter(([k,v])=>k.startsWith(sid+'-')&&v);
+h+=`<div style="margin-bottom:6px"><span class="dot" style="background:${seg.c};width:6px;height:6px"></span><span style="font-size:11px;font-weight:600">${seg.name}</span></div>`;
+cells.forEach(([k,v])=>{if(!v||!v.rel)return;const stI2=k.split('-')[1],str2=strategies.find(x=>x.id===stI2);if(str2)h+=`<div class="cl" onclick="goLayer(2);selectItem('matrix','${k}')"><span class="cl-layer">Port</span><span class="cl-name">${str2.name}</span><span style="font-size:8px;color:${C.textMut}">${v.rel}</span></div>`;});}});h+='</div>';}
+}
+s.innerHTML=h;
+}
+
+function clickSideNode(id){
+if(!d3Refs)return;
+const nd=d3Refs.nodes.find(n=>n.id===id);
+if(nd){pinned=nd;selItem={type:'variable',id};d3Refs.applyState();renderSide();}
+}
+
+renderContent();renderSide();
+</script>
+</body>
+</html>

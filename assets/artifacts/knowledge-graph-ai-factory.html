@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Graph — PMI AI Factory Sr Manager Business Operations</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0e1a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+  #header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    background: linear-gradient(180deg, rgba(10,14,26,0.95) 0%, rgba(10,14,26,0.7) 80%, transparent 100%);
+    padding: 18px 28px 30px;
+    pointer-events: none;
+  }
+  #header h1 {
+    font-size: 20px; font-weight: 700; color: #fff;
+    letter-spacing: -0.3px; pointer-events: auto;
+  }
+  #header p {
+    font-size: 12px; color: #8892a8; margin-top: 4px; pointer-events: auto;
+  }
+  #controls {
+    position: fixed; top: 16px; right: 20px; z-index: 10;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06); color: #c0c8d8; font-size: 11px;
+    cursor: pointer; transition: all 0.2s; font-weight: 500;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3);
+  }
+  /* === Sidebar Panel === */
+  #sidebar {
+    position: fixed; top: 0; right: -380px; width: 380px; height: 100vh;
+    background: rgba(12,16,30,0.97); border-left: 1px solid rgba(255,255,255,0.08);
+    z-index: 50; transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px); overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  #sidebar.open { right: 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .sb-header { padding: 24px 24px 0; flex-shrink: 0; }
+  .sb-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: #8892a8; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .sb-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .sb-category-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+    font-weight: 700; padding: 4px 10px; border-radius: 12px;
+    background: rgba(255,255,255,0.06); margin-bottom: 12px;
+  }
+  .sb-category-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sb-title {
+    font-size: 20px; font-weight: 700; color: #fff;
+    letter-spacing: -0.3px; margin-bottom: 8px; line-height: 1.3;
+  }
+  .sb-desc { font-size: 13px; color: #8892a8; line-height: 1.6; margin-bottom: 6px; }
+  .sb-meta {
+    display: flex; gap: 16px; margin-top: 10px; padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .sb-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .sb-meta-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    color: #4a5268; font-weight: 600;
+  }
+  .sb-meta-value { font-size: 14px; font-weight: 600; color: #c0c8d8; }
+  .sb-section {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .sb-section:last-child { border-bottom: none; }
+  .sb-section-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: #4a5268; font-weight: 700; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sb-section-title .arrow { font-size: 12px; }
+  .sb-section-count {
+    background: rgba(255,255,255,0.06); padding: 1px 7px; border-radius: 8px;
+    font-size: 10px; color: #6a7488;
+  }
+  .sb-edge {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; margin-bottom: 4px; border-radius: 8px;
+    background: rgba(255,255,255,0.02); cursor: pointer;
+    transition: background 0.15s;
+  }
+  .sb-edge:hover { background: rgba(255,255,255,0.06); }
+  .sb-edge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sb-edge-info { flex: 1; min-width: 0; }
+  .sb-edge-name {
+    font-size: 12px; font-weight: 600; color: #d0d8e8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sb-edge-label { font-size: 10px; color: #5a6478; margin-top: 1px; }
+  .sb-edge-arrow { font-size: 11px; color: #3a4258; flex-shrink: 0; }
+  .sb-empty { font-size: 11px; color: #3a4258; font-style: italic; padding: 4px 0; }
+  #legend {
+    position: fixed; bottom: 16px; left: 20px; z-index: 10;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8892a8; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  #stats {
+    position: fixed; bottom: 16px; right: 20px; z-index: 10;
+    font-size: 11px; color: #5a6478;
+  }
+  #hints {
+    position: fixed; bottom: 36px; right: 20px; z-index: 10;
+    font-size: 10px; color: #3e4658; text-align: right; line-height: 1.6;
+  }
+  svg { width: 100%; height: 100vh; display: block; }
+  .link { stroke-opacity: 0.3; }
+  .link:hover { stroke-opacity: 0.7; }
+  .node-label {
+    font-size: 10px; fill: #c0c8d8; text-anchor: middle;
+    pointer-events: none; font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6);
+  }
+  .node-circle {
+    cursor: pointer;
+    transition: r 0.2s, fill-opacity 0.25s, stroke-opacity 0.25s, stroke-width 0.25s;
+  }
+  .node-circle:hover { filter: brightness(1.3); }
+  .node-circle.pinned {
+    stroke-dasharray: none;
+  }
+  /* Edge labels */
+  .edge-label {
+    font-size: 9px; fill: rgba(200,210,230,0.85); text-anchor: middle;
+    pointer-events: none; font-weight: 500;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.7);
+    transition: opacity 0.25s;
+  }
+  .edge-label-bg {
+    fill: rgba(10,14,26,0.7); rx: 4; ry: 4;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>Knowledge Graph — PMI AI Factory</h1>
+  <p>Senior Manager Business Operations · Entidades, competências e relações extraídas do JD</p>
+</div>
+
+<div id="controls">
+  <button class="filter-btn active" data-filter="all">Todos</button>
+  <button class="filter-btn" data-filter="role">Papel</button>
+  <button class="filter-btn" data-filter="responsibility">Responsabilidades</button>
+  <button class="filter-btn" data-filter="skill">Competências</button>
+  <button class="filter-btn" data-filter="domain">Domínios</button>
+  <button class="filter-btn" data-filter="technology">Tecnologia</button>
+  <button class="filter-btn" data-filter="stakeholder">Stakeholders</button>
+  <button class="filter-btn" data-filter="value">Valores/Cultura</button>
+</div>
+
+<div id="sidebar">
+  <button class="sb-close" id="sb-close">&times;</button>
+  <div class="sb-header">
+    <div class="sb-category-badge">
+      <div class="sb-category-dot" id="sb-cat-dot"></div>
+      <span id="sb-cat-label"></span>
+    </div>
+    <div class="sb-title" id="sb-title"></div>
+    <div class="sb-desc" id="sb-desc"></div>
+    <div class="sb-meta">
+      <div class="sb-meta-item">
+        <span class="sb-meta-label">Conexões</span>
+        <span class="sb-meta-value" id="sb-connections">0</span>
+      </div>
+      <div class="sb-meta-item">
+        <span class="sb-meta-label">Inbound</span>
+        <span class="sb-meta-value" id="sb-inbound-count">0</span>
+      </div>
+      <div class="sb-meta-item">
+        <span class="sb-meta-label">Outbound</span>
+        <span class="sb-meta-value" id="sb-outbound-count">0</span>
+      </div>
+      <div class="sb-meta-item">
+        <span class="sb-meta-label">Tamanho</span>
+        <span class="sb-meta-value" id="sb-size">0</span>
+      </div>
+    </div>
+  </div>
+  <div class="sb-section" id="sb-inbound-section">
+    <div class="sb-section-title">
+      <span class="arrow">&#8592;</span> Inbound Edges <span class="sb-section-count" id="sb-in-badge">0</span>
+    </div>
+    <div id="sb-inbound-list"></div>
+  </div>
+  <div class="sb-section" id="sb-outbound-section">
+    <div class="sb-section-title">
+      <span class="arrow">&#8594;</span> Outbound Edges <span class="sb-section-count" id="sb-out-badge">0</span>
+    </div>
+    <div id="sb-outbound-list"></div>
+  </div>
+</div>
+
+<div id="legend"></div>
+<div id="hints">
+  Hover → realçar · Click → painel lateral · Drag → fixar posição · Dbl-click → soltar posição · Fundo → fechar
+</div>
+<div id="stats"></div>
+
+<svg></svg>
+
+<script>
+const categories = {
+  role:           { color: '#f59e0b', label: 'Papel' },
+  responsibility: { color: '#3b82f6', label: 'Responsabilidades' },
+  skill:          { color: '#10b981', label: 'Competências' },
+  domain:         { color: '#8b5cf6', label: 'Domínios' },
+  technology:     { color: '#ef4444', label: 'Tecnologia' },
+  stakeholder:    { color: '#ec4899', label: 'Stakeholders' },
+  value:          { color: '#06b6d4', label: 'Valores/Cultura' }
+};
+
+const nodes = [
+  { id: 'sr_manager', label: 'Sr Manager\nBusiness Operations', category: 'role', size: 28,
+    desc: 'Garante a operação eficiente, escalável e financeiramente disciplinada da AI Factory da PMI.' },
+  { id: 'ai_factory', label: 'AI Factory', category: 'domain', size: 24,
+    desc: 'Motor estratégico para capacidades de IA reutilizáveis e confiáveis em toda a PMI.' },
+  { id: 'pmi', label: 'PMI', category: 'stakeholder', size: 20,
+    desc: 'Philip Morris International — empresa em transformação para um futuro smoke-free.' },
+  { id: 'biz_ops', label: 'Business Operations\n& Governance', category: 'responsibility', size: 18,
+    desc: 'Liderança end-to-end de operações (governança financeira, budgeting, forecasting, cost optimization).' },
+  { id: 'rhythm', label: 'Rhythm of\nBusiness', category: 'responsibility', size: 18,
+    desc: 'Cadência operacional, exec reviews, KPIs, maturity tracking, capacity planning, scorecards.' },
+  { id: 'intake_demand', label: 'Intake & Demand\nCapacity Planning', category: 'responsibility', size: 18,
+    desc: 'Gestão de pipeline, staffing plans, skills roadmaps e capacidade de sistema.' },
+  { id: 'vendor_gov', label: 'Vendor Relationship\nGovernance', category: 'responsibility', size: 18,
+    desc: 'Contract performance, SLAs, compliance, QBRs e onboarding padronizado.' },
+  { id: 'team_lead', label: 'Team Leadership\n& Communications', category: 'responsibility', size: 18,
+    desc: 'Narrativas claras, leadership updates, stakeholder engagement e desenvolvimento de talento.' },
+  { id: 'ai_ops', label: 'AI-Powered Ops\n& Decision Support', category: 'responsibility', size: 18,
+    desc: 'Automação de analytics, scenario modeling, AI agents para financial controls e intake triage.' },
+  { id: 'fin_governance', label: 'Financial\nGovernance', category: 'skill', size: 14,
+    desc: 'Budgeting, forecasting, cost optimization e disciplina financeira.' },
+  { id: 'op_excellence', label: 'Operational\nExcellence', category: 'skill', size: 14,
+    desc: 'Process management, performance reporting e melhoria contínua.' },
+  { id: 'vendor_mgmt', label: 'Vendor &\nContract Mgmt', category: 'skill', size: 14,
+    desc: 'Gestão de vendors multi-modelo, contratos e SLAs.' },
+  { id: 'kpi_analytics', label: 'KPIs, Dashboards\n& Analytics', category: 'skill', size: 14,
+    desc: 'Performance management com dashboards, analytics e data-driven insights.' },
+  { id: 'scenario_model', label: 'Scenario Modeling\n& Investment', category: 'skill', size: 13,
+    desc: 'Modelagem de cenários e análise de investimento para decisões estratégicas.' },
+  { id: 'risk_mgmt', label: 'Risk Management\n& Governance', category: 'skill', size: 13,
+    desc: 'Gestão de riscos, compliance e mecanismos de governança.' },
+  { id: 'stakeholder_mgmt', label: 'Stakeholder\nManagement', category: 'skill', size: 13,
+    desc: 'Comunicação forte, alinhamento cross-functional e gestão de stakeholders.' },
+  { id: 'ambiguity', label: 'Managing\nAmbiguity', category: 'skill', size: 12,
+    desc: 'Conforto em ambientes de alta ambiguidade e transformação.' },
+  { id: 'analytical', label: 'Structured\nAnalytical Thinking', category: 'skill', size: 12,
+    desc: 'Pensamento analítico estruturado e orientação a processos.' },
+  { id: 'cost_control', label: 'Cost Control\n& Optimization', category: 'skill', size: 13,
+    desc: 'Financial planning, budgeting e controlo de custos.' },
+  { id: 'capacity_plan', label: 'Capacity\nPlanning', category: 'domain', size: 14,
+    desc: 'Ligação de use-cases a budget envelopes, hiring milestones e compute needs.' },
+  { id: 'delivery_mgmt', label: 'Technology\nDelivery Mgmt', category: 'domain', size: 14,
+    desc: 'Gestão de delivery tecnológico em ambientes complexos e multi-vendor.' },
+  { id: 'cross_func', label: 'Cross-Functional\nAlignment', category: 'domain', size: 14,
+    desc: 'Alinhamento entre múltiplas equipas e funções organizacionais.' },
+  { id: 'maturity', label: 'Maturity\nTracking', category: 'domain', size: 12,
+    desc: 'Acompanhamento da maturidade operacional e das capacidades da AI Factory.' },
+  { id: 'operating_model', label: 'Operating Model\nDesign', category: 'domain', size: 14,
+    desc: 'Alinhamento do modelo operacional e mecanismos de governança sustentáveis.' },
+  { id: 'ai_ml', label: 'AI / ML\nPlatforms', category: 'technology', size: 16,
+    desc: 'Plataformas de Inteligência Artificial e Machine Learning.' },
+  { id: 'cloud_compute', label: 'Cloud\nCompute', category: 'technology', size: 14,
+    desc: 'Infraestrutura cloud e capacidade computacional.' },
+  { id: 'ai_agents', label: 'AI Agents', category: 'technology', size: 14,
+    desc: 'Agentes de IA para financial controls, intake triage e automação operacional.' },
+  { id: 'variance_detect', label: 'Variance Detection\n& Forecasting', category: 'technology', size: 12,
+    desc: 'Automação de deteção de variância e quality checks em forecasts.' },
+  { id: 'eng_lifecycle', label: 'Engineering\nLifecycles', category: 'technology', size: 12,
+    desc: 'Ciclos de vida de engenharia e delivery de software.' },
+  { id: 'pmi_tech', label: 'PMI Tech', category: 'stakeholder', size: 16,
+    desc: 'Organização de tecnologia da PMI — parceiro vital na transformação.' },
+  { id: 'leadership', label: 'Leadership\n& Executives', category: 'stakeholder', size: 15,
+    desc: 'Exec reviews, leadership updates e scenario modeling para decisões.' },
+  { id: 'factory_ops', label: 'Factory Ops', category: 'stakeholder', size: 14,
+    desc: 'Co-gestão de intake e demand com a equipa de Factory Operations.' },
+  { id: 'vendors', label: 'Vendors &\nPartners', category: 'stakeholder', size: 14,
+    desc: 'Vendors externos com contratos, SLAs e QBRs.' },
+  { id: 'teams', label: 'Delivery\nTeams', category: 'stakeholder', size: 13,
+    desc: 'Equipas cross-functional em modelos de delivery multi-vendor.' },
+  { id: 'smokefree', label: 'Smoke-Free\nFuture', category: 'value', size: 14,
+    desc: 'Propósito central da PMI — transformação para um futuro sem fumo.' },
+  { id: 'innovation', label: 'Innovation &\nDisruption', category: 'value', size: 13,
+    desc: 'Espírito startup, tecnologia disruptiva, Agile, Design Thinking.' },
+  { id: 'learning', label: 'Fastest Learning\nIT Org', category: 'value', size: 12,
+    desc: 'Cultura de aprendizagem contínua, certificações e desenvolvimento.' },
+  { id: 'diversity', label: 'Diversity &\nInclusion', category: 'value', size: 11,
+    desc: 'Valores corporativos de respeito, pertença e diversidade.' },
+];
+
+const links = [
+  { source: 'sr_manager', target: 'ai_factory', strength: 3, label: 'lidera operações de' },
+  { source: 'ai_factory', target: 'pmi', strength: 2, label: 'motor estratégico de' },
+  { source: 'sr_manager', target: 'pmi_tech', strength: 2, label: 'reporta a' },
+  { source: 'sr_manager', target: 'biz_ops', strength: 2, label: 'lidera' },
+  { source: 'sr_manager', target: 'rhythm', strength: 2, label: 'gere' },
+  { source: 'sr_manager', target: 'intake_demand', strength: 2, label: 'co-gere' },
+  { source: 'sr_manager', target: 'vendor_gov', strength: 2, label: 'governa' },
+  { source: 'sr_manager', target: 'team_lead', strength: 2, label: 'lidera' },
+  { source: 'sr_manager', target: 'ai_ops', strength: 2, label: 'implementa' },
+  { source: 'biz_ops', target: 'fin_governance', strength: 1.5, label: 'requer' },
+  { source: 'biz_ops', target: 'cost_control', strength: 1.5, label: 'inclui' },
+  { source: 'biz_ops', target: 'operating_model', strength: 1.5, label: 'mantém' },
+  { source: 'biz_ops', target: 'risk_mgmt', strength: 1, label: 'inclui' },
+  { source: 'rhythm', target: 'kpi_analytics', strength: 1.5, label: 'usa' },
+  { source: 'rhythm', target: 'maturity', strength: 1.5, label: 'inclui' },
+  { source: 'rhythm', target: 'capacity_plan', strength: 1, label: 'alimenta' },
+  { source: 'rhythm', target: 'leadership', strength: 1.5, label: 'reporta a' },
+  { source: 'intake_demand', target: 'capacity_plan', strength: 2, label: 'gere' },
+  { source: 'intake_demand', target: 'factory_ops', strength: 1.5, label: 'co-gere com' },
+  { source: 'intake_demand', target: 'cloud_compute', strength: 1, label: 'dimensiona' },
+  { source: 'vendor_gov', target: 'vendor_mgmt', strength: 2, label: 'requer' },
+  { source: 'vendor_gov', target: 'vendors', strength: 2, label: 'governa' },
+  { source: 'vendor_gov', target: 'delivery_mgmt', strength: 1, label: 'alinha com' },
+  { source: 'team_lead', target: 'stakeholder_mgmt', strength: 1.5, label: 'requer' },
+  { source: 'team_lead', target: 'teams', strength: 1.5, label: 'desenvolve' },
+  { source: 'team_lead', target: 'cross_func', strength: 1.5, label: 'promove' },
+  { source: 'ai_ops', target: 'ai_agents', strength: 2, label: 'deploys' },
+  { source: 'ai_ops', target: 'variance_detect', strength: 1.5, label: 'automatiza' },
+  { source: 'ai_ops', target: 'scenario_model', strength: 1.5, label: 'produz' },
+  { source: 'ai_ops', target: 'ai_ml', strength: 1.5, label: 'usa' },
+  { source: 'ai_factory', target: 'ai_ml', strength: 2, label: 'baseada em' },
+  { source: 'ai_factory', target: 'cloud_compute', strength: 1.5, label: 'usa' },
+  { source: 'ai_ml', target: 'eng_lifecycle', strength: 1, label: 'segue' },
+  { source: 'op_excellence', target: 'biz_ops', strength: 1, label: 'suporta' },
+  { source: 'op_excellence', target: 'rhythm', strength: 1, label: 'suporta' },
+  { source: 'analytical', target: 'kpi_analytics', strength: 1, label: 'habilita' },
+  { source: 'ambiguity', target: 'cross_func', strength: 1, label: 'necessário em' },
+  { source: 'delivery_mgmt', target: 'teams', strength: 1, label: 'gere' },
+  { source: 'cross_func', target: 'pmi_tech', strength: 1, label: 'dentro de' },
+  { source: 'pmi', target: 'smokefree', strength: 1.5, label: 'propósito' },
+  { source: 'pmi', target: 'innovation', strength: 1, label: 'cultura' },
+  { source: 'pmi_tech', target: 'learning', strength: 1, label: 'compromisso' },
+  { source: 'pmi', target: 'diversity', strength: 1, label: 'valor' },
+  { source: 'innovation', target: 'ai_factory', strength: 1, label: 'materializa-se em' },
+];
+
+// ── Build the graph ──
+const width = window.innerWidth;
+const height = window.innerHeight;
+const svg = d3.select('svg').attr('width', width).attr('height', height);
+
+const defs = svg.append('defs');
+const filter = defs.append('filter').attr('id', 'glow');
+filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
+const feMerge = filter.append('feMerge');
+feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+const g = svg.append('g');
+
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 4])
+  .on('zoom', (event) => g.attr('transform', event.transform));
+svg.call(zoom);
+
+const simulation = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d => d.id).distance(d => 120 / (d.strength || 1)))
+  .force('charge', d3.forceManyBody().strength(-400))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collision', d3.forceCollide().radius(d => d.size + 20))
+  .force('x', d3.forceX(width / 2).strength(0.03))
+  .force('y', d3.forceY(height / 2).strength(0.03));
+
+// Links
+const linkGroup = g.append('g').attr('class', 'links');
+const link = linkGroup.selectAll('line')
+  .data(links).join('line')
+  .attr('class', 'link')
+  .attr('stroke', d => {
+    const src = nodes.find(n => n.id === (typeof d.source === 'string' ? d.source : d.source.id));
+    return src ? categories[src.category]?.color || '#444' : '#444';
+  })
+  .attr('stroke-width', d => (d.strength || 1) * 0.8);
+
+// Edge labels (hidden by default)
+const edgeLabelGroup = g.append('g').attr('class', 'edge-labels');
+const edgeLabel = edgeLabelGroup.selectAll('g')
+  .data(links).join('g')
+  .attr('class', 'edge-label-group')
+  .style('opacity', 0);
+edgeLabel.append('rect').attr('class', 'edge-label-bg');
+edgeLabel.append('text').attr('class', 'edge-label').text(d => d.label || '');
+
+// Nodes
+const nodeGroup = g.append('g').attr('class', 'nodes');
+const node = nodeGroup.selectAll('g')
+  .data(nodes).join('g')
+  .attr('class', 'node');
+
+node.append('circle')
+  .attr('class', 'node-circle')
+  .attr('r', d => d.size)
+  .attr('fill', d => categories[d.category]?.color || '#666')
+  .attr('fill-opacity', 0.15)
+  .attr('stroke', d => categories[d.category]?.color || '#666')
+  .attr('stroke-width', 1.5)
+  .attr('stroke-opacity', 0.6)
+  .style('filter', 'url(#glow)');
+
+node.append('circle')
+  .attr('r', d => d.size * 0.3)
+  .attr('fill', d => categories[d.category]?.color || '#666')
+  .attr('fill-opacity', 0.6)
+  .style('pointer-events', 'none');
+
+node.each(function(d) {
+  const lines = d.label.split('\n');
+  const text = d3.select(this).append('text')
+    .attr('class', 'node-label')
+    .attr('dy', d.size + 14);
+  lines.forEach((line, i) => {
+    text.append('tspan')
+      .attr('x', 0)
+      .attr('dy', i === 0 ? 0 : 13)
+      .text(line);
+  });
+});
+
+// ── State ──
+let pinnedNode = null;
+let isDragging = false;
+let activeFilter = 'all';
+
+// ── Sidebar DOM ──
+const sidebar = document.getElementById('sidebar');
+const sbClose = document.getElementById('sb-close');
+const sbTitle = document.getElementById('sb-title');
+const sbDesc = document.getElementById('sb-desc');
+const sbCatDot = document.getElementById('sb-cat-dot');
+const sbCatLabel = document.getElementById('sb-cat-label');
+const sbConnections = document.getElementById('sb-connections');
+const sbInboundCount = document.getElementById('sb-inbound-count');
+const sbOutboundCount = document.getElementById('sb-outbound-count');
+const sbSize = document.getElementById('sb-size');
+const sbInBadge = document.getElementById('sb-in-badge');
+const sbOutBadge = document.getElementById('sb-out-badge');
+const sbInboundList = document.getElementById('sb-inbound-list');
+const sbOutboundList = document.getElementById('sb-outbound-list');
+
+// ── Helpers ──
+function lid(l, w) {
+  const v = w === 's' ? l.source : l.target;
+  return typeof v === 'string' ? v : v.id;
+}
+
+function getConnected(d) {
+  const c = new Set();
+  links.forEach(l => {
+    if (lid(l,'s') === d.id) c.add(lid(l,'t'));
+    if (lid(l,'t') === d.id) c.add(lid(l,'s'));
+  });
+  c.add(d.id);
+  return c;
+}
+
+function showEdgeLabels(focalId) {
+  edgeLabel.style('opacity', l =>
+    (lid(l,'s') === focalId || lid(l,'t') === focalId) ? 1 : 0
+  );
+}
+function showEdgeLabelsForCategory(cat) {
+  const ids = new Set(nodes.filter(n => n.category === cat).map(n => n.id));
+  edgeLabel.style('opacity', l =>
+    (ids.has(lid(l,'s')) || ids.has(lid(l,'t'))) ? 1 : 0
+  );
+}
+function hideEdgeLabels() { edgeLabel.style('opacity', 0); }
+
+// ── Highlight: single node ──
+function applyHighlight(d, showLabels) {
+  const connected = getConnected(d);
+  node.select('.node-circle')
+    .attr('fill-opacity', n => connected.has(n.id) ? 0.35 : 0.04)
+    .attr('stroke-opacity', n => connected.has(n.id) ? 1 : 0.1)
+    .attr('stroke-width', n => n.id === d.id ? 3 : (connected.has(n.id) ? 2 : 1.5));
+  node.selectAll('.node-label')
+    .style('opacity', n => connected.has(n.id) ? 1 : 0.15);
+  node.selectAll('circle:nth-child(2)')
+    .attr('fill-opacity', n => connected.has(n.id) ? 0.8 : 0.15);
+  link
+    .attr('stroke-opacity', l => (lid(l,'s')===d.id||lid(l,'t')===d.id) ? 0.8 : 0.03)
+    .attr('stroke-width', l => (lid(l,'s')===d.id||lid(l,'t')===d.id)
+      ? (l.strength||1)*1.5 : (l.strength||1)*0.6);
+  if (showLabels) showEdgeLabels(d.id); else hideEdgeLabels();
+}
+
+// ── Highlight: category filter ──
+function applyFilterHighlight(cat) {
+  if (cat === 'all') { resetHighlight(); return; }
+  const catIds = new Set(nodes.filter(n => n.category === cat).map(n => n.id));
+  const relevant = new Set(catIds);
+  links.forEach(l => {
+    const s = lid(l,'s'), t = lid(l,'t');
+    if (catIds.has(s)) relevant.add(t);
+    if (catIds.has(t)) relevant.add(s);
+  });
+  node.select('.node-circle')
+    .attr('fill-opacity', n => catIds.has(n.id) ? 0.4 : (relevant.has(n.id) ? 0.2 : 0.03))
+    .attr('stroke-opacity', n => catIds.has(n.id) ? 1 : (relevant.has(n.id) ? 0.5 : 0.08))
+    .attr('stroke-width', n => catIds.has(n.id) ? 2.5 : 1.5);
+  node.selectAll('.node-label')
+    .style('opacity', n => catIds.has(n.id) ? 1 : (relevant.has(n.id) ? 0.6 : 0.1));
+  node.selectAll('circle:nth-child(2)')
+    .attr('fill-opacity', n => catIds.has(n.id) ? 0.8 : (relevant.has(n.id) ? 0.4 : 0.1));
+  link
+    .attr('stroke-opacity', l => (catIds.has(lid(l,'s'))||catIds.has(lid(l,'t'))) ? 0.6 : 0.03)
+    .attr('stroke-width', l => (catIds.has(lid(l,'s'))||catIds.has(lid(l,'t')))
+      ? (l.strength||1)*1.2 : (l.strength||1)*0.5);
+  showEdgeLabelsForCategory(cat);
+}
+
+// ── Reset ──
+function resetHighlight() {
+  node.select('.node-circle').attr('fill-opacity',0.15).attr('stroke-opacity',0.6).attr('stroke-width',1.5);
+  node.selectAll('.node-label').style('opacity',1);
+  node.selectAll('circle:nth-child(2)').attr('fill-opacity',0.6);
+  link.attr('stroke-opacity',0.3).attr('stroke-width',d=>(d.strength||1)*0.8);
+  hideEdgeLabels();
+}
+
+function updatePinIndicators() {
+  node.select('.node-circle').classed('pinned', d => d.fx !== null && d.fy !== null);
+}
+
+function clearFilter() {
+  activeFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+}
+
+// ── Sidebar ──
+function edgeRowHTML(targetNode, lbl, direction) {
+  const cat = categories[targetNode.category] || { color:'#666', label:'?' };
+  const arrow = direction === 'in' ? '&#8592;' : '&#8594;';
+  return '<div class="sb-edge" data-node-id="'+targetNode.id+'">' +
+    '<div class="sb-edge-dot" style="background:'+cat.color+'"></div>' +
+    '<div class="sb-edge-info">' +
+    '<div class="sb-edge-name">'+targetNode.label.replace(/\n/g,' ')+'</div>' +
+    '<div class="sb-edge-label">'+lbl+'</div></div>' +
+    '<div class="sb-edge-arrow">'+arrow+'</div></div>';
+}
+
+function openSidebar(d) {
+  const cat = categories[d.category] || { color:'#666', label:d.category };
+  sbCatDot.style.background = cat.color;
+  sbCatLabel.textContent = cat.label;
+  sbCatLabel.style.color = cat.color;
+  sbTitle.textContent = d.label.replace(/\n/g,' ');
+  sbDesc.textContent = d.desc || '';
+  sbSize.textContent = d.size;
+
+  const inbound = [], outbound = [];
+  links.forEach(l => {
+    const s = lid(l,'s'), t = lid(l,'t');
+    if (t === d.id) { const n = nodes.find(x => x.id === s); if(n) inbound.push({node:n, label:l.label}); }
+    if (s === d.id) { const n = nodes.find(x => x.id === t); if(n) outbound.push({node:n, label:l.label}); }
+  });
+
+  sbConnections.textContent = inbound.length + outbound.length;
+  sbInboundCount.textContent = inbound.length;
+  sbOutboundCount.textContent = outbound.length;
+  sbInBadge.textContent = inbound.length;
+  sbOutBadge.textContent = outbound.length;
+
+  sbInboundList.innerHTML = inbound.length === 0
+    ? '<div class="sb-empty">Nenhuma aresta inbound</div>'
+    : inbound.map(e => edgeRowHTML(e.node, e.label, 'in')).join('');
+  sbOutboundList.innerHTML = outbound.length === 0
+    ? '<div class="sb-empty">Nenhuma aresta outbound</div>'
+    : outbound.map(e => edgeRowHTML(e.node, e.label, 'out')).join('');
+
+  sidebar.querySelectorAll('.sb-edge').forEach(row => {
+    row.addEventListener('click', () => {
+      const td = nodes.find(n => n.id === row.dataset.nodeId);
+      if (td) { pinnedNode = td; if(activeFilter!=='all') clearFilter(); applyHighlight(td,true); openSidebar(td); }
+    });
+  });
+  sidebar.classList.add('open');
+}
+
+function closeSidebar() { sidebar.classList.remove('open'); }
+
+sbClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeSidebar();
+  pinnedNode = null;
+  if (activeFilter !== 'all') applyFilterHighlight(activeFilter);
+  else resetHighlight();
+});
+
+// ── Drag ──
+node.call(d3.drag()
+  .on('start', (event, d) => {
+    isDragging = true;
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x; d.fy = d.y;
+  })
+  .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+  .on('end', (event, d) => {
+    isDragging = false;
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = event.x; d.fy = event.y;
+    updatePinIndicators();
+  })
+);
+
+// ── Hover ──
+node.on('mouseover', (event, d) => {
+  if (isDragging) return;
+  applyHighlight(d, false);
+})
+.on('mouseout', () => {
+  if (isDragging) return;
+  if (pinnedNode) applyHighlight(pinnedNode, true);
+  else if (activeFilter !== 'all') applyFilterHighlight(activeFilter);
+  else resetHighlight();
+})
+
+// ── Click ──
+.on('click', (event, d) => {
+  event.stopPropagation();
+  if (pinnedNode && pinnedNode.id === d.id) {
+    pinnedNode = null;
+    closeSidebar();
+    if (activeFilter !== 'all') applyFilterHighlight(activeFilter);
+    else resetHighlight();
+  } else {
+    if (activeFilter !== 'all') clearFilter();
+    pinnedNode = d;
+    applyHighlight(d, true);
+    openSidebar(d);
+  }
+  updatePinIndicators();
+});
+
+// Canvas click
+svg.on('click', () => {
+  if (pinnedNode) { pinnedNode = null; closeSidebar(); }
+  if (activeFilter !== 'all') applyFilterHighlight(activeFilter);
+  else resetHighlight();
+  updatePinIndicators();
+});
+
+// Double-click → unpin position
+node.on('dblclick', (event, d) => {
+  event.stopPropagation();
+  d.fx = null; d.fy = null;
+  simulation.alphaTarget(0.1).restart();
+  setTimeout(() => simulation.alphaTarget(0), 500);
+  updatePinIndicators();
+});
+
+// ── Tick ──
+simulation.on('tick', () => {
+  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+      .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+  node.attr('transform', d => 'translate('+d.x+','+d.y+')');
+  edgeLabel.attr('transform', d => {
+    const mx = (d.source.x+d.target.x)/2, my = (d.source.y+d.target.y)/2;
+    return 'translate('+mx+','+my+')';
+  });
+  edgeLabel.each(function() {
+    const txt = d3.select(this).select('text');
+    const rect = d3.select(this).select('rect');
+    const bb = txt.node().getBBox();
+    rect.attr('x',bb.x-4).attr('y',bb.y-2).attr('width',bb.width+8).attr('height',bb.height+4);
+  });
+});
+
+// ── Filters ──
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    if (pinnedNode) { pinnedNode = null; closeSidebar(); }
+    applyFilterHighlight(activeFilter);
+  });
+});
+
+// ── Legend ──
+const legend = d3.select('#legend');
+Object.entries(categories).forEach(([key, cat]) => {
+  const item = legend.append('div').attr('class', 'legend-item');
+  item.append('div').attr('class', 'legend-dot').style('background', cat.color);
+  item.append('span').text(cat.label);
+});
+
+d3.select('#stats').text(nodes.length+' entidades · '+links.length+' relações · 7 categorias');
+
+setTimeout(() => {
+  svg.transition().duration(800).call(
+    zoom.transform,
+    d3.zoomIdentity.translate(width*0.05, height*0.05).scale(0.9)
+  );
+}, 500);
+</script>
+</body>
+</html>

@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAESA · Corporate Finance Navigator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card-alt: #1a2234;
+  --bg-hover: #1e293b;
+  --accent: #3b82f6;
+  --accent-light: #60a5fa;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --cyan: #06b6d4;
+  --gold: #d4a017;
+  --text: #f1f5f9;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --border: #1e293b;
+  --border-strong: #334155;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.shell { max-width: 1440px; margin: 0 auto; padding: 24px 32px 64px; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand .mark { font-size: 11px; letter-spacing: 0.18em; color: var(--text-muted); text-transform: uppercase; }
+.brand h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.brand .sub { font-size: 13px; color: var(--text-dim); font-weight: 400; }
+.meta { font-size: 11px; color: var(--text-muted); text-align: right; line-height: 1.7; }
+
+/* ---------- Tabs ---------- */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab {
+  padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text-dim);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none;
+  font-family: inherit;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+.tab .emo { margin-right: 6px; }
+
+/* ---------- Layout ---------- */
+.view { display: none; }
+.view.active { display: block; }
+.row { display: flex; gap: 20px; }
+.col { flex: 1; min-width: 0; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.card + .card { margin-top: 16px; }
+.card h2 { font-size: 14px; font-weight: 600; letter-spacing: 0.01em; margin-bottom: 6px; color: var(--text); }
+.card h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 12px; }
+.card p { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; }
+.card p:last-child { margin-bottom: 0; }
+
+.caption { font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 4px; font-size: 10.5px;
+  font-weight: 500; letter-spacing: 0.04em; background: var(--bg-hover); color: var(--text-dim);
+  border: 1px solid var(--border-strong); margin-right: 6px; margin-bottom: 4px;
+}
+.badge.accent { background: rgba(59,130,246,0.12); color: var(--accent-light); border-color: rgba(59,130,246,0.3); }
+.badge.success { background: rgba(16,185,129,0.12); color: var(--success); border-color: rgba(16,185,129,0.3); }
+.badge.warn { background: rgba(245,158,11,0.12); color: var(--warning); border-color: rgba(245,158,11,0.3); }
+.badge.danger { background: rgba(239,68,68,0.12); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+.badge.purple { background: rgba(139,92,246,0.12); color: var(--purple); border-color: rgba(139,92,246,0.3); }
+.badge.cyan { background: rgba(6,182,212,0.12); color: var(--cyan); border-color: rgba(6,182,212,0.3); }
+.badge.gold { background: rgba(212,160,23,0.12); color: var(--gold); border-color: rgba(212,160,23,0.3); }
+
+/* ---------- Nav tab layout ---------- */
+.nav-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+.graph-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.graph-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.graph-header h2 { font-size: 14px; font-weight: 600; }
+.graph-header .hint { font-size: 11px; color: var(--text-muted); }
+#graph { width: 100%; height: 600px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ---------- Sidebar ---------- */
+.ctx-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px; margin-bottom: 14px;
+}
+.ctx-card h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-muted); margin-bottom: 10px; }
+.ctx-card h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+.ctx-card .group-chip {
+  display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 3px;
+  background: rgba(59,130,246,0.12); color: var(--accent-light); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.ctx-card p.detail { font-size: 12.5px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.55; }
+.ctx-card .section-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin: 10px 0 6px; }
+.ctx-card .link-list { font-size: 12px; color: var(--text-dim); }
+.ctx-card .link-list .item {
+  padding: 5px 8px; background: var(--bg-hover); border-radius: 4px; margin-bottom: 4px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.ctx-card .link-list .item .arrow { color: var(--accent-light); font-size: 10px; }
+.ctx-empty { font-size: 12.5px; color: var(--text-muted); font-style: italic; line-height: 1.6; }
+
+/* ---------- Dinâmicas tab ---------- */
+.dyn-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+#dyn-graph { width: 100%; height: 620px; display: block; }
+.var-list { max-height: 560px; overflow-y: auto; padding-right: 4px; }
+.var-item {
+  padding: 10px 12px; border-radius: 6px; margin-bottom: 6px;
+  background: var(--bg-card-alt); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+}
+.var-item:hover { border-color: var(--accent); background: var(--bg-hover); }
+.var-item .vname { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.var-item .vdesc { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+
+/* ---------- Processos tab ---------- */
+.proc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.proc-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px; transition: all 0.15s;
+}
+.proc-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.proc-card .pnum { font-size: 10px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.proc-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text); letter-spacing: -0.01em; text-transform: none; }
+.proc-card .owner { font-size: 11.5px; color: var(--accent-light); margin-bottom: 12px; font-weight: 500; }
+.proc-card .desc { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
+.proc-card .section-mini { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin: 10px 0 6px; }
+
+/* ---------- Pessoas tab ---------- */
+.org-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+.org-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px;
+}
+.org-card h3 {
+  font-size: 14px; font-weight: 600; margin-bottom: 4px;
+  color: var(--text); text-transform: none; letter-spacing: -0.01em;
+}
+.org-card .lead { font-size: 11.5px; color: var(--accent-light); margin-bottom: 14px; }
+.org-card .lead .lead-label { color: var(--text-muted); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-right: 6px; }
+.role-row {
+  padding: 8px 10px; background: var(--bg-card-alt); border-radius: 5px;
+  margin-bottom: 5px; border-left: 2px solid transparent;
+}
+.role-row.strat { border-left-color: var(--accent); }
+.role-row .rname { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.role-row .rperson { font-size: 11.5px; color: var(--text-dim); }
+.role-row .rperson .sep { color: var(--text-muted); margin: 0 5px; }
+
+/* ---------- Cadeia de Valor tab ---------- */
+.vc-chain {
+  display: flex; gap: 8px; flex-wrap: wrap; padding: 20px;
+  background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 20px;
+}
+.vc-node {
+  padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-strong);
+  border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text);
+  position: relative; min-width: 140px; text-align: center;
+}
+.vc-arrow { color: var(--accent); font-size: 18px; align-self: center; }
+
+/* ---------- Links, generic ---------- */
+svg { font-family: inherit; }
+a { color: var(--accent-light); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- Scroll ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ====== TOP BAR ====== -->
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">TAESA · Corporate Finance</span>
+    <h1>Navegador</h1>
+    <span class="sub">Finanças Corporativas · Relações com Investidores · Debt</span>
+  </div>
+  <div class="meta">
+    <div>Versão de trabalho · 23 abr 2026</div>
+    <div>Fonte: mapa sistêmico TAESA Debt &amp; RI</div>
+  </div>
+</div>
+
+<!-- ====== TABS ====== -->
+<div class="tabs">
+  <button class="tab active" data-view="navigator"><span class="emo">🧭</span>Navegador</button>
+  <button class="tab" data-view="dinamicas"><span class="emo">🔁</span>Dinâmicas Internas</button>
+  <button class="tab" data-view="valor"><span class="emo">📈</span>Cadeia de Valor</button>
+  <button class="tab" data-view="processos"><span class="emo">⚙️</span>Processos &amp; Organização</button>
+  <button class="tab" data-view="pessoas"><span class="emo">👥</span>Papéis &amp; Pessoas</button>
+</div>
+
+<!-- ====== VIEW 1: NAVIGATOR ====== -->
+<div class="view active" id="view-navigator">
+
+  <div class="card" style="margin-bottom: 20px;">
+    <h3>Como ler este mapa</h3>
+    <p>O núcleo do negócio TAESA é representado aqui como 19 sistemas interconectados — desde a entrega do ativo até a percepção de risco por investidores e credores. Cada nó é um sistema; cada seta é uma relação de fluxo (um sistema alimenta o outro). Clique em qualquer nó para ver o que o influencia, o que ele influencia, e os indicadores (KPIs) que o medem.</p>
+  </div>
+
+  <div class="nav-grid">
+    <div class="graph-wrap">
+      <div class="graph-header">
+        <h2>Mapa de Sistemas · 19 nós · 23 fluxos</h2>
+        <span class="hint">Arraste para reposicionar · Clique para detalhar</span>
+      </div>
+      <svg id="graph"></svg>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: var(--accent)"></span>Entrega &amp; Operação</div>
+        <div class="legend-item"><span class="dot" style="background: var(--purple)"></span>Estrutura de Capital</div>
+        <div class="legend-item"><span class="dot" style="background: var(--gold)"></span>Narrativa &amp; Confiança</div>
+        <div class="legend-item"><span class="dot" style="background: var(--cyan)"></span>Expansão</div>
+        <div class="legend-item"><span class="dot" style="background: var(--success)"></span>Saúde Regulatória</div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="ctx-card" id="ctx">
+        <div class="ctx-empty">
+          Clique em um nó do grafo para ver detalhes, conexões e os KPIs que o medem.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== VIEW 2: DINÂMICAS INTERNAS ====== -->
+<div class="view" id="view-dinamicas">
+
+  <div class="card" style="margin-bottom: 20px;">
+    <h3>O que são "dinâmicas internas"</h3>
+    <p>Enquanto o Mapa de Sistemas mostra a lógica do <em>negócio</em> (cadeia de valor externa), esta vista mostra a lógica da <em>equipe</em>: doze variáveis comportamentais que explicam por que a área de Finanças se mantém em modo operacional ou consegue se mover para um modo estratégico. As setas indicam loops causais — <span class="badge success" style="margin: 0 2px;">R</span> reforça o efeito (círculo virtuoso ou vicioso), <span class="badge warn" style="margin: 0 2px;">B</span> equilibra (estabiliza ou reduz). A intervenção proposta (Consultoria Eduardo / noise.os) aparece como um nó distinto — ela insere um ponto de inflexão no sistema.</p>
+  </div>
+
+  <div class="dyn-layout">
+    <div class="graph-wrap">
+      <div class="graph-header">
+        <h2>Loops Comportamentais · 13 nós · 15 loops</h2>
+        <span class="hint">R = Reforço · B = Balanço · Clique para detalhar</span>
+      </div>
+      <svg id="dyn-graph"></svg>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: var(--success)"></span>Loop de Reforço (R)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--warning)"></span>Loop de Balanço (B)</div>
+        <div class="legend-item"><span class="dot" style="background: var(--accent)"></span>Variável comportamental</div>
+        <div class="legend-item"><span class="dot" style="background: var(--pink)"></span>Intervenção</div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="ctx-card">
+        <h3>Variáveis comportamentais</h3>
+        <div class="var-list" id="var-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== VIEW 3: CADEIA DE VALOR ====== -->
+<div class="view" id="view-valor">
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h3>A cadeia que converte operação em custo de capital</h3>
+    <p>Do ponto de vista de um investidor ou credor, o negócio TAESA é um pipeline: o ativo é entregue, opera com disponibilidade, garante a RAP regulatória, forma percepção de risco, precifica o custo de capital, e abre (ou não) a próxima rodada de expansão. Esta vista mostra a cadeia de valor em linguagem de sistema + os KPIs que encadeiam uma etapa à seguinte.</p>
+  </div>
+
+  <div class="card">
+    <h3>Encadeamento operacional → financeiro</h3>
+    <div class="vc-chain">
+      <div class="vc-node" style="border-color: var(--accent);">CAPEX</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--accent);">Entrega do Ativo</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--accent);">Disponibilidade</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--success);">RAP</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--gold);">Percepção de Risco</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--purple);">Custo de Capital</div>
+      <div class="vc-arrow">→</div>
+      <div class="vc-node" style="border-color: var(--cyan);">Capacidade de Expansão</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>KPIs que encadeiam a cadeia</h3>
+    <p>Cada indicador abaixo é a "moeda" entre duas etapas da cadeia — o que acontece em uma etapa só chega na próxima passando por este KPI. Se o KPI falha ou é pouco visível, o fluxo de valor quebra.</p>
+    <div class="proc-grid" id="vc-kpi-list"></div>
+  </div>
+
+  <div class="card">
+    <h3>KPIs primários · o que a equipe efetivamente mede</h3>
+    <div id="kpi-primary-list" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;"></div>
+  </div>
+
+  <div class="card">
+    <h3>KPIs de suporte · o lastro que torna os primários confiáveis</h3>
+    <div id="kpi-support-list" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;"></div>
+  </div>
+</div>
+
+<!-- ====== VIEW 4: PROCESSOS ====== -->
+<div class="view" id="view-processos">
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h3>Processos macro e onde eles vivem</h3>
+    <p>Sete processos macro sustentam a operação financeira de TAESA. Cada um tem uma área proprietária no organograma. Esta vista mostra a correspondência processo ↔ área, o que o processo produz, e os perfis envolvidos — a base para reconhecer onde o trabalho transacional pode sair para o CSC e onde a competência estratégica precisa crescer.</p>
+  </div>
+
+  <div class="proc-grid" id="proc-list"></div>
+</div>
+
+<!-- ====== VIEW 5: PESSOAS ====== -->
+<div class="view" id="view-pessoas">
+
+  <div class="card" style="margin-bottom: 16px;">
+    <h3>Desenho atual · 10 áreas, 14 papéis, 21 pessoas mapeadas</h3>
+    <p>Cada card abaixo é uma área do organograma. Dentro dela, os papéis já ocupados por pessoas específicas no modelo atual. Papéis em azul são os que concentram responsabilidade estratégica — os que, na migração do transacional para o CSC, precisam ser reforçados ou redesenhados, não esvaziados.</p>
+  </div>
+
+  <div class="org-grid" id="org-list"></div>
+</div>
+
+</div><!-- /.shell -->
+
+<script>
+// ====================================================================
+// DATA · extraído do Kumu TAESA Debt & RI em 2026-04-23
+// ====================================================================
+
+const SYSTEMS = [
+  // Entrega & Operação (accent = azul)
+  { id: "CAPEX Investment", group: "delivery", note: "Montante e ritmo de investimento em CAPEX." },
+  { id: "Asset Delivery Capability", group: "delivery", note: "Capacidade de entregar o ativo de transmissão." },
+  { id: "Project Execution Reliability", group: "delivery", note: "Confiabilidade da execução de projetos." },
+  { id: "Asset Availability & Performance", group: "delivery", note: "Disponibilidade e performance do ativo em operação." },
+  // Saúde Regulatória
+  { id: "RAP Predictability", group: "regulatory", note: "Previsibilidade da Receita Anual Permitida." },
+  { id: "Project Bankability", group: "regulatory", note: "Grau em que o projeto é financiável com risco aceitável." },
+  // Narrativa & Confiança (gold)
+  { id: "Investor Communication Quality", group: "narrative", note: "Qualidade e consistência da comunicação com investidores." },
+  { id: "Market Transparency", group: "narrative", note: "Transparência do mercado quanto aos dados da empresa." },
+  { id: "Institutional Trust", group: "narrative", note: "Confiança das instituições no emissor." },
+  { id: "Institutional Confidence", group: "narrative", note: "Confiança institucional sustentada ao longo do tempo." },
+  { id: "Creditor Confidence", group: "narrative", note: "Confiança específica de credores." },
+  { id: "Perceived Risk", group: "narrative", note: "Risco percebido pelo mercado sobre o emissor." },
+  { id: "Valuation & Credit Rating", group: "narrative", note: "Valuation e rating resultantes da percepção integrada." },
+  // Estrutura de Capital (purple)
+  { id: "Capital Market Access", group: "capital", note: "Acesso a mercado de capitais (equity, dívida pública, privada)." },
+  { id: "Cost of Capital", group: "capital", note: "Custo ponderado de capital." },
+  { id: "Debt Structuring Strength", group: "capital", note: "Solidez das estruturas de dívida montadas." },
+  { id: "Financing Efficiency", group: "capital", note: "Eficiência (prazo, spread, cláusulas) do financiamento." },
+  { id: "Financing Friction", group: "capital", note: "Fricção no processo de funding (tempo, complexidade)." },
+  // Expansão (cyan)
+  { id: "Expansion Capacity (New Auctions Won)", group: "growth", note: "Capacidade de expansão via novos leilões ganhos." },
+];
+
+const FLOWS = [
+  ["Market Transparency", "Institutional Trust"],
+  ["RAP Predictability", "Perceived Risk"],
+  ["Project Execution Reliability", "Investor Communication Quality"],
+  ["Asset Delivery Capability", "Project Execution Reliability"],
+  ["RAP Predictability", "Project Bankability"],
+  ["Capital Market Access", "Cost of Capital"],
+  ["Valuation & Credit Rating", "Capital Market Access"],
+  ["Investor Communication Quality", "Market Transparency"],
+  ["Asset Availability & Performance", "RAP Predictability"],
+  ["Project Bankability", "Debt Structuring Strength"],
+  ["Financing Efficiency", "Cost of Capital"],
+  ["Project Execution Reliability", "Asset Availability & Performance"],
+  ["Cost of Capital", "Expansion Capacity (New Auctions Won)"],
+  ["Creditor Confidence", "Financing Friction"],
+  ["Creditor Confidence", "Institutional Confidence"],
+  ["Institutional Confidence", "Perceived Risk"],
+  ["Institutional Trust", "Valuation & Credit Rating"],
+  ["Expansion Capacity (New Auctions Won)", "CAPEX Investment"],
+  ["Debt Structuring Strength", "Creditor Confidence"],
+  ["CAPEX Investment", "Asset Delivery Capability"],
+  ["Financing Friction", "Financing Efficiency"],
+  ["Perceived Risk", "Financing Efficiency"],
+  ["Institutional Trust", "Institutional Confidence"],
+];
+
+const GROUP_COLOR = {
+  delivery: "#3b82f6",     // accent
+  capital: "#8b5cf6",      // purple
+  narrative: "#d4a017",    // gold
+  growth: "#06b6d4",       // cyan
+  regulatory: "#10b981",   // success
+};
+
+const GROUP_LABEL = {
+  delivery: "Entrega & Operação",
+  capital: "Estrutura de Capital",
+  narrative: "Narrativa & Confiança",
+  growth: "Expansão",
+  regulatory: "Saúde Regulatória",
+};
+
+// KPIs relacionados a cada sistema (mapeamento aproximado para enriquecer a sidebar)
+const SYSTEM_KPI_HINTS = {
+  "CAPEX Investment":              ["CAPEX deployed vs plan (%)", "Pipeline committed CAPEX (R$)", "CAPEX per km / substation bay"],
+  "Asset Delivery Capability":     ["Schedule Performance Index (SPI)", "Project delivery maturity score"],
+  "Project Execution Reliability": ["Schedule Performance Index (SPI)", "Procurement readiness index", "% EPC contracts signed pre-close"],
+  "Asset Availability & Performance": ["Availability rate (%)", "Forced outage hours", "ONS compliance score"],
+  "RAP Predictability":            ["RAP realization variance", "RAP added per year (R$)", "Revenue volatility index"],
+  "Project Bankability":           ["Financial close success rate (%)", "DSCR robustness under stress", "% non-recourse financing"],
+  "Investor Communication Quality": ["Guidance accuracy (%)", "Disclosure timeliness score", "Investor day cadence", "Q&A repetition rate"],
+  "Market Transparency":           ["Analyst forecast dispersion", "Q&A repetition rate", "Disclosure timeliness score"],
+  "Institutional Trust":           ["Investor confidence survey score", "Composite Confidence Index"],
+  "Institutional Confidence":      ["Composite Confidence Index", "Equity valuation premium"],
+  "Creditor Confidence":           ["Covenant flexibility score", "Covenant waiver frequency", "Covenant headroom (%)"],
+  "Perceived Risk":                ["Market implied risk proxy", "Equity risk premium assumption"],
+  "Valuation & Credit Rating":     ["Credit rating level/outlook", "Rating outlook stability"],
+  "Capital Market Access":         ["Number of active lenders/investors", "Repeat lender participation rate", "Funding access lead time (days)"],
+  "Cost of Capital":               ["WACC (corporate + project)", "Weighted Average Cost of Debt (WACD)", "Credit spread over benchmark (bps)"],
+  "Debt Structuring Strength":     ["% non-recourse financing", "Due diligence exceptions count", "Hedging coverage ratio"],
+  "Financing Efficiency":          ["Time-to-funding (weeks)", "Credit spread over benchmark (bps)", "Spread trend stability"],
+  "Financing Friction":            ["Documentation cycle time", "Due diligence exceptions count"],
+  "Expansion Capacity (New Auctions Won)": ["Auction win rate (%)", "Bid competitiveness vs ceiling"],
+};
+
+// ====================================================================
+// DINÂMICAS (CLD do time)
+// ====================================================================
+const VARIABLES = [
+  { label: "Operational Load", pt: "Carga Operacional", desc: "Tarefas transacionais como contas a pagar/receber." },
+  { label: "Focus on Strategy", pt: "Foco em Estratégia", desc: "Tempo dedicado a gestão de caixa, funding e planejamento de 5 anos." },
+  { label: "Team Dynamism", pt: "Dinamismo da Equipe", desc: "Velocidade, proatividade e ritmo de mercado da área financeira." },
+  { label: "Decision Speed", pt: "Velocidade de Decisão", desc: "Tempo de fechamento de relatórios (12 dias vs. diário)." },
+  { label: "Anticipatory Proactivity", pt: "Proatividade Antecipatória", desc: "Capacidade da equipe de agir antes de ser solicitada pelo CFO." },
+  { label: "Perceived Risk (CFO)", pt: "Risco Percebido (CFO)", desc: "Pressão da Catia quanto a eficiência e velocidade de funding." },
+  { label: "Systemic Transparency", pt: "Transparência Sistêmica", desc: "Visibilidade sobre pedidos, tickets e status das tarefas financeiras." },
+  { label: "CSC Maturity", pt: "Maturidade CSC", desc: "Confiabilidade do Centro de Serviços Compartilhados em absorver o transacional." },
+  { label: "Relational Safety", pt: "Segurança Relacional", desc: "Níveis de confiança entre gestão e equipe legada." },
+  { label: "Legacy Mindset", pt: "Mentalidade Legada", desc: "Abordagem míope ou lenta da equipe de longa data." },
+  { label: "Financial Agility", pt: "Agilidade Financeira", desc: "Capacidade de explorar janelas de mercado para spread de dívida/funding." },
+  { label: "Regulatory Lag", pt: "Defasagem Regulatória", desc: "Natureza fixa da RAP (Receita Anual Permitida) em transmissão." },
+];
+
+const INTERVENTION = {
+  label: "Partner Consultation (Eduardo)",
+  pt: "Consultoria noise.os",
+  desc: "Projeto de transformação estratégica de 3 meses."
+};
+
+const LOOPS = [
+  { from: "Relational Safety", to: "Legacy Mindset", type: "Balancing" },
+  { from: "Focus on Strategy", to: "Team Dynamism", type: "Reinforcing" },
+  { from: "Partner Consultation (Eduardo)", to: "Systemic Transparency", type: "Reinforcing" },
+  { from: "Team Dynamism", to: "Anticipatory Proactivity", type: "Reinforcing" },
+  { from: "Systemic Transparency", to: "Focus on Strategy", type: "Reinforcing" },
+  { from: "Operational Load", to: "Focus on Strategy", type: "Balancing" },
+  { from: "Team Dynamism", to: "Decision Speed", type: "Reinforcing" },
+  { from: "Decision Speed", to: "Perceived Risk (CFO)", type: "Balancing" },
+  { from: "CSC Maturity", to: "Operational Load", type: "Balancing" },
+  { from: "Anticipatory Proactivity", to: "Perceived Risk (CFO)", type: "Balancing" },
+  { from: "Financial Agility", to: "Regulatory Lag", type: "Balancing" },
+  { from: "Focus on Strategy", to: "Financial Agility", type: "Reinforcing" },
+  { from: "Legacy Mindset", to: "Team Dynamism", type: "Reinforcing" },
+  { from: "Perceived Risk (CFO)", to: "Partner Consultation (Eduardo)", type: "Reinforcing" },
+  { from: "Systemic Transparency", to: "Relational Safety", type: "Reinforcing" },
+];
+
+// ====================================================================
+// CADEIA DE VALOR (KPI → KPI)
+// ====================================================================
+const VC_EDGES = [
+  ["Composite Confidence Index", "Credit spread over benchmark (bps)", "Confiança institucional consolidada → spread efetivo da dívida"],
+  ["Time-to-funding (weeks)", "Weighted Average Cost of Debt (WACD)", "Velocidade de funding → custo médio ponderado da dívida"],
+  ["Guidance accuracy (%)", "Analyst forecast dispersion", "Precisão do guidance → dispersão entre analistas"],
+  ["Credit spread over benchmark (bps)", "Weighted Average Cost of Debt (WACD)", "Spread → custo médio ponderado da dívida"],
+  ["RAP realization variance", "Credit spread over benchmark (bps)", "Variação da RAP → spread exigido pelo mercado"],
+  ["Repeat lender participation rate", "Time-to-funding (weeks)", "Credores recorrentes → menor tempo para levantar funding"],
+  ["CAPEX deployed vs plan (%)", "Schedule Performance Index (SPI)", "Execução de CAPEX → índice de desempenho do cronograma"],
+  ["Financial close success rate (%)", "Repeat lender participation rate", "Closings bem-sucedidos → credores voltam"],
+  ["Investor confidence survey score", "Credit rating level/outlook", "Confiança de investidores → nível/perspectiva do rating"],
+  ["Analyst forecast dispersion", "Investor confidence survey score", "Dispersão de analistas → score de confiança em pesquisas"],
+  ["Weighted Average Cost of Debt (WACD)", "WACC (corporate + project)", "Custo da dívida → WACC consolidado"],
+  ["WACC (corporate + project)", "Auction win rate (%)", "WACC → taxa de vitória em leilões"],
+  ["Credit rating level/outlook", "Funding access lead time (days)", "Rating → dias necessários para acessar funding"],
+  ["Availability rate (%)", "RAP realization variance", "Disponibilidade do ativo → variação da RAP realizada"],
+  ["Funding access lead time (days)", "Credit spread over benchmark (bps)", "Tempo de acesso a funding → spread efetivo"],
+  ["Schedule Performance Index (SPI)", "Availability rate (%)", "Cronograma da obra → disponibilidade do ativo pronto"],
+];
+
+const KPI_PRIMARY = [
+  "Auction win rate (%)", "Time-to-funding (weeks)", "Credit spread over benchmark (bps)",
+  "CAPEX deployed vs plan (%)", "Covenant flexibility score", "Analyst forecast dispersion",
+  "Funding access lead time (days)", "RAP realization variance", "Investor confidence survey score",
+  "WACC (corporate + project)", "Availability rate (%)", "Project delivery maturity score",
+  "Guidance accuracy (%)", "Weighted Average Cost of Debt (WACD)", "Composite Confidence Index",
+  "Repeat lender participation rate", "Schedule Performance Index (SPI)",
+  "Financial close success rate (%)", "Credit rating level/outlook",
+];
+
+const KPI_SUPPORT = [
+  "% non-recourse financing", "Rating outlook stability", "Covenant waiver frequency",
+  "Due diligence exceptions count", "Disclosure timeliness score", "Procurement readiness index",
+  "DSCR robustness under stress", "Investor day cadence", "RAP added per year (R$)",
+  "Equity valuation premium", "% EPC contracts signed pre-close", "Number of active lenders/investors",
+  "ONS compliance score", "Bid competitiveness vs ceiling", "Forced outage hours",
+  "Covenant headroom (%)", "Market implied risk proxy", "Interest coverage ratio trend",
+  "Spread trend stability", "Q&A repetition rate", "Equity risk premium assumption",
+  "CAPEX per km / substation bay", "Pipeline committed CAPEX (R$)",
+  "Documentation cycle time", "Hedging coverage ratio", "Revenue volatility index",
+];
+
+// ====================================================================
+// PROCESSOS MACRO
+// ====================================================================
+const PROCESSES = [
+  {
+    name: "Capital Planning & Budgeting",
+    ptName: "Planejamento de Capital & Orçamento",
+    owner: "Finance & Treasury",
+    ownerPt: "Finanças & Tesouraria",
+    desc: "Consolida o plano plurianual de CAPEX, define alocação entre projetos, e mantém a disciplina orçamentária que ancora a narrativa de disciplina de capital para investidores.",
+    kpis: ["CAPEX deployed vs plan (%)", "Pipeline committed CAPEX (R$)", "CAPEX per km / substation bay"],
+    roles: ["Unit Leader"]
+  },
+  {
+    name: "Treasury & Debt Structuring",
+    ptName: "Tesouraria & Estruturação de Dívida",
+    owner: "Debt & Project Finance",
+    ownerPt: "Dívida & Project Finance",
+    desc: "Estrutura as operações de dívida (corporativa e project finance), gerencia caixa e hedge, e protege a robustez de covenants. Centro nevrálgico do custo de capital.",
+    kpis: ["% non-recourse financing", "Time-to-funding (weeks)", "Weighted Average Cost of Debt (WACD)", "Hedging coverage ratio"],
+    roles: ["Head of Debt & Project Finance", "Debt Capital Markets Specialist", "Project Finance Manager", "Treasury Analyst", "Structuring Associate", "Covenants & Reporting Analyst"]
+  },
+  {
+    name: "Investor Relations & Disclosure",
+    ptName: "Relações com Investidores & Disclosure",
+    owner: "Investor Relations",
+    ownerPt: "Relações com Investidores",
+    desc: "Produz e entrega a narrativa institucional ao mercado. Integra guidance, disclosure regulatório, relacionamento com agências e analistas, e orquestra o Investor Day.",
+    kpis: ["Guidance accuracy (%)", "Disclosure timeliness score", "Analyst forecast dispersion", "Investor day cadence"],
+    roles: ["Head of Investor Relations", "IR Manager", "Investor Communications Analyst", "Sell-side / Analyst Relations Lead", "ESG & Disclosure Specialist", "Ratings & Agencies Liaison"]
+  },
+  {
+    name: "Regulatory Revenue Assurance",
+    ptName: "Asseguramento da Receita Regulada",
+    owner: "Regulatory Affairs",
+    ownerPt: "Relações Regulatórias",
+    desc: "Garante que a RAP seja efetivamente reconhecida, apurada e recebida. Interface ANEEL/ONS. Ponto de conexão entre o ativo físico e a receita regulada que sustenta todo o modelo.",
+    kpis: ["RAP realization variance", "RAP added per year (R$)", "ONS compliance score"],
+    roles: ["Unit Leader"]
+  },
+  {
+    name: "Risk Management & Governance",
+    ptName: "Gestão de Risco & Governança",
+    owner: "Enterprise Risk Management",
+    ownerPt: "Gestão de Riscos",
+    desc: "Mapeia, precifica e mitiga riscos corporativos (financeiros, regulatórios, operacionais). Conecta exposição real ao risco percebido pelo mercado.",
+    kpis: ["DSCR robustness under stress", "Market implied risk proxy", "Interest coverage ratio trend"],
+    roles: ["Credit Risk Manager", "Unit Leader"]
+  },
+  {
+    name: "Operations & Asset Management",
+    ptName: "Operação & Gestão de Ativos",
+    owner: "Operations & Maintenance",
+    ownerPt: "Operação & Manutenção",
+    desc: "Mantém a disponibilidade do ativo construído. Cada hora de outage e cada desvio ONS vira, algumas etapas depois, spread sobre o benchmark de dívida.",
+    kpis: ["Availability rate (%)", "Forced outage hours", "ONS compliance score"],
+    roles: ["Unit Leader"]
+  },
+  {
+    name: "Project Delivery & Construction",
+    ptName: "Entrega de Projetos & Construção",
+    owner: "Project Delivery Office",
+    ownerPt: "Escritório de Entrega de Projetos",
+    desc: "Traduz CAPEX em ativo comissionado no prazo. É onde a cadeia de valor começa — atrasos aqui se propagam por toda a cadeia até o custo de capital da próxima expansão.",
+    kpis: ["Schedule Performance Index (SPI)", "Project delivery maturity score", "% EPC contracts signed pre-close", "Procurement readiness index"],
+    roles: ["Unit Leader"]
+  },
+];
+
+// ====================================================================
+// PESSOAS × ÁREAS
+// ====================================================================
+const ORG_UNITS = [
+  { name: "CFO Organization", pt: "Organização do CFO", role: "holding", lead: "Nuno Martins" },
+  { name: "Finance & Treasury", pt: "Finanças & Tesouraria", role: "core", lead: "Tiago Mendes" },
+  { name: "Debt & Project Finance", pt: "Dívida & Project Finance", role: "core", lead: "Bruno Cardoso" },
+  { name: "Investor Relations", pt: "Relações com Investidores", role: "core", lead: "Beatriz Monteiro" },
+  { name: "Regulatory Affairs", pt: "Relações Regulatórias", role: "core", lead: "Lucas Azevedo" },
+  { name: "Enterprise Risk Management", pt: "Gestão de Riscos", role: "core", lead: "Helena Freitas" },
+  { name: "COO Organization", pt: "Organização do COO", role: "holding", lead: "João Pereira" },
+  { name: "Operations & Maintenance", pt: "Operação & Manutenção", role: "adjacent", lead: "Rafael Sousa" },
+  { name: "Project Delivery Office", pt: "Escritório de Entrega de Projetos", role: "adjacent", lead: "João Lopes" },
+  { name: "Engineering & Projects", pt: "Engenharia & Projetos", role: "adjacent", lead: "Eduarda Barbosa" },
+];
+
+const PEOPLE = [
+  { name: "Nuno Martins", role: "Unit Leader", org: "CFO Organization" },
+  { name: "Rafael Sousa", role: "Unit Leader", org: "Operations & Maintenance" },
+  { name: "João Pereira", role: "Unit Leader", org: "COO Organization" },
+  { name: "Lucas Azevedo", role: "Unit Leader", org: "Regulatory Affairs" },
+  { name: "Eduarda Barbosa", role: "Unit Leader", org: "Engineering & Projects" },
+  { name: "Helena Freitas", role: "Unit Leader", org: "Enterprise Risk Management" },
+  { name: "João Lopes", role: "Unit Leader", org: "Project Delivery Office" },
+  { name: "Tiago Mendes", role: "Unit Leader", org: "Finance & Treasury" },
+  { name: "Beatriz Monteiro", role: "Head of Investor Relations", org: "Investor Relations" },
+  { name: "Bruno Cardoso", role: "Head of Debt & Project Finance", org: "Debt & Project Finance" },
+  { name: "Filipe Martins", role: "Ratings & Agencies Liaison", org: "Investor Relations" },
+  { name: "Caio Lopes", role: "Investor Communications Analyst", org: "Investor Relations" },
+  { name: "Lucas Martins", role: "Sell-side / Analyst Relations Lead", org: "Investor Relations" },
+  { name: "Caio Rodrigues", role: "IR Analyst", org: "Investor Relations" },
+  { name: "Tiago Costa", role: "ESG & Disclosure Specialist", org: "Investor Relations" },
+  { name: "Paula Ribeiro", role: "Structuring Associate", org: "Debt & Project Finance" },
+  { name: "Miguel Freitas", role: "Debt Capital Markets Specialist", org: "Debt & Project Finance" },
+  { name: "Hugo Nogueira", role: "Project Finance Manager", org: "Debt & Project Finance" },
+  { name: "Caio Azevedo", role: "Covenants & Reporting Analyst", org: "Debt & Project Finance" },
+  { name: "Beatriz Rodrigues", role: "Treasury Analyst", org: "Debt & Project Finance" },
+  { name: "Inês Campos", role: "Credit Risk Manager", org: "Enterprise Risk Management" },
+];
+
+// Papéis classificados como "estratégicos" (fronteira da transformação)
+const STRATEGIC_ROLES = new Set([
+  "Head of Investor Relations", "Head of Debt & Project Finance",
+  "Debt Capital Markets Specialist", "Project Finance Manager",
+  "Sell-side / Analyst Relations Lead", "Ratings & Agencies Liaison",
+  "ESG & Disclosure Specialist", "Credit Risk Manager", "Structuring Associate",
+]);
+
+// ====================================================================
+// TABS
+// ====================================================================
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("view-" + t.dataset.view).classList.add("active");
+    if (t.dataset.view === "dinamicas" && !dynInitialized) initDyn();
+  });
+});
+
+// ====================================================================
+// GRAPH 1 · SYSTEMS
+// ====================================================================
+(function initSystemGraph(){
+  const svg = d3.select("#graph");
+  const W = svg.node().clientWidth;
+  const H = 600;
+  svg.attr("viewBox", `0 0 ${W} ${H}`);
+
+  // defs: arrow marker
+  const defs = svg.append("defs");
+  defs.append("marker")
+    .attr("id", "arrow-sys")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 20)
+    .attr("refY", 0)
+    .attr("markerWidth", 7)
+    .attr("markerHeight", 7)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#475569");
+
+  const nodes = SYSTEMS.map(d => Object.assign({}, d));
+  const links = FLOWS.map(([s,t]) => ({source: s, target: t}));
+
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(110).strength(0.6))
+    .force("charge", d3.forceManyBody().strength(-360))
+    .force("center", d3.forceCenter(W/2, H/2))
+    .force("collide", d3.forceCollide().radius(46));
+
+  const link = svg.append("g")
+    .attr("stroke", "#475569")
+    .attr("stroke-opacity", 0.55)
+    .selectAll("line")
+    .data(links)
+    .join("line")
+    .attr("stroke-width", 1.3)
+    .attr("marker-end", "url(#arrow-sys)");
+
+  const node = svg.append("g")
+    .selectAll("g")
+    .data(nodes)
+    .join("g")
+    .style("cursor", "pointer")
+    .call(drag(sim))
+    .on("click", (e,d) => showSystemDetail(d));
+
+  node.append("circle")
+    .attr("r", 11)
+    .attr("fill", d => GROUP_COLOR[d.group])
+    .attr("stroke", "#0a0e1a")
+    .attr("stroke-width", 2);
+
+  node.append("text")
+    .text(d => ptLabel(d.id))
+    .attr("x", 14)
+    .attr("y", 4)
+    .attr("fill", "#e2e8f0")
+    .attr("font-size", "11px")
+    .attr("font-weight", 500)
+    .attr("paint-order", "stroke")
+    .attr("stroke", "#0a0e1a")
+    .attr("stroke-width", 3);
+
+  sim.on("tick", () => {
+    link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+
+  function drag(simulation) {
+    return d3.drag()
+      .on("start", (event,d) => { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (event,d) => { d.fx = event.x; d.fy = event.y; })
+      .on("end", (event,d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
+  }
+
+  window._sysLinks = links;
+  window._sysNodes = nodes;
+})();
+
+// PT labels (mapeamento curto → PT para exibição no grafo)
+function ptLabel(id) {
+  const map = {
+    "CAPEX Investment": "CAPEX",
+    "Asset Delivery Capability": "Entrega do Ativo",
+    "Project Execution Reliability": "Confiabilidade de Execução",
+    "Asset Availability & Performance": "Disponibilidade",
+    "RAP Predictability": "Previsibilidade RAP",
+    "Project Bankability": "Bancabilidade do Projeto",
+    "Investor Communication Quality": "Qualidade de Comunicação",
+    "Market Transparency": "Transparência de Mercado",
+    "Institutional Trust": "Confiança Institucional",
+    "Institutional Confidence": "Confiança Sustentada",
+    "Creditor Confidence": "Confiança de Credores",
+    "Perceived Risk": "Risco Percebido",
+    "Valuation & Credit Rating": "Valuation & Rating",
+    "Capital Market Access": "Acesso a Mercado de Capitais",
+    "Cost of Capital": "Custo de Capital",
+    "Debt Structuring Strength": "Estruturação de Dívida",
+    "Financing Efficiency": "Eficiência de Funding",
+    "Financing Friction": "Fricção de Funding",
+    "Expansion Capacity (New Auctions Won)": "Expansão (Leilões)",
+  };
+  return map[id] || id;
+}
+
+function showSystemDetail(d) {
+  const inbound = FLOWS.filter(([s,t]) => t === d.id).map(([s,_]) => s);
+  const outbound = FLOWS.filter(([s,t]) => s === d.id).map(([_,t]) => t);
+  const kpis = SYSTEM_KPI_HINTS[d.id] || [];
+
+  const ctx = document.getElementById("ctx");
+  ctx.innerHTML = `
+    <span class="group-chip" style="background: ${GROUP_COLOR[d.group]}22; color: ${GROUP_COLOR[d.group]}; border: 1px solid ${GROUP_COLOR[d.group]}55;">
+      ${GROUP_LABEL[d.group]}
+    </span>
+    <h2>${ptLabel(d.id)}</h2>
+    <p class="detail">${d.note}</p>
+
+    ${inbound.length ? `
+      <div class="section-label">O que alimenta este sistema</div>
+      <div class="link-list">
+        ${inbound.map(x => `<div class="item"><span>${ptLabel(x)}</span><span class="arrow">→</span></div>`).join("")}
+      </div>
+    ` : ""}
+
+    ${outbound.length ? `
+      <div class="section-label">O que este sistema alimenta</div>
+      <div class="link-list">
+        ${outbound.map(x => `<div class="item"><span class="arrow">→</span><span>${ptLabel(x)}</span></div>`).join("")}
+      </div>
+    ` : ""}
+
+    ${kpis.length ? `
+      <div class="section-label">Como é medido (KPIs)</div>
+      <div>
+        ${kpis.map(k => `<span class="badge accent">${k}</span>`).join("")}
+      </div>
+    ` : ""}
+  `;
+}
+
+// ====================================================================
+// GRAPH 2 · DINÂMICAS INTERNAS (CLD)
+// ====================================================================
+let dynInitialized = false;
+function initDyn() {
+  dynInitialized = true;
+  const svg = d3.select("#dyn-graph");
+  const W = svg.node().clientWidth || 800;
+  const H = 620;
+  svg.attr("viewBox", `0 0 ${W} ${H}`);
+
+  const defs = svg.append("defs");
+  defs.append("marker").attr("id", "arrow-r").attr("viewBox","0 -5 10 10")
+    .attr("refX",20).attr("refY",0).attr("markerWidth",8).attr("markerHeight",8)
+    .attr("orient","auto").append("path").attr("d","M0,-5L10,0L0,5").attr("fill","#10b981");
+  defs.append("marker").attr("id", "arrow-b").attr("viewBox","0 -5 10 10")
+    .attr("refX",20).attr("refY",0).attr("markerWidth",8).attr("markerHeight",8)
+    .attr("orient","auto").append("path").attr("d","M0,-5L10,0L0,5").attr("fill","#f59e0b");
+
+  // nodes = variables + intervention
+  const dynNodes = VARIABLES.map(v => ({id: v.label, pt: v.pt, desc: v.desc, type: "variable"}));
+  dynNodes.push({id: INTERVENTION.label, pt: INTERVENTION.pt, desc: INTERVENTION.desc, type: "intervention"});
+
+  const dynLinks = LOOPS.map(l => ({source: l.from, target: l.to, type: l.type}));
+
+  const sim = d3.forceSimulation(dynNodes)
+    .force("link", d3.forceLink(dynLinks).id(d => d.id).distance(130).strength(0.5))
+    .force("charge", d3.forceManyBody().strength(-420))
+    .force("center", d3.forceCenter(W/2, H/2))
+    .force("collide", d3.forceCollide().radius(50));
+
+  const link = svg.append("g")
+    .selectAll("line")
+    .data(dynLinks)
+    .join("line")
+    .attr("stroke", d => d.type === "Reinforcing" ? "#10b981" : "#f59e0b")
+    .attr("stroke-opacity", 0.7)
+    .attr("stroke-width", 1.6)
+    .attr("marker-end", d => d.type === "Reinforcing" ? "url(#arrow-r)" : "url(#arrow-b)");
+
+  // label on edge (R or B)
+  const edgeLabel = svg.append("g")
+    .selectAll("text")
+    .data(dynLinks)
+    .join("text")
+    .attr("fill", d => d.type === "Reinforcing" ? "#10b981" : "#f59e0b")
+    .attr("font-size", "11px")
+    .attr("font-weight", 700)
+    .attr("paint-order", "stroke")
+    .attr("stroke", "#0a0e1a")
+    .attr("stroke-width", 3)
+    .text(d => d.type === "Reinforcing" ? "R" : "B");
+
+  const node = svg.append("g")
+    .selectAll("g")
+    .data(dynNodes)
+    .join("g")
+    .style("cursor", "pointer")
+    .call(dragDyn(sim));
+
+  node.append("circle")
+    .attr("r", d => d.type === "intervention" ? 13 : 10)
+    .attr("fill", d => d.type === "intervention" ? "#ec4899" : "#3b82f6")
+    .attr("stroke", "#0a0e1a")
+    .attr("stroke-width", 2);
+
+  node.append("text")
+    .text(d => d.pt)
+    .attr("x", 16)
+    .attr("y", 4)
+    .attr("fill", "#e2e8f0")
+    .attr("font-size", "11px")
+    .attr("font-weight", 500)
+    .attr("paint-order", "stroke")
+    .attr("stroke", "#0a0e1a")
+    .attr("stroke-width", 3);
+
+  sim.on("tick", () => {
+    link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+    edgeLabel.attr("x", d => (d.source.x + d.target.x) / 2)
+             .attr("y", d => (d.source.y + d.target.y) / 2);
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+
+  function dragDyn(simulation) {
+    return d3.drag()
+      .on("start", (e,d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (e,d) => { d.fx = e.x; d.fy = e.y; })
+      .on("end", (e,d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
+  }
+
+  // fill variable list
+  const vl = document.getElementById("var-list");
+  vl.innerHTML = VARIABLES.map(v => `
+    <div class="var-item">
+      <div class="vname">${v.pt}</div>
+      <div class="vdesc">${v.desc}</div>
+    </div>
+  `).join("") + `
+    <div class="var-item" style="border-color: var(--pink); background: rgba(236,72,153,0.08);">
+      <div class="vname" style="color: var(--pink);">${INTERVENTION.pt}</div>
+      <div class="vdesc">${INTERVENTION.desc}</div>
+    </div>
+  `;
+}
+
+// ====================================================================
+// CADEIA DE VALOR · render KPI edges, primary, support
+// ====================================================================
+(function renderVC(){
+  const list = document.getElementById("vc-kpi-list");
+  list.innerHTML = VC_EDGES.map(([from, to, note]) => `
+    <div class="proc-card">
+      <div class="pnum">KPI → KPI</div>
+      <h3 style="font-size: 13px;">${from}</h3>
+      <div style="font-size: 18px; color: var(--accent); margin: 6px 0;">↓</div>
+      <h3 style="font-size: 13px;">${to}</h3>
+      <div class="desc" style="margin-top: 10px;">${note}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("kpi-primary-list").innerHTML =
+    KPI_PRIMARY.map(k => `<span class="badge accent">${k}</span>`).join("");
+
+  document.getElementById("kpi-support-list").innerHTML =
+    KPI_SUPPORT.map(k => `<span class="badge">${k}</span>`).join("");
+})();
+
+// ====================================================================
+// PROCESSOS
+// ====================================================================
+(function renderProcessos(){
+  const el = document.getElementById("proc-list");
+  el.innerHTML = PROCESSES.map((p, i) => `
+    <div class="proc-card">
+      <div class="pnum">Processo macro ${String(i+1).padStart(2,"0")}</div>
+      <h3>${p.ptName}</h3>
+      <div class="owner">Responsável: ${p.ownerPt}</div>
+      <div class="desc">${p.desc}</div>
+
+      <div class="section-mini">Principais KPIs</div>
+      <div>${p.kpis.map(k => `<span class="badge accent">${k}</span>`).join("")}</div>
+
+      <div class="section-mini">Papéis envolvidos</div>
+      <div>${p.roles.map(r => `<span class="badge ${STRATEGIC_ROLES.has(r) ? "purple" : ""}">${r}</span>`).join("")}</div>
+    </div>
+  `).join("");
+})();
+
+// ====================================================================
+// PESSOAS × ORGS
+// ====================================================================
+(function renderOrgs(){
+  const el = document.getElementById("org-list");
+  // ordena: core primeiro, depois holding, depois adjacent
+  const order = { core: 0, holding: 1, adjacent: 2 };
+  const sorted = [...ORG_UNITS].sort((a,b) => order[a.role] - order[b.role]);
+
+  el.innerHTML = sorted.map(org => {
+    const members = PEOPLE.filter(p => p.org === org.name);
+    const leadMember = members.find(m => m.name === org.lead);
+    const others = members.filter(m => m.name !== org.lead);
+
+    return `
+      <div class="org-card">
+        <h3>${org.pt}</h3>
+        <div class="lead"><span class="lead-label">Lider</span>${org.lead}</div>
+
+        ${others.length ? others.map(p => `
+          <div class="role-row ${STRATEGIC_ROLES.has(p.role) ? "strat" : ""}">
+            <div class="rname">${p.role}</div>
+            <div class="rperson">${p.name}</div>
+          </div>
+        `).join("") : `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; padding: 8px 0;">Sem papéis adicionais mapeados.</div>`}
+      </div>
+    `;
+  }).join("");
+})();
+</script>
+</body>
+</html>

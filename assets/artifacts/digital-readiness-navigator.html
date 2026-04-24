@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>noise.os — Digital Readiness Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--bgCard:#111827;--bgAlt:#1a2234;--bgHov:#1e293b;--accent:#3b82f6;--accentL:#60a5fa;--success:#10b981;--successL:#34d399;--warn:#f59e0b;--warnL:#fbbf24;--danger:#ef4444;--dangerL:#f87171;--purple:#8b5cf6;--purpleL:#a78bfa;--pink:#ec4899;--cyan:#06b6d4;--text:#f1f5f9;--textDim:#94a3b8;--textMut:#64748b;--border:#1e293b;--gold:#d4a017;--sans:'Inter',system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);overflow-x:hidden;font-weight:400}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.top-bar{padding:10px 16px;background:linear-gradient(135deg,var(--bgCard),var(--bgAlt));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:14px;font-weight:800;letter-spacing:-.3px}.logo span{color:var(--textMut);font-weight:400;font-size:12px}
+.logo-mark{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gold);margin-right:6px;vertical-align:middle;box-shadow:0 0 10px rgba(212,160,23,.5)}
+.lt-bar{background:var(--bgCard);border-bottom:1px solid var(--border);padding:0 12px;display:flex;gap:2px;overflow-x:auto}
+.lt{padding:10px 14px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;color:var(--textMut);font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;font-family:var(--sans);text-transform:uppercase;letter-spacing:.4px}
+.lt:hover{color:var(--textDim)}.lt.on{border-bottom-color:var(--accent);color:var(--accent)}
+.lt-k{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;background:rgba(59,130,246,.12);color:var(--accentL);font-size:10px;font-weight:700}
+.wrap{display:flex;height:calc(100vh - 88px)}
+.content{flex:1;overflow-y:auto;padding:20px 22px}
+.side{width:360px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:rgba(12,16,30,.97);backdrop-filter:blur(20px)}
+.side-inner{padding:22px}
+.side-empty{font-size:12px;color:var(--textMut);line-height:1.7;padding:8px 0}
+.sec{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--textMut);margin:14px 0 8px;font-weight:700}.sec:first-child{margin-top:0}
+h2{font-size:17px;font-weight:800;margin-bottom:6px;letter-spacing:-.3px}
+.desc{font-size:12.5px;color:var(--textDim);line-height:1.65;margin-bottom:14px;max-width:780px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:.3px;margin:1px;border:1px solid;text-transform:uppercase}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid;background:rgba(255,255,255,.02)}
+
+/* ---------- Portfolio ---------- */
+.pf-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.pf-kpi{background:var(--bgCard);border:1px solid var(--border);border-radius:12px;padding:14px}
+.pf-kpi-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--textMut);text-transform:uppercase;margin-bottom:4px}
+.pf-kpi-val{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.pf-kpi-sub{font-size:10.5px;color:var(--textDim);margin-top:3px;line-height:1.4}
+.pf-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.pf-table{width:100%;background:var(--bgCard);border:1px solid var(--border);border-radius:12px;overflow:hidden;border-collapse:separate;border-spacing:0}
+.pf-table th{background:var(--bgAlt);font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--textMut);text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.pf-table th.num{text-align:right}
+.pf-table td{padding:11px 12px;font-size:12px;border-bottom:1px solid rgba(30,41,59,.45);vertical-align:middle}
+.pf-table tr:last-child td{border-bottom:none}
+.pf-table tr:hover td{background:rgba(255,255,255,.015);cursor:pointer}
+.pf-table tr.on td{background:rgba(59,130,246,.08)}
+.co-name{font-weight:700;letter-spacing:-.2px}
+.co-sec{font-size:10px;color:var(--textMut);margin-top:1px}
+.score-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.score-bar{width:120px;height:6px;border-radius:3px;background:var(--bgAlt);overflow:hidden;position:relative}
+.score-bar-fill{height:100%;border-radius:3px}
+.score-num{font-size:13px;font-weight:800;letter-spacing:-.2px;min-width:28px;text-align:right}
+.heat-row{display:flex;gap:3px}
+.heat-cell{width:14px;height:14px;border-radius:3px;cursor:help}
+.status-crit{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25)}
+.status-risk{background:rgba(245,158,11,.12);color:var(--warn);border-color:rgba(245,158,11,.25)}
+.status-ready{background:rgba(6,182,212,.12);color:var(--cyan);border-color:rgba(6,182,212,.25)}
+.status-adv{background:rgba(16,185,129,.12);color:var(--success);border-color:rgba(16,185,129,.25)}
+
+/* ---------- Diagnóstico ---------- */
+.dg-wrap{display:grid;grid-template-columns:1fr 380px;gap:14px;margin-bottom:16px}
+.dg-card{background:var(--bgCard);border:1px solid var(--border);border-radius:14px;padding:18px}
+.dg-co-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.dg-co-title{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.dg-co-sub{font-size:11px;color:var(--textMut);margin-top:3px}
+.dg-big-score{font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1}
+.dg-big-score-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--textMut);text-transform:uppercase;margin-top:3px}
+.dg-radar{width:100%;height:330px}
+.dg-dims{display:flex;flex-direction:column;gap:6px}
+.dg-dim{padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid transparent;cursor:pointer;transition:all .15s}
+.dg-dim:hover{background:rgba(255,255,255,.04)}
+.dg-dim.on{border-color:var(--accent);background:rgba(59,130,246,.06)}
+.dg-dim-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dg-dim-name{font-size:12px;font-weight:600;color:var(--textDim)}
+.dg-dim-score{font-size:12px;font-weight:800;letter-spacing:-.2px}
+.dg-dim-bar{width:100%;height:4px;border-radius:2px;background:var(--bgAlt);overflow:hidden;margin-top:5px}
+.dg-dim-bar-fill{height:100%;border-radius:2px}
+.dg-select{background:var(--bgAlt);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;min-width:240px}
+.dg-narrative{background:var(--bg);border-radius:10px;border:1px solid var(--border);padding:14px 16px;margin-top:12px;font-size:12.5px;color:var(--textDim);line-height:1.7;border-left:3px solid var(--gold)}
+.dg-narrative em{color:var(--gold);font-style:italic;font-weight:500}
+
+/* ---------- Alvos ---------- */
+.tg-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.tg-fbtn{padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--textMut);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.tg-fbtn:hover{background:rgba(255,255,255,.05)}
+.tg-fbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tg-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.tg-card{background:var(--bgCard);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all .15s}
+.tg-card:hover{border-color:var(--textMut)}
+.tg-card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tg-head{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:flex-start;margin-bottom:10px}
+.tg-title{font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.35}
+.tg-company{font-size:10.5px;color:var(--textMut);margin-top:3px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.tg-qw{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid}
+.tg-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 10px}
+.tg-meta-item{display:flex;flex-direction:column}
+.tg-meta-lbl{font-size:9px;color:var(--textMut);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.tg-meta-val{font-size:13px;font-weight:700;margin-top:2px;letter-spacing:-.2px}
+.tg-why{font-size:12px;color:var(--textDim);line-height:1.6;padding:10px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-top:8px}
+.tg-why b{color:var(--text);font-weight:600}
+.tg-funds{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.tg-impact-row{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.tg-impact-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--textDim)}
+.tg-impact-val{font-weight:800;color:var(--success);font-size:12.5px;letter-spacing:-.2px}
+
+/* ---------- Fundos EU ---------- */
+.fd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:6px}
+.fd-card{background:var(--bgCard);border:1px solid var(--border);border-radius:14px;padding:18px;border-top:3px solid var(--accent);cursor:pointer;transition:border-color .15s}
+.fd-card:hover{border-color:var(--textMut)}
+.fd-card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.fd-head{font-size:10px;font-weight:700;color:var(--accentL);text-transform:uppercase;letter-spacing:.8px}
+.fd-title{font-size:15px;font-weight:700;margin-top:4px;letter-spacing:-.2px;line-height:1.35}
+.fd-body{font-size:12px;color:var(--textDim);line-height:1.6;margin-top:8px}
+.fd-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.fd-meta-item{display:flex;flex-direction:column}
+.fd-meta-lbl{font-size:9px;color:var(--textMut);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.fd-meta-val{font-size:12px;font-weight:600;margin-top:3px;color:var(--text)}
+.fd-coverage{font-size:10.5px;color:var(--textMut);margin-top:10px;font-style:italic}
+
+/* ---------- Side panel ---------- */
+.sn-group{display:inline-flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;padding:4px 10px;border-radius:12px;background:rgba(255,255,255,.06);margin-bottom:12px}
+.sn-title{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px;line-height:1.3}
+.sn-detail{font-size:12.5px;color:var(--textDim);line-height:1.65;margin-bottom:6px}
+.sn-meta{display:flex;gap:14px;margin-top:12px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.sn-meta-item{display:flex;flex-direction:column;gap:2px}
+.sn-meta-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#4a5268;font-weight:700}
+.sn-meta-val{font-size:13px;font-weight:700;color:var(--textDim);letter-spacing:-.2px}
+.sn-sec{padding:16px 0;border-bottom:1px solid rgba(30,41,59,.45)}
+.sn-sec:last-child{border:none}
+.sn-sec-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#4a5268;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sn-sec-count{background:rgba(255,255,255,.06);padding:1px 7px;border-radius:8px;font-size:10px;color:#6a7488;font-weight:700}
+.sn-edge{display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:4px;border-radius:8px;background:rgba(255,255,255,.02);cursor:pointer;transition:background .15s}
+.sn-edge:hover{background:rgba(255,255,255,.06)}
+.sn-edge-dot{width:8px;height:8px;border-radius:4px;flex-shrink:0}
+.sn-edge-name{font-size:12px;font-weight:600;color:#d0d8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn-edge-label{font-size:10px;color:#5a6478;margin-top:1px}
+.sn-edge-val{font-size:11px;font-weight:800;color:var(--textDim);letter-spacing:-.2px}
+
+/* ---------- Knowledge Graph ---------- */
+.kg-wrap{display:flex;flex-direction:column;gap:12px}
+.kg-toolbar{background:var(--bgCard);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.kg-legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--textDim)}
+.kg-legend-item{display:inline-flex;align-items:center;gap:6px}
+.kg-legend-shape{width:14px;height:14px;display:inline-block;flex-shrink:0}
+.kg-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.kg-fbtn{padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--textMut);font-size:10.5px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:.3px;text-transform:uppercase}
+.kg-fbtn:hover{background:rgba(255,255,255,.05)}
+.kg-fbtn.on{color:var(--text);border-color:var(--textMut);background:rgba(255,255,255,.06)}
+.kg-canvas{background:var(--bgCard);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative;height:calc(100vh - 260px);min-height:560px}
+.kg-svg{width:100%;height:100%;display:block;cursor:grab}
+.kg-svg:active{cursor:grabbing}
+.kg-hint{position:absolute;top:10px;left:14px;font-size:10px;color:var(--textMut);font-weight:600;letter-spacing:.5px;text-transform:uppercase;background:rgba(10,14,26,.75);backdrop-filter:blur(6px);padding:5px 10px;border-radius:999px;border:1px solid var(--border)}
+.kg-node-lbl{font-family:var(--sans);font-size:10px;font-weight:600;fill:var(--textDim);pointer-events:none;user-select:none}
+.kg-node-lbl.big{font-size:11px;font-weight:700;fill:var(--text)}
+.kg-meta-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.kg-meta-cell{background:var(--bgCard);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.kg-meta-cell-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--textMut);text-transform:uppercase}
+.kg-meta-cell-val{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-top:3px}
+
+/* ---------- Investor view ---------- */
+.iv-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.iv-kpi{background:var(--bgCard);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden}
+.iv-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
+.iv-kpi.ok::before{background:var(--success)}
+.iv-kpi.warn::before{background:var(--warn)}
+.iv-kpi.gold::before{background:var(--gold)}
+.iv-kpi-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--textMut);text-transform:uppercase;margin-bottom:4px}
+.iv-kpi-val{font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.iv-kpi-sub{font-size:10.5px;color:var(--textDim);margin-top:3px;line-height:1.4}
+.iv-grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-bottom:16px}
+.iv-panel{background:var(--bgCard);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.iv-panel-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;gap:10px}
+.iv-panel-title{font-size:13px;font-weight:800;letter-spacing:-.2px}
+.iv-panel-sub{font-size:10.5px;color:var(--textMut);line-height:1.5;max-width:520px}
+.iv-bar-row{display:grid;grid-template-columns:200px 1fr 70px 60px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(30,41,59,.4);cursor:pointer;transition:background .15s}
+.iv-bar-row:last-child{border-bottom:none}
+.iv-bar-row:hover{background:rgba(255,255,255,.02)}
+.iv-bar-lbl{font-size:11.5px;font-weight:600;color:var(--textDim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iv-bar-co{font-size:9.5px;color:var(--textMut);margin-top:1px;text-transform:uppercase;letter-spacing:.4px}
+.iv-bar-track{height:8px;border-radius:4px;background:rgba(255,255,255,.03);overflow:hidden;position:relative}
+.iv-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.iv-bar-num{font-size:11.5px;font-weight:800;text-align:right;letter-spacing:-.2px}
+.iv-bar-tag{font-size:9px;font-weight:700;text-align:right;color:var(--textMut);text-transform:uppercase;letter-spacing:.4px}
+.iv-heat{display:grid;gap:2px;margin-top:8px}
+.iv-heat-head,.iv-heat-row{display:grid;grid-template-columns:160px repeat(8,1fr);gap:2px;align-items:center}
+.iv-heat-cell{height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;cursor:help}
+.iv-heat-lbl-row{font-size:11px;font-weight:700;color:var(--textDim);padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iv-heat-lbl-col{font-size:9px;font-weight:700;color:var(--textMut);text-transform:uppercase;letter-spacing:.3px;text-align:center;padding:3px 0}
+.iv-cascade{display:flex;align-items:flex-end;gap:3px;height:200px;padding:20px 0 12px;border-bottom:1px solid var(--border)}
+.iv-cascade-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;position:relative;min-width:30px}
+.iv-cascade-seg{border-radius:3px 3px 0 0;transition:all .3s}
+.iv-cascade-lbl{font-size:10px;color:var(--textDim);text-align:center;margin-top:6px;line-height:1.3;white-space:nowrap}
+.iv-cascade-val{font-size:11px;font-weight:800;text-align:center;margin-top:1px;letter-spacing:-.2px}
+.iv-dimcov{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.iv-dimcov-cell{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.iv-dimcov-name{font-size:10.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2}
+.iv-dimcov-sub{font-size:9.5px;color:var(--textMut);margin-top:3px;letter-spacing:.3px;text-transform:uppercase}
+.iv-dimcov-num{font-size:15px;font-weight:800;margin-top:4px;letter-spacing:-.3px}
+.iv-target-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px}
+.iv-target-tbl th{background:var(--bgAlt);font-size:9px;font-weight:700;letter-spacing:.6px;color:var(--textMut);text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.iv-target-tbl th.num{text-align:right}
+.iv-target-tbl td{padding:8px 10px;border-bottom:1px solid rgba(30,41,59,.45);vertical-align:middle;cursor:pointer}
+.iv-target-tbl td.num{text-align:right;font-weight:700;letter-spacing:-.2px}
+.iv-target-tbl tr:last-child td{border-bottom:none}
+.iv-target-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.iv-target-tbl tr.on td{background:rgba(59,130,246,.08)}
+
+@media(max-width:1100px){.pf-kpis{grid-template-columns:repeat(2,1fr)}.dg-wrap{grid-template-columns:1fr}.fd-grid{grid-template-columns:1fr}.wrap{flex-direction:column;height:auto}.side{width:100%;border-left:none;border-top:1px solid var(--border)}.kg-meta-grid{grid-template-columns:repeat(2,1fr)}.iv-kpis{grid-template-columns:repeat(2,1fr)}.iv-grid2{grid-template-columns:1fr}.iv-dimcov{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<div class="logo"><span class="logo-mark"></span>noise.os <span>· Digital Readiness Navigator · Fundo de Capital de Risco PT</span></div>
+<div style="display:flex;align-items:center;gap:10px">
+<span class="badge" style="background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.25)"><span style="width:6px;height:6px;border-radius:3px;background:var(--success);animation:pulse 2s infinite"></span>Live · Q2 2026</span>
+<span style="font-size:10px;color:var(--textMut)">v1.0 · Prototype</span>
+</div>
+</div>
+<div class="lt-bar">
+<button class="lt on" data-layer="0" onclick="goLayer(0)"><span class="lt-k">01</span>Navegador</button>
+<button class="lt" data-layer="1" onclick="goLayer(1)"><span class="lt-k">02</span>Portfolio</button>
+<button class="lt" data-layer="2" onclick="goLayer(2)"><span class="lt-k">03</span>Diagnóstico</button>
+<button class="lt" data-layer="3" onclick="goLayer(3)"><span class="lt-k">04</span>Alvos de transformação</button>
+<button class="lt" data-layer="4" onclick="goLayer(4)"><span class="lt-k">05</span>Fundos europeus</button>
+<button class="lt" data-layer="5" onclick="goLayer(5)"><span class="lt-k">06</span>Visão do investidor</button>
+</div>
+<div class="wrap">
+<div class="content" id="content"></div>
+<div class="side"><div class="side-inner" id="side"></div></div>
+</div>
+<script>
+/* ============ DATA ============ */
+const DIMS=[
+ {id:'lider',name:'Liderança digital',desc:'Clareza estratégica digital, sponsorship executivo, governance, prioridades dataísticas no comité de investimento.',c:'#8b5cf6'},
+ {id:'dados',name:'Dados & analytics',desc:'Qualidade e arquitetura de dados, BI, decisões baseadas em evidência, cultura de medição.',c:'#06b6d4'},
+ {id:'cx',name:'Experiência digital de cliente',desc:'E-commerce, CRM, self-service, omnichannel, marketing digital, social selling.',c:'#3b82f6'},
+ {id:'ops',name:'Operações digitais',desc:'Automação, ERP moderno, cloud, integração de processos, IoT, digital twin.',c:'#10b981'},
+ {id:'people',name:'Capacidade humana',desc:'Skills digitais, cultura, gestão de mudança, talento para digital, academia interna.',c:'#ec4899'},
+ {id:'seg',name:'Segurança & compliance',desc:'Cibersegurança, GDPR, NIS2, resiliência, continuidade de negócio.',c:'#ef4444'},
+ {id:'prod',name:'Produto & serviço digital',desc:'Grau de digitalização da oferta ao mercado — digital revenue share, APIs monetizáveis.',c:'#f59e0b'},
+ {id:'eco',name:'Integração & ecossistema',desc:'APIs, parceiros, marketplaces, plataformas, posicionamento em redes de valor digital.',c:'#d4a017'}
+];
+const DMAP={};DIMS.forEach(d=>DMAP[d.id]=d);
+
+/* Fictional portfolio of a PT mid-market PE fund */
+const COMPANIES=[
+ {id:'tx',name:'TextilNorte',sector:'Têxtil & vestuário',hq:'Guimarães',rev:'€42M',invest:'€12M · 2022',hold:'3.5 anos',stage:'Growth',
+  s:{lider:45,dados:30,cx:55,ops:48,people:40,seg:52,prod:35,eco:42},
+  narr:'Planta industrial com boa base de automação mas <em>stack analógica do cliente para trás</em>. ERP legacy sem integração com e-commerce B2B. Dados de produção não conversam com dados comerciais. Oportunidade clássica de quick win em CX B2B.'},
+ {id:'cr',name:'CeramTejo',sector:'Cerâmica técnica',hq:'Coimbra',rev:'€28M',invest:'€8M · 2023',hold:'2 anos',stage:'Growth',
+  s:{lider:38,dados:25,cx:30,ops:55,people:32,seg:45,prod:28,eco:36},
+  narr:'Operação industrial robusta, mas <em>invisível digitalmente</em>. Zero presença em plataformas internacionais B2B (Alibaba industrial, Europages). Catálogo digital inexistente. Upside em digital revenue share é desproporcional ao investimento necessário.'},
+ {id:'vl',name:'VinhoLusa',sector:'Vinicultura premium',hq:'Pinhão (Douro)',rev:'€18M',invest:'€6M · 2021',hold:'5 anos',stage:'Mature',
+  s:{lider:62,dados:48,cx:72,ops:50,people:55,seg:50,prod:65,eco:68},
+  narr:'Marca forte em D2C, e-commerce consolidado em EUA e UK. <em>O desafio aqui é diferente</em>: escala e dados. CRM subexplorado, sem segmentação por LTV, sem predictive churn em wine club. Readiness média-alta, mas com headroom claro para expansão.'},
+ {id:'ml',name:'MediLusitana',sector:'Clínicas multi-especialidade',hq:'Lisboa',rev:'€55M',invest:'€22M · 2022',hold:'3.5 anos',stage:'Growth',
+  s:{lider:50,dados:35,cx:45,ops:40,people:48,seg:68,prod:30,eco:32},
+  narr:'Compliance sólido (é saúde). Mas operações clínicas dispersas em 6 sistemas diferentes; paciente vive a fragmentação. <em>Telemedicina estagnada</em> pós-2023. Sem plataforma única de paciente, não há escala. Este é o ativo com maior multiplicador potencial do portfolio.'},
+ {id:'lp',name:'LogiPortus',sector:'Logística & transportes',hq:'Sines',rev:'€67M',invest:'€18M · 2024',hold:'1.5 anos',stage:'Early-growth',
+  s:{lider:55,dados:60,cx:38,ops:72,people:52,seg:58,prod:42,eco:55},
+  narr:'Excelente backbone operacional pós-investimento inicial em TMS. <em>O gap está no cliente final</em>: sem portal de tracking real-time, sem API pública, sem self-service de cotação. Em 2026 isso já não é diferenciador — é higiene.'},
+ {id:'fp',name:'FoodPT',sector:'Alimentar (conservas)',hq:'Leiria',rev:'€38M',invest:'€10M · 2023',hold:'2 anos',stage:'Growth',
+  s:{lider:32,dados:22,cx:28,ops:42,people:28,seg:40,prod:25,eco:30},
+  narr:'Investida mais atrasada do portfolio em readiness digital. <em>Gestão por instinto e relatórios em Excel</em>. Mas tem marca centenária e distribuição internacional sólida — o upside é proporcional ao atraso. Ponto de arranque: diagnóstico formal e roadmap em 90 dias.'},
+ {id:'ta',name:'TurismoAzul',sector:'Hotelaria boutique',hq:'Lagos (Algarve)',rev:'€24M',invest:'€9M · 2022',hold:'3.5 anos',stage:'Growth',
+  s:{lider:58,dados:50,cx:68,ops:52,people:50,seg:45,prod:60,eco:58},
+  narr:'Digital-first por natureza do negócio; channel management e revenue management maduros. <em>Mas risco de segurança subestimado</em> — NIS2 vem aí e o stack atual não aguenta audit. Prioridade invertida vs. resto do portfolio.'},
+ {id:'ap',name:'AutoPeça',sector:'Autopeças OEM',hq:'Aveiro',rev:'€88M',invest:'€25M · 2021',hold:'5 anos',stage:'Mature',
+  s:{lider:65,dados:58,cx:50,ops:68,people:60,seg:62,prod:52,eco:72},
+  narr:'Readiness alta, investida mais madura digitalmente. Já opera em EDI com OEMs, tem <em>digital twin parcial</em> de linha de produção. Oportunidade está em virar plataforma — abrir APIs para Tier-2 fornecedores e monetizar o grafo de supply chain. Salto de scale-up para platform business.'}
+];
+const CMAP={};COMPANIES.forEach(c=>CMAP[c.id]=c);
+COMPANIES.forEach(c=>{
+  const sum=DIMS.reduce((a,d)=>a+c.s[d.id],0);
+  c.score=Math.round(sum/DIMS.length);
+  if(c.score<40)c.status='crit';else if(c.score<55)c.status='risk';else if(c.score<70)c.status='ready';else c.status='adv';
+});
+const STATUS={crit:{lbl:'Crítico',c:'var(--danger)',cls:'status-crit'},risk:{lbl:'Em risco',c:'var(--warn)',cls:'status-risk'},ready:{lbl:'Em maturação',c:'var(--cyan)',cls:'status-ready'},adv:{lbl:'Avançado',c:'var(--success)',cls:'status-adv'}};
+
+/* Transformation targets */
+const TARGETS=[
+ {id:'t1',co:'tx',dim:'cx',title:'Plataforma B2B self-service com cotação dinâmica',
+  invest:'€380k',timeline:'6 meses',quickwin:true,priority:'P1',
+  impact:{rev:'+8–12% receita B2B',margin:'+2pp margem',eff:'−35% tempo cotação'},
+  funds:['P2030-VDIG','PRR-C16'],
+  why:'<b>Contexto:</b> clientes B2B ainda fazem encomendas por email; conversão e recompra estagnadas desde 2023. <b>Hipótese sistémica:</b> fricção de quotation é o gargalo — remove-se o gargalo e o loop R1 (awareness → acquisition → conversion) destrava.'},
+ {id:'t2',co:'tx',dim:'dados',title:'Data layer unificado produção ↔ comercial',
+  invest:'€220k',timeline:'9 meses',quickwin:false,priority:'P2',
+  impact:{rev:'+3–5% via pricing dinâmico',margin:'+1.5pp',eff:'Ciclo S&OP: 14d → 3d'},
+  funds:['PRR-C16','P2030-I4.0'],
+  why:'<b>Contexto:</b> dados de MES não conversam com ERP comercial — forecasts construídos em Excel, desfasados da realidade de chão. <b>Hipótese sistémica:</b> sem dados integrados, toda decisão é lagging; com dados, pricing passa a ser sistema e não arte.'},
+ {id:'t3',co:'cr',dim:'prod',title:'Catálogo digital B2B internacional + marketplace industrial',
+  invest:'€160k',timeline:'4 meses',quickwin:true,priority:'P1',
+  impact:{rev:'+15–25% receita exportação',margin:'Neutro ano 1',eff:'Alcance 12x'},
+  funds:['P2030-VDIG','DEP-EDIH'],
+  why:'<b>Contexto:</b> zero presença digital B2B; prospects encontram concorrentes italianos e espanhóis primeiro. <b>Hipótese sistémica:</b> digital revenue share hoje = 0%. Em 18 meses, realista 20%. Menor investimento, maior upside proporcional do portfolio.'},
+ {id:'t4',co:'ml',dim:'cx',title:'Plataforma única de paciente (app + portal)',
+  invest:'€1.2M',timeline:'14 meses',quickwin:false,priority:'P1',
+  impact:{rev:'+18–22% via cross-speciality',margin:'+3pp',eff:'NPS +25 pontos'},
+  funds:['PRR-C16','PRR-C17','P2030-INOV'],
+  why:'<b>Contexto:</b> paciente navega 6 sistemas sem integração; taxa de retorno cross-specialty em 9%. <b>Hipótese sistémica:</b> plataforma única cria switching costs reais e destrava expansion revenue — alinha-se ao loop R3 de expansion engine.'},
+ {id:'t5',co:'ml',dim:'dados',title:'Motor preditivo de agendamento + no-show',
+  invest:'€280k',timeline:'7 meses',quickwin:true,priority:'P2',
+  impact:{rev:'+5–7% via ocupação',margin:'+2.5pp',eff:'No-show: 14% → 7%'},
+  funds:['DEP-EDIH','P2030-VDIG'],
+  why:'<b>Contexto:</b> 14% de no-show queima capacidade hospitalar; rescheduling manual. <b>Hipótese sistémica:</b> quick win de IA aplicada com ROI < 12 meses — EDIH permite teste-antes-de-investir em modelos preditivos.'},
+ {id:'t6',co:'lp',dim:'cx',title:'Portal de tracking real-time + API pública',
+  invest:'€450k',timeline:'5 meses',quickwin:true,priority:'P1',
+  impact:{rev:'+6–9% via novos contratos',margin:'+1.5pp',eff:'Tickets -40%'},
+  funds:['P2030-VDIG','PRR-C16'],
+  why:'<b>Contexto:</b> clientes ligam para saber onde está a carga; concorrência já tem tracking há 3 anos. <b>Hipótese sistémica:</b> já não é diferenciador, é higiene — perde-se contratos por ausência desta capacidade básica.'},
+ {id:'t7',co:'fp',dim:'lider',title:'Diagnóstico formal + roadmap digital 24 meses',
+  invest:'€45k',timeline:'3 meses',quickwin:true,priority:'P1',
+  impact:{rev:'Baseline',margin:'Baseline',eff:'Base para próximos €2M'},
+  funds:['P2030-I4.0'],
+  why:'<b>Contexto:</b> investida mais atrasada em readiness; não há sequer baseline. <b>Hipótese sistémica:</b> antes de qualquer transformação, criar mapa real do sistema — vale Indústria 4.0 cobre 75%, ROI é desbloquear todos os próximos projetos.'},
+ {id:'t8',co:'fp',dim:'dados',title:'ERP cloud-native + BI operacional',
+  invest:'€520k',timeline:'10 meses',quickwin:false,priority:'P2',
+  impact:{rev:'+4–6% via ruturas -50%',margin:'+2pp',eff:'Fecho mensal: 12d → 3d'},
+  funds:['PRR-C16','IE-INV'],
+  why:'<b>Contexto:</b> gestão em Excel; fecho de mês demora 12 dias. <b>Hipótese sistémica:</b> sem visibilidade operacional, não há escalabilidade — é a fundação para tudo o resto. Condiciona todos os targets futuros da FoodPT.'},
+ {id:'t9',co:'ta',dim:'seg',title:'Remediation NIS2 + zero-trust architecture',
+  invest:'€180k',timeline:'6 meses',quickwin:false,priority:'P1',
+  impact:{rev:'Risco evitado',margin:'Evita fines €2–10M',eff:'Seguro ciber -30%'},
+  funds:['PRR-C16','P2030-VDIG'],
+  why:'<b>Contexto:</b> NIS2 aplicável em Out/2026; stack atual não passa em audit. <b>Hipótese sistémica:</b> negativa — é dívida técnica regulatória que se não for paga vira custo de ordem de grandeza superior.'},
+ {id:'t10',co:'ap',dim:'eco',title:'APIs públicas + marketplace supply chain Tier-2',
+  invest:'€680k',timeline:'12 meses',quickwin:false,priority:'P1',
+  impact:{rev:'+10–14% via revenue novo',margin:'+3pp (platform margins)',eff:'Novo business model'},
+  funds:['PRR-C16','IE-INV','HE-DIG'],
+  why:'<b>Contexto:</b> já opera EDI com OEMs; Tier-2 fornecedores não têm visibilidade do grafo. <b>Hipótese sistémica:</b> salto de scale-up para platform business — monetiza o que já existe como infraestrutura interna, abrindo-a. Maior jogo estratégico do portfolio.'},
+ {id:'t11',co:'vl',dim:'dados',title:'CRM com LTV e predictive churn no wine club',
+  invest:'€95k',timeline:'4 meses',quickwin:true,priority:'P2',
+  impact:{rev:'+8–11% wine club LTV',margin:'+2pp',eff:'Churn -25%'},
+  funds:['P2030-VDIG','DEP-EDIH'],
+  why:'<b>Contexto:</b> wine club tem 18k membros, mas CRM é usado como mailing list. <b>Hipótese sistémica:</b> dados já existem — só não estão ativos; transformação aqui é analítica, não tecnológica.'}
+];
+/* Financial enrichment per target (k EUR):
+   capex_k = implementation cost (= invest)
+   opex_k  = annual operational cost post-implementation
+   coverage= blended grant rate on capex (0..1), from eligible funds
+   value_3y_k = expected 3-year value creation (revenue uplift OR margin gain OR risk avoided, monetised)
+   primary_impact = dominant impact category
+*/
+const TGFIN={
+ t1:{opex_k:60, coverage:0.55, value_3y_k:900,  primary_impact:'I-REV'},
+ t2:{opex_k:40, coverage:0.50, value_3y_k:450,  primary_impact:'I-EFF'},
+ t3:{opex_k:35, coverage:0.70, value_3y_k:1250, primary_impact:'I-REV'},
+ t4:{opex_k:180,coverage:0.55, value_3y_k:3500, primary_impact:'I-REV'},
+ t5:{opex_k:50, coverage:0.65, value_3y_k:900,  primary_impact:'I-EFF'},
+ t6:{opex_k:70, coverage:0.55, value_3y_k:1100, primary_impact:'I-REV'},
+ t7:{opex_k:0,  coverage:0.75, value_3y_k:80,   primary_impact:'I-EFF'},
+ t8:{opex_k:90, coverage:0.50, value_3y_k:750,  primary_impact:'I-EFF'},
+ t9:{opex_k:30, coverage:0.50, value_3y_k:600,  primary_impact:'I-RSK'},
+ t10:{opex_k:120,coverage:0.60, value_3y_k:2800, primary_impact:'I-REV'},
+ t11:{opex_k:20, coverage:0.65, value_3y_k:450,  primary_impact:'I-REV'}
+};
+TARGETS.forEach(t=>{
+ t.invest_num=parseFloat(t.invest.replace(/[^\d.]/g,''));
+ const f=TGFIN[t.id]||{opex_k:0,coverage:0.5,value_3y_k:0,primary_impact:'I-EFF'};
+ t.capex_k=t.invest_num;
+ t.opex_k=f.opex_k;
+ t.coverage=f.coverage;
+ t.value_3y_k=f.value_3y_k;
+ t.primary_impact=f.primary_impact;
+ t.tco_3y_k=t.capex_k+t.opex_k*3;
+ t.cover_k=t.capex_k*t.coverage;
+ t.net_cost_k=t.tco_3y_k-t.cover_k;
+ t.roi_3y=t.net_cost_k>0?(t.value_3y_k/t.net_cost_k):0;
+});
+
+/* EU / PT funding instruments */
+const FUNDS=[
+ {id:'PRR-C16',short:'PRR C16',name:'PRR · Componente 16 — Empresas 4.0',managed:'IAPMEI',
+  deadline:'Próximo aviso: Mar 2026 (ESTIMADO)',max:'€2.5M/projeto · incentivo 40–60%',
+  fit:'Automação industrial, IoT, IA em operações, robotização, ciber industrial',
+  covers:'Projetos estruturantes de Indústria 4.0; co-financia infra-digital de peso. Orçamento nacional PRR já executado em ~70%, restam 2 avisos.'},
+ {id:'PRR-C17',short:'PRR C17',name:'PRR · Componente 17 — Qualificação e Digitalização',managed:'ANQEP / IEFP',
+  deadline:'Avisos até Q4 2026',max:'Variável por aviso · taxa até 85%',
+  fit:'Reskilling digital de colaboradores, academias corporativas, formação em dados/IA',
+  covers:'Quando o alvo é dimensão "Capacidade humana" ou transformação cultural. Combina com C16 como componente soft.'},
+ {id:'P2030-I4.0',short:'P2030 VI4.0',name:'Portugal 2030 · Vale Indústria 4.0',managed:'COMPETE 2030',
+  deadline:'Rolling 2026',max:'€15k/vale · taxa 75%',
+  fit:'Diagnóstico e consultoria em digitalização industrial para PME',
+  covers:'Instrumento leve para arranque — bom para baseline antes de projetos grandes. Não exige matching financeiro pesado.'},
+ {id:'P2030-VDIG',short:'P2030 VD',name:'Portugal 2030 · Vale Digital',managed:'COMPETE 2030',
+  deadline:'Rolling 2026',max:'€30k/vale · taxa 75%',
+  fit:'E-commerce, CRM, plataformas digitais, cibersegurança base para PME',
+  covers:'Instrumento mais versátil do portefólio público PT — cobre a maioria dos quick wins de CX.'},
+ {id:'P2030-INOV',short:'P2030 IP',name:'Portugal 2030 · Inovação Produtiva',managed:'COMPETE 2030 / IAPMEI',
+  deadline:'Avisos periódicos · próximo Q2 2026',max:'€25M/projeto · incentivo até 75%',
+  fit:'Projetos produtivos estruturantes com componente digital significativa',
+  covers:'Grande escala, incluindo novas unidades produtivas com automação avançada. Elegibilidade digital sobe em 2026.'},
+ {id:'DEP-EDIH',short:'EDIH',name:'Digital Europe · EDIH Portugal',managed:'Rede Nacional EDIH (DNS PT, Digital Innovation Hub Lisboa, etc.)',
+  deadline:'Contínuo · call-off por hub',max:'Teste-antes-de-investir gratuito + apoio consultoria',
+  fit:'IA, HPC, ciber, skills digitais avançadas — test-before-invest em ambientes reais',
+  covers:'Particularmente útil para de-risk de projetos de IA antes de compromisso capex. Não cobre implementação.'},
+ {id:'IE-INV',short:'IAPMEI IP',name:'IAPMEI · Inovação Produtiva',managed:'IAPMEI',
+  deadline:'Avisos periódicos',max:'€25M/projeto · incentivo até 75%',
+  fit:'Projetos integrados de modernização; digital é componente',
+  covers:'Mais estruturante que vales, menos específico que PRR C16. Janela útil para projetos mistos digital + físico.'},
+ {id:'HE-DIG',short:'Horizon EU',name:'Horizon Europe · Digital, Industry & Space',managed:'Comissão Europeia',
+  deadline:'Calls anuais · Work Programme 2026 aberto',max:'€1–5M/projeto · até 100% R&D',
+  fit:'R&D colaborativo em tecnologias digitais emergentes',
+  covers:'Apenas para projetos verdadeiramente R&D-heavy com consórcio internacional. Mais seletivo, mais competitivo.'}
+];
+const FMAP={};FUNDS.forEach(f=>FMAP[f.id]=f);
+
+/* Impact categories — 4th type of concept */
+const IMPACTS=[
+ {id:'I-REV',name:'Receita',desc:'Expansão de topline — novos canais, cross-sell, novos mercados, monetização de ativos digitais existentes.',c:'#10b981'},
+ {id:'I-MGN',name:'Margem',desc:'Melhoria de margem operacional — pricing dinâmico, eliminação de custos ocultos, automação, platform economics.',c:'#34d399'},
+ {id:'I-EFF',name:'Eficiência',desc:'Ciclos operacionais mais curtos — tempo de cotação, fecho mensal, resposta a cliente, tempo de deploy.',c:'#06b6d4'},
+ {id:'I-RSK',name:'Risco evitado',desc:'Dívida regulatória (NIS2, GDPR), custo de ciber-incidentes, churn imprevisto, fines de compliance.',c:'#ef4444'}
+];
+const IMAP={};IMPACTS.forEach(i=>IMAP[i.id]=i);
+
+/* Infer impact links from target impact strings */
+function targetImpacts(t){
+ const out=[];
+ const rev=(t.impact.rev||'').toLowerCase();
+ const mgn=(t.impact.margin||'').toLowerCase();
+ const eff=(t.impact.eff||'').toLowerCase();
+ if(/\+/.test(rev)||/novos contratos|receita|expansion|lt[vl]|ocupação|wine|contratos/.test(rev))out.push('I-REV');
+ if(/risco|evita|fines/.test(rev)||/risco|evita|fines/.test(mgn))out.push('I-RSK');
+ if(/\+\d|pp|platform|margins/.test(mgn))out.push('I-MGN');
+ if(/ciclo|tempo|−|-\d|tickets|churn|no-show|fecho|alcance|nps|seguro|baseline|base/.test(eff))out.push('I-EFF');
+ return [...new Set(out)];
+}
+
+/* ============ STATE ============ */
+let curLayer=0;
+let selCo='ml';  /* company selected in diagnostic view */
+let selDim=null; /* dimension selected in diagnostic */
+let selTg=null;  /* target selected */
+let selFd=null;  /* fund selected */
+let tgFilter='all'; /* priority filter */
+let selKG=null; /* selected node in knowledge graph: {type,id} */
+let kgFilters={co:true,dim:true,tg:true,fd:true,im:true}; /* type toggles */
+
+/* ============ NAV ============ */
+function goLayer(n){curLayer=n;
+ document.querySelectorAll('.lt').forEach((b,i)=>b.classList.toggle('on',i===n));
+ renderContent();renderSide();
+}
+
+/* ============ RENDER ============ */
+function renderContent(){
+ const c=document.getElementById('content');
+ if(curLayer===0)renderKnowledge(c);
+ else if(curLayer===1)renderPortfolio(c);
+ else if(curLayer===2)renderDiagnostic(c);
+ else if(curLayer===3)renderTargets(c);
+ else if(curLayer===4)renderFunds(c);
+ else renderInvestor(c);
+}
+function fmtScore(s){return s.toFixed(0)}
+function scoreColor(s){if(s<40)return 'var(--danger)';if(s<55)return 'var(--warn)';if(s<70)return 'var(--cyan)';return 'var(--success)'}
+function heatColor(s){if(s<30)return '#7f1d1d';if(s<45)return '#b45309';if(s<60)return '#854d0e';if(s<75)return '#065f46';return '#047857'}
+
+/* ---------- PORTFOLIO ---------- */
+function renderPortfolio(c){
+ const N=COMPANIES.length;
+ const avg=Math.round(COMPANIES.reduce((a,x)=>a+x.score,0)/N);
+ const crit=COMPANIES.filter(x=>x.status==='crit'||x.status==='risk').length;
+ const totalInv=COMPANIES.reduce((a,x)=>a+parseFloat(x.invest.match(/[\d.]+/)[0]),0);
+ const totalRev=COMPANIES.reduce((a,x)=>a+parseFloat(x.rev.match(/[\d.]+/)[0]),0);
+ const qwCount=TARGETS.filter(t=>t.quickwin).length;
+
+ let h='<h2>Portfolio digital readiness — vista agregada</h2>';
+ h+='<div class="desc">Um fundo não gere empresas, gere <em>um sistema de empresas</em>. Este é o retrato do sistema em Q2 2026: onde está o valor preso, onde estão os quick wins, e que parcela é alavancável via fundos europeus sem diluir equity.</div>';
+
+ h+='<div class="pf-kpis">';
+ h+=kpiCard('Readiness médio',avg+'/100','Média ponderada das 8 dimensões',scoreColor(avg));
+ h+=kpiCard('Investidas em risco',crit+' / '+N,'Scores < 55 — ação no trimestre','var(--warn)');
+ h+=kpiCard('Capital investido',`€${totalInv}M`,'Valor cumulativo do fundo','var(--textDim)');
+ h+=kpiCard('Revenue em portfolio',`€${totalRev}M`,'Topline cumulativo anualizado','var(--textDim)');
+ h+=kpiCard('Quick wins identificados',qwCount+' ações','ROI esperado < 12 meses','var(--success)');
+ h+='</div>';
+
+ h+='<div class="pf-head"><div><div class="sec" style="margin:0 0 4px">Mapa de calor por dimensão</div><div style="font-size:11px;color:var(--textMut)">Clique numa linha para abrir o diagnóstico completo dessa investida.</div></div></div>';
+ h+='<table class="pf-table"><thead><tr>';
+ h+='<th>Empresa</th><th>Setor · HQ</th><th>Stage</th>';
+ DIMS.forEach(d=>h+=`<th style="text-align:center">${d.name.split(' ').map(w=>w.length>6?w.slice(0,4)+'.':w).join(' ').replace(' & ','/')}</th>`);
+ h+='<th class="num">Score</th><th>Status</th>';
+ h+='</tr></thead><tbody>';
+ COMPANIES.forEach(co=>{
+  const st=STATUS[co.status];
+  h+=`<tr onclick="gotoDiagnostic('${co.id}')"><td><div class="co-name">${co.name}</div><div class="co-sec">${co.hq}</div></td>`;
+  h+=`<td style="color:var(--textDim);font-size:11px">${co.sector}<div class="co-sec">${co.rev} · ${co.invest}</div></td>`;
+  h+=`<td style="color:var(--textDim);font-size:11px">${co.stage}</td>`;
+  DIMS.forEach(d=>{
+   const v=co.s[d.id];
+   h+=`<td style="text-align:center"><div class="heat-cell" title="${d.name}: ${v}" style="background:${heatColor(v)};margin:0 auto;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">${v}</div></td>`;
+  });
+  h+=`<td class="num"><div class="score-cell"><div class="score-bar"><div class="score-bar-fill" style="width:${co.score}%;background:${scoreColor(co.score)}"></div></div><span class="score-num" style="color:${scoreColor(co.score)}">${co.score}</span></div></td>`;
+  h+=`<td><span class="pill ${st.cls}"><span class="dot" style="background:${st.c};margin:0"></span>${st.lbl}</span></td>`;
+  h+='</tr>';
+ });
+ h+='</tbody></table>';
+ c.innerHTML=h;
+}
+function kpiCard(lbl,val,sub,color){
+ return `<div class="pf-kpi"><div class="pf-kpi-lbl">${lbl}</div><div class="pf-kpi-val" style="color:${color}">${val}</div><div class="pf-kpi-sub">${sub}</div></div>`;
+}
+function gotoDiagnostic(coId){selCo=coId;selDim=null;goLayer(2);}
+
+/* ---------- DIAGNOSTIC ---------- */
+function renderDiagnostic(c){
+ const co=CMAP[selCo];
+ let h='<h2>Diagnóstico digital — '+co.name+'</h2>';
+ h+='<div class="desc">O score não é um ranking — é um <em>mapa de onde o valor está preso</em>. As 8 dimensões reflectem onde a digitalização cria revenue, reduz custo ou evita risco. Clique numa dimensão para ver como ela se conecta aos alvos de transformação e aos fundos europeus.</div>';
+
+ h+='<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px">';
+ h+='<span class="sec" style="margin:0">Empresa:</span>';
+ h+='<select class="dg-select" onchange="selCo=this.value;selDim=null;renderContent();renderSide()">';
+ COMPANIES.forEach(x=>h+=`<option value="${x.id}" ${x.id===co.id?'selected':''}>${x.name} · ${x.sector}</option>`);
+ h+='</select>';
+ const st=STATUS[co.status];
+ h+=`<span class="pill ${st.cls}" style="margin-left:6px"><span class="dot" style="background:${st.c};margin:0"></span>${st.lbl}</span>`;
+ h+='</div>';
+
+ h+='<div class="dg-wrap">';
+ /* Left: radar + header */
+ h+='<div class="dg-card">';
+ h+='<div class="dg-co-line"><div>';
+ h+=`<div class="dg-co-title">${co.name}</div>`;
+ h+=`<div class="dg-co-sub">${co.sector} · ${co.hq} · ${co.stage} · Holding ${co.hold}</div>`;
+ h+='</div>';
+ h+=`<div style="text-align:right"><div class="dg-big-score" style="color:${scoreColor(co.score)}">${co.score}</div><div class="dg-big-score-lbl">Readiness /100</div></div>`;
+ h+='</div>';
+ h+='<svg class="dg-radar" id="dg-radar" viewBox="0 0 520 340"></svg>';
+ h+=`<div class="dg-narrative">${co.narr}</div>`;
+ h+='</div>';
+
+ /* Right: dimension breakdown */
+ h+='<div class="dg-card"><div class="sec" style="margin:0 0 12px">Decomposição por dimensão</div><div class="dg-dims">';
+ DIMS.forEach(d=>{
+  const v=co.s[d.id];
+  const on=selDim===d.id?'on':'';
+  h+=`<div class="dg-dim ${on}" onclick="selDim=selDim==='${d.id}'?null:'${d.id}';renderContent();renderSide()">`;
+  h+=`<div class="dg-dim-row"><span class="dg-dim-name"><span class="dot" style="background:${d.c};margin-right:6px"></span>${d.name}</span><span class="dg-dim-score" style="color:${scoreColor(v)}">${v}</span></div>`;
+  h+=`<div class="dg-dim-bar"><div class="dg-dim-bar-fill" style="width:${v}%;background:${d.c}"></div></div>`;
+  h+='</div>';
+ });
+ h+='</div></div>';
+ h+='</div>';
+
+ /* Related targets */
+ const rel=TARGETS.filter(t=>t.co===co.id);
+ if(rel.length){
+  h+='<div class="sec">Alvos de transformação identificados — '+co.name+' ('+rel.length+')</div>';
+  h+='<div class="tg-grid">';
+  rel.forEach(t=>h+=targetCard(t,false));
+  h+='</div>';
+ }
+ c.innerHTML=h;
+ setTimeout(()=>drawRadar(co),20);
+}
+function drawRadar(co){
+ const svg=document.getElementById('dg-radar');if(!svg)return;
+ const cx=260,cy=170,R=130;
+ const N=DIMS.length;
+ let s='';
+ /* grid rings */
+ for(let r=1;r<=5;r++){
+  const rr=R*r/5;
+  let pts='';
+  for(let i=0;i<N;i++){
+   const a=-Math.PI/2+i*2*Math.PI/N;
+   pts+=(cx+rr*Math.cos(a))+','+(cy+rr*Math.sin(a))+' ';
+  }
+  s+=`<polygon points="${pts}" fill="none" stroke="rgba(148,163,184,.08)" stroke-width="1"/>`;
+  if(r===5)s+=`<polygon points="${pts}" fill="none" stroke="rgba(148,163,184,.18)" stroke-width="1"/>`;
+ }
+ /* axis lines + labels */
+ for(let i=0;i<N;i++){
+  const a=-Math.PI/2+i*2*Math.PI/N;
+  const x=cx+R*Math.cos(a),y=cy+R*Math.sin(a);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(148,163,184,.08)" stroke-width="1"/>`;
+  const lx=cx+(R+22)*Math.cos(a),ly=cy+(R+22)*Math.sin(a);
+  const d=DIMS[i];
+  s+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="600" fill="${d.c}" font-family="Inter">${d.name.replace(' & ',' / ').split(' ').slice(0,2).join(' ')}</text>`;
+  s+=`<text x="${lx}" y="${ly+11}" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="700" fill="${scoreColor(co.s[d.id])}" font-family="Inter">${co.s[d.id]}</text>`;
+ }
+ /* data polygon */
+ let dpts='';
+ for(let i=0;i<N;i++){
+  const a=-Math.PI/2+i*2*Math.PI/N;
+  const v=co.s[DIMS[i].id]/100;
+  dpts+=(cx+R*v*Math.cos(a))+','+(cy+R*v*Math.sin(a))+' ';
+ }
+ s+=`<polygon points="${dpts}" fill="${scoreColor(co.score)}" fill-opacity=".18" stroke="${scoreColor(co.score)}" stroke-width="1.8"/>`;
+ for(let i=0;i<N;i++){
+  const a=-Math.PI/2+i*2*Math.PI/N;
+  const v=co.s[DIMS[i].id]/100;
+  const x=cx+R*v*Math.cos(a),y=cy+R*v*Math.sin(a);
+  s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="${DIMS[i].c}" stroke="var(--bg)" stroke-width="1.5"/>`;
+ }
+ svg.innerHTML=s;
+}
+
+/* ---------- TARGETS ---------- */
+function renderTargets(c){
+ let h='<h2>Alvos de transformação digital — backlog priorizado</h2>';
+ h+='<div class="desc">Cada alvo é uma hipótese de intervenção: <em>ponto de alavanca × investimento × impacto esperado × fundo europeu elegível</em>. P1 entra no próximo trimestre. Quick wins têm ROI projetado em menos de 12 meses — são a munição para destravar orçamento nas investidas.</div>';
+
+ const filts=[['all','Todos'],['qw','Quick wins'],['p1','P1'],['p2','P2']];
+ h+='<div class="tg-filters"><span class="sec" style="margin:0 8px 0 0">Filtrar:</span>';
+ filts.forEach(([k,lbl])=>h+=`<button class="tg-fbtn ${tgFilter===k?'on':''}" onclick="tgFilter='${k}';renderContent()">${lbl}</button>`);
+ h+='<span style="flex:1"></span>';
+ /* aggregate */
+ const filtered=filterTargets();
+ const inv=filtered.reduce((a,t)=>a+t.invest_num,0);
+ h+=`<span style="font-size:11px;color:var(--textMut)">${filtered.length} alvos · €${inv.toFixed(0)}k investimento agregado</span>`;
+ h+='</div>';
+
+ h+='<div class="tg-grid">';
+ filtered.forEach(t=>h+=targetCard(t,true));
+ h+='</div>';
+ c.innerHTML=h;
+}
+function filterTargets(){
+ return TARGETS.filter(t=>{
+  if(tgFilter==='all')return true;
+  if(tgFilter==='qw')return t.quickwin;
+  if(tgFilter==='p1')return t.priority==='P1';
+  if(tgFilter==='p2')return t.priority==='P2';
+ });
+}
+function targetCard(t,clickable){
+ const co=CMAP[t.co],d=DMAP[t.dim];
+ const on=selTg===t.id?'on':'';
+ const click=clickable?`onclick="selTg=selTg==='${t.id}'?null:'${t.id}';renderContent();renderSide()"`:`onclick="selTg='${t.id}';renderSide()"`;
+ let h=`<div class="tg-card ${on}" ${click}>`;
+ h+='<div class="tg-head"><div>';
+ h+=`<div class="tg-title">${t.title}</div>`;
+ h+=`<div class="tg-company">${co.name} · ${d.name} · ${t.priority}</div>`;
+ h+='</div>';
+ if(t.quickwin)h+='<span class="tg-qw" style="color:var(--success);border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.08)">Quick win</span>';
+ else h+='<span class="tg-qw" style="color:var(--textMut);border-color:var(--border);background:transparent">Estrutural</span>';
+ h+=`<span class="pill" style="color:${d.c};border-color:${d.c}40;background:${d.c}10">${d.name}</span>`;
+ h+='</div>';
+ h+='<div class="tg-meta">';
+ h+=`<div class="tg-meta-item"><div class="tg-meta-lbl">Investimento</div><div class="tg-meta-val">${t.invest}</div></div>`;
+ h+=`<div class="tg-meta-item"><div class="tg-meta-lbl">Timeline</div><div class="tg-meta-val">${t.timeline}</div></div>`;
+ h+=`<div class="tg-meta-item"><div class="tg-meta-lbl">Empresa</div><div class="tg-meta-val">${co.name}</div></div>`;
+ h+=`<div class="tg-meta-item"><div class="tg-meta-lbl">Prioridade</div><div class="tg-meta-val" style="color:${t.priority==='P1'?'var(--danger)':'var(--warn)'}">${t.priority}</div></div>`;
+ h+='</div>';
+ h+=`<div class="tg-why">${t.why}</div>`;
+ h+='<div class="tg-impact-row">';
+ h+=`<div class="tg-impact-item">Receita <span class="tg-impact-val">${t.impact.rev}</span></div>`;
+ h+=`<div class="tg-impact-item">Margem <span class="tg-impact-val">${t.impact.margin}</span></div>`;
+ h+=`<div class="tg-impact-item">Eficiência <span class="tg-impact-val">${t.impact.eff}</span></div>`;
+ h+='</div>';
+ h+='<div class="tg-funds">';
+ h+='<span class="sec" style="margin:0 6px 0 0;align-self:center">Fundos elegíveis:</span>';
+ t.funds.forEach(fid=>{const f=FMAP[fid];if(f)h+=`<span class="tag" style="color:var(--accentL);border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.08)">${f.short}</span>`});
+ h+='</div></div>';
+ return h;
+}
+
+/* ---------- FUNDS ---------- */
+function renderFunds(c){
+ let h='<h2>Fundos europeus & instrumentos nacionais — matching aos alvos</h2>';
+ h+='<div class="desc">Cada alvo do backlog mapeia para um ou mais instrumentos de financiamento público. O fundo de capital de risco não financia sozinho — <em>co-financia alongside</em>. Este é o atlas de instrumentos ativos em Portugal, Q2 2026, com ligação explícita aos alvos identificados.</div>';
+
+ h+='<div class="fd-grid">';
+ FUNDS.forEach(f=>{
+  const rel=TARGETS.filter(t=>t.funds.includes(f.id));
+  const totalInv=rel.reduce((a,t)=>a+t.invest_num,0);
+  const on=selFd===f.id?'on':'';
+  h+=`<div class="fd-card ${on}" onclick="selFd=selFd==='${f.id}'?null:'${f.id}';renderContent();renderSide()">`;
+  h+=`<div class="fd-head">${f.short} · Gerido por ${f.managed}</div>`;
+  h+=`<div class="fd-title">${f.name}</div>`;
+  h+=`<div class="fd-body">${f.fit}</div>`;
+  h+='<div class="fd-meta">';
+  h+=`<div class="fd-meta-item"><div class="fd-meta-lbl">Teto / Incentivo</div><div class="fd-meta-val">${f.max}</div></div>`;
+  h+=`<div class="fd-meta-item"><div class="fd-meta-lbl">Janela</div><div class="fd-meta-val">${f.deadline}</div></div>`;
+  h+='</div>';
+  h+=`<div class="fd-coverage">${f.covers}</div>`;
+  h+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span class="sec" style="margin:0">Alvos cobertos: ${rel.length}</span><span style="font-size:12px;font-weight:800;color:var(--accentL)">€${totalInv.toFixed(0)}k alavancável</span></div>`;
+  h+='</div>';
+ });
+ h+='</div>';
+ c.innerHTML=h;
+}
+
+/* ============ SIDE PANEL ============ */
+function renderSide(){
+ const s=document.getElementById('side');
+ let h='';
+
+ if(curLayer===0){
+  /* Knowledge graph — navigator */
+  if(selKG)h=sideKnowledgeNode();else h=sideKnowledgeSummary();
+ }else if(curLayer===1){
+  /* Portfolio: show summary */
+  h=sidePortfolio();
+ }else if(curLayer===2){
+  /* Diagnostic: show dimension detail or company summary */
+  if(selDim)h=sideDimension();else h=sideCompany();
+ }else if(curLayer===3){
+  /* Targets: show target detail or backlog summary */
+  if(selTg)h=sideTarget();else h=sideBacklog();
+ }else if(curLayer===4){
+  /* Funds: show fund detail or total leverage summary */
+  if(selFd)h=sideFund();else h=sideLeverage();
+ }else{
+  /* Investor view */
+  if(selTg)h=sideTarget();else h=sideInvestor();
+ }
+ s.innerHTML=h;
+}
+
+function sidePortfolio(){
+ const statusCt={crit:0,risk:0,ready:0,adv:0};
+ COMPANIES.forEach(c=>statusCt[c.status]++);
+ const weakDim=DIMS.map(d=>({d,avg:COMPANIES.reduce((a,c)=>a+c.s[d.id],0)/COMPANIES.length})).sort((a,b)=>a.avg-b.avg)[0];
+ const strongDim=DIMS.map(d=>({d,avg:COMPANIES.reduce((a,c)=>a+c.s[d.id],0)/COMPANIES.length})).sort((a,b)=>b.avg-a.avg)[0];
+
+ let h='<div class="sn-group" style="color:var(--gold)"><div style="width:8px;height:8px;border-radius:4px;background:var(--gold)"></div>Portfolio</div>';
+ h+='<div class="sn-title">Leitura do sistema</div>';
+ h+='<div class="sn-detail">Oito investidas, €110M sob gestão, readiness médio de 50/100 — o portfolio está <em style="color:var(--warn);font-style:normal;font-weight:700">sub-digitalizado face ao benchmark</em>. DESI PT empresas mid-market 2025: ~62.</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Distribuição por status</div>';
+ Object.entries(STATUS).forEach(([k,st])=>{
+  h+=`<div class="sn-edge"><div class="sn-edge-dot" style="background:${st.c}"></div><div style="flex:1"><div class="sn-edge-name">${st.lbl}</div></div><span class="sn-edge-val">${statusCt[k]}</span></div>`;
+ });
+ h+='</div>';
+
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Dimensão mais fraca</div>`;
+ h+=`<div class="sn-edge" style="border-left:3px solid ${weakDim.d.c}"><div style="flex:1"><div class="sn-edge-name">${weakDim.d.name}</div><div class="sn-edge-label">Média: ${weakDim.avg.toFixed(0)}/100</div></div></div>`;
+ h+='<div style="font-size:11px;color:var(--textMut);margin-top:8px;line-height:1.6">É aqui que o fundo, como classe, está mais exposto. Intervenção horizontal ao portfolio tem economias de escala reais — um parceiro único implementando em múltiplas investidas.</div>';
+ h+='</div>';
+
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Dimensão mais forte</div>`;
+ h+=`<div class="sn-edge" style="border-left:3px solid ${strongDim.d.c}"><div style="flex:1"><div class="sn-edge-name">${strongDim.d.name}</div><div class="sn-edge-label">Média: ${strongDim.avg.toFixed(0)}/100</div></div></div>`;
+ h+='</div>';
+
+ const qw=TARGETS.filter(t=>t.quickwin).length;
+ const inv=TARGETS.reduce((a,t)=>a+t.invest_num,0);
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Pipeline de transformação</div>`;
+ h+=`<div class="sn-meta" style="border:none;padding:0">`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Alvos</span><span class="sn-meta-val">${TARGETS.length}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Quick wins</span><span class="sn-meta-val" style="color:var(--success)">${qw}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">CAPEX total</span><span class="sn-meta-val">€${inv.toFixed(0)}k</span></div>`;
+ h+=`</div></div>`;
+ return h;
+}
+
+function sideCompany(){
+ const co=CMAP[selCo];
+ const tg=TARGETS.filter(t=>t.co===co.id);
+ const st=STATUS[co.status];
+ let h=`<div class="sn-group" style="color:${st.c}"><div style="width:8px;height:8px;border-radius:4px;background:${st.c}"></div>${st.lbl}</div>`;
+ h+=`<div class="sn-title">${co.name}</div>`;
+ h+=`<div class="sn-detail">${co.sector} · ${co.hq}</div>`;
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Readiness</span><span class="sn-meta-val" style="color:${scoreColor(co.score)}">${co.score}/100</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Receita</span><span class="sn-meta-val">${co.rev}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Investimento</span><span class="sn-meta-val">${co.invest}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Hold</span><span class="sn-meta-val">${co.hold}</span></div>`;
+ h+='</div>';
+
+ /* strongest / weakest dims */
+ const sorted=DIMS.map(d=>({d,v:co.s[d.id]})).sort((a,b)=>a.v-b.v);
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Gaps prioritários</div>`;
+ sorted.slice(0,3).forEach(({d,v})=>{
+  h+=`<div class="sn-edge" onclick="selDim='${d.id}';renderContent();renderSide()"><div class="sn-edge-dot" style="background:${d.c}"></div><div style="flex:1"><div class="sn-edge-name">${d.name}</div><div class="sn-edge-label">${d.desc.split('.')[0]}.</div></div><span class="sn-edge-val" style="color:${scoreColor(v)}">${v}</span></div>`;
+ });
+ h+='</div>';
+
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Forças digitais</div>`;
+ sorted.slice(-2).reverse().forEach(({d,v})=>{
+  h+=`<div class="sn-edge"><div class="sn-edge-dot" style="background:${d.c}"></div><div style="flex:1"><div class="sn-edge-name">${d.name}</div></div><span class="sn-edge-val" style="color:${scoreColor(v)}">${v}</span></div>`;
+ });
+ h+='</div>';
+
+ if(tg.length){
+  const inv=tg.reduce((a,t)=>a+t.invest_num,0);
+  h+=`<div class="sn-sec"><div class="sn-sec-title">Alvos desta empresa <span class="sn-sec-count">${tg.length}</span></div>`;
+  h+=`<div style="font-size:11px;color:var(--textMut);margin-bottom:8px;line-height:1.6">CAPEX total proposto: <b style="color:var(--text)">€${inv.toFixed(0)}k</b>. Vá a <em style="color:var(--accent);font-style:normal">Alvos de transformação</em> para ver o backlog completo.</div>`;
+  tg.forEach(t=>{
+   h+=`<div class="sn-edge" onclick="goLayer(3);setTimeout(()=>{selTg='${t.id}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:${t.quickwin?'var(--success)':'var(--warn)'}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${t.title}</div><div class="sn-edge-label">${t.invest} · ${t.timeline}</div></div></div>`;
+  });
+  h+='</div>';
+ }
+ return h;
+}
+
+function sideDimension(){
+ const d=DMAP[selDim];
+ const co=CMAP[selCo];
+ const v=co.s[selDim];
+ let h=`<div class="sn-group" style="color:${d.c}"><div style="width:8px;height:8px;border-radius:4px;background:${d.c}"></div>Dimensão</div>`;
+ h+=`<div class="sn-title">${d.name}</div>`;
+ h+=`<div class="sn-detail">${d.desc}</div>`;
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Score ${co.name}</span><span class="sn-meta-val" style="color:${scoreColor(v)}">${v}/100</span></div>`;
+ const avg=COMPANIES.reduce((a,c)=>a+c.s[selDim],0)/COMPANIES.length;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Média portfolio</span><span class="sn-meta-val">${avg.toFixed(0)}/100</span></div>`;
+ h+='</div>';
+
+ /* Peer ranking */
+ const ranking=COMPANIES.map(c=>({c,v:c.s[selDim]})).sort((a,b)=>b.v-a.v);
+ h+=`<div class="sn-sec"><div class="sn-sec-title">Ranking no portfolio</div>`;
+ ranking.forEach(({c,v})=>{
+  const bold=c.id===co.id?'font-weight:800;color:var(--text)':'';
+  h+=`<div class="sn-edge" style="${bold}" onclick="selCo='${c.id}';renderContent();renderSide()"><div class="sn-edge-dot" style="background:${STATUS[c.status].c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${c.name}</div><div class="sn-edge-label">${c.sector}</div></div><span class="sn-edge-val" style="color:${scoreColor(v)}">${v}</span></div>`;
+ });
+ h+='</div>';
+
+ /* Related targets in this dimension */
+ const rel=TARGETS.filter(t=>t.dim===selDim);
+ if(rel.length){
+  h+=`<div class="sn-sec"><div class="sn-sec-title">Alvos nesta dimensão <span class="sn-sec-count">${rel.length}</span></div>`;
+  rel.forEach(t=>{
+   const c=CMAP[t.co];
+   h+=`<div class="sn-edge" onclick="goLayer(3);setTimeout(()=>{selTg='${t.id}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:${t.quickwin?'var(--success)':'var(--warn)'}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${t.title}</div><div class="sn-edge-label">${c.name} · ${t.invest}</div></div></div>`;
+  });
+  h+='</div>';
+ }
+ return h;
+}
+
+function sideBacklog(){
+ const filtered=filterTargets();
+ const qw=filtered.filter(t=>t.quickwin).length;
+ const p1=filtered.filter(t=>t.priority==='P1').length;
+ const inv=filtered.reduce((a,t)=>a+t.invest_num,0);
+ /* estimate leverage via funds */
+ const covered=filtered.filter(t=>t.funds.length>0).length;
+ const avgRate=filtered.reduce((a,t)=>a+(t.funds.length>0?0.6:0),0)/Math.max(filtered.length,1);
+ const leveraged=inv*avgRate;
+
+ let h='<div class="sn-group" style="color:var(--accent)"><div style="width:8px;height:8px;border-radius:4px;background:var(--accent)"></div>Backlog</div>';
+ h+='<div class="sn-title">Leitura do pipeline</div>';
+ h+=`<div class="sn-detail">${filtered.length} alvos · ${qw} quick wins · ${p1} P1. CAPEX agregado <em style="color:var(--text);font-style:normal;font-weight:700">€${inv.toFixed(0)}k</em>, dos quais ~€${leveraged.toFixed(0)}k alavancáveis via fundos europeus.</div>`;
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Distribuição por dimensão</div>';
+ DIMS.forEach(d=>{
+  const ct=filtered.filter(t=>t.dim===d.id).length;
+  if(!ct)return;
+  h+=`<div class="sn-edge" onclick="selDim='${d.id}';goLayer(2);renderSide()"><div class="sn-edge-dot" style="background:${d.c}"></div><div style="flex:1"><div class="sn-edge-name">${d.name}</div></div><span class="sn-edge-val">${ct}</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Distribuição por empresa</div>';
+ COMPANIES.forEach(c=>{
+  const ct=filtered.filter(t=>t.co===c.id).length;
+  if(!ct)return;
+  const cinv=filtered.filter(t=>t.co===c.id).reduce((a,t)=>a+t.invest_num,0);
+  h+=`<div class="sn-edge" onclick="selCo='${c.id}';goLayer(2);renderSide()"><div class="sn-edge-dot" style="background:${STATUS[c.status].c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${c.name}</div><div class="sn-edge-label">€${cinv.toFixed(0)}k</div></div><span class="sn-edge-val">${ct}</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Nota metodológica</div>';
+ h+='<div style="font-size:11.5px;color:var(--textDim);line-height:1.65">Quick wins são intervenções com <em style="color:var(--success);font-style:normal;font-weight:700">ROI esperado &lt; 12 meses</em> e fricção técnica baixa. Estruturais requerem 9–18 meses e reconfiguração operacional — é aí que o fundo ganha multiplicador de maturação do investimento.</div>';
+ h+='</div>';
+ return h;
+}
+
+function sideTarget(){
+ const t=TARGETS.find(x=>x.id===selTg);
+ const co=CMAP[t.co],d=DMAP[t.dim];
+ let h=`<div class="sn-group" style="color:${d.c}"><div style="width:8px;height:8px;border-radius:4px;background:${d.c}"></div>${d.name}</div>`;
+ h+=`<div class="sn-title">${t.title}</div>`;
+ h+=`<div class="sn-detail"><b style="color:var(--text)">${co.name}</b> · ${co.sector}</div>`;
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Investimento</span><span class="sn-meta-val">${t.invest}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Timeline</span><span class="sn-meta-val">${t.timeline}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Prioridade</span><span class="sn-meta-val" style="color:${t.priority==='P1'?'var(--danger)':'var(--warn)'}">${t.priority}</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Impacto esperado (36 meses)</div>';
+ h+=`<div class="sn-edge"><div style="flex:1"><div class="sn-edge-name">Receita</div></div><span class="sn-edge-val" style="color:var(--success)">${t.impact.rev}</span></div>`;
+ h+=`<div class="sn-edge"><div style="flex:1"><div class="sn-edge-name">Margem</div></div><span class="sn-edge-val" style="color:var(--success)">${t.impact.margin}</span></div>`;
+ h+=`<div class="sn-edge"><div style="flex:1"><div class="sn-edge-name">Eficiência</div></div><span class="sn-edge-val" style="color:var(--success)">${t.impact.eff}</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Fundos elegíveis <span class="sn-sec-count">'+t.funds.length+'</span></div>';
+ t.funds.forEach(fid=>{
+  const f=FMAP[fid];if(!f)return;
+  h+=`<div class="sn-edge" onclick="goLayer(4);setTimeout(()=>{selFd='${fid}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${f.short}</div><div class="sn-edge-label">${f.max.split('·')[1]||f.max}</div></div></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Hipótese sistémica</div>';
+ h+=`<div style="font-size:12px;color:var(--textDim);line-height:1.7">${t.why}</div>`;
+ h+='</div>';
+ return h;
+}
+
+function sideFund(){
+ const f=FMAP[selFd];
+ const rel=TARGETS.filter(t=>t.funds.includes(selFd));
+ const inv=rel.reduce((a,t)=>a+t.invest_num,0);
+ let h='<div class="sn-group" style="color:var(--accent)"><div style="width:8px;height:8px;border-radius:4px;background:var(--accent)"></div>Instrumento</div>';
+ h+=`<div class="sn-title">${f.short}</div>`;
+ h+=`<div class="sn-detail">${f.name}</div>`;
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Gestor</span><span class="sn-meta-val" style="font-size:11.5px">${f.managed}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Janela</span><span class="sn-meta-val" style="font-size:11.5px">${f.deadline.split('·')[0]}</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Âmbito</div>';
+ h+=`<div style="font-size:12px;color:var(--textDim);line-height:1.7"><b style="color:var(--text)">Teto / Incentivo:</b> ${f.max}<br><br><b style="color:var(--text)">Cobre:</b> ${f.fit}<br><br>${f.covers}</div>`;
+ h+='</div>';
+
+ if(rel.length){
+  h+=`<div class="sn-sec"><div class="sn-sec-title">Alvos cobertos <span class="sn-sec-count">${rel.length}</span></div>`;
+  h+=`<div style="font-size:11px;color:var(--textMut);margin-bottom:8px">CAPEX agregado <b style="color:var(--text)">€${inv.toFixed(0)}k</b>.</div>`;
+  rel.forEach(t=>{
+   const c=CMAP[t.co];
+   h+=`<div class="sn-edge" onclick="goLayer(3);setTimeout(()=>{selTg='${t.id}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:${t.quickwin?'var(--success)':'var(--warn)'}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${t.title}</div><div class="sn-edge-label">${c.name} · ${t.invest}</div></div></div>`;
+  });
+  h+='</div>';
+ }
+ return h;
+}
+
+function sideLeverage(){
+ const totalInv=TARGETS.reduce((a,t)=>a+t.invest_num,0);
+ const covered=TARGETS.filter(t=>t.funds.length>0);
+ const coveredInv=covered.reduce((a,t)=>a+t.invest_num,0);
+ const leveragePct=Math.round(coveredInv/totalInv*100);
+
+ let h='<div class="sn-group" style="color:var(--accent)"><div style="width:8px;height:8px;border-radius:4px;background:var(--accent)"></div>Financiamento</div>';
+ h+='<div class="sn-title">Alavancagem total</div>';
+ h+=`<div class="sn-detail">De €${totalInv.toFixed(0)}k em CAPEX de transformação no backlog, <em style="color:var(--success);font-style:normal;font-weight:700">${leveragePct}% é co-financiável</em> via instrumentos públicos ativos. O fundo não financia sozinho — <em>combina equity com fundos europeus</em>.</div>`;
+
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Backlog total</span><span class="sn-meta-val">€${totalInv.toFixed(0)}k</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Cobertura</span><span class="sn-meta-val" style="color:var(--success)">${leveragePct}%</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Instrumentos</span><span class="sn-meta-val">${FUNDS.length}</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Top 3 instrumentos por cobertura</div>';
+ const byFund=FUNDS.map(f=>({f,inv:TARGETS.filter(t=>t.funds.includes(f.id)).reduce((a,t)=>a+t.invest_num,0),ct:TARGETS.filter(t=>t.funds.includes(f.id)).length})).sort((a,b)=>b.inv-a.inv).slice(0,3);
+ byFund.forEach(({f,inv,ct})=>{
+  h+=`<div class="sn-edge" onclick="selFd='${f.id}';renderContent();renderSide()"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${f.short}</div><div class="sn-edge-label">${ct} alvos</div></div><span class="sn-edge-val" style="color:var(--accentL)">€${inv.toFixed(0)}k</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Nota estratégica</div>';
+ h+='<div style="font-size:11.5px;color:var(--textDim);line-height:1.7">A função do fundo não é <em style="color:var(--textMut);font-style:normal">substituir</em> o financiamento público — é <em style="color:var(--text);font-style:normal;font-weight:700">orquestrá-lo</em>. Cada euro de equity em transformação digital deve trazer €0.60–0.75 de fundos europeus atrás, reduzindo diluição efetiva e acelerando time-to-value.</div>';
+ h+='</div>';
+ return h;
+}
+
+/* ============ INVESTOR VIEW ============ */
+function renderInvestor(c){
+ /* Aggregate financials */
+ const tot_capex=TARGETS.reduce((a,t)=>a+t.capex_k,0);
+ const tot_opex_3y=TARGETS.reduce((a,t)=>a+t.opex_k*3,0);
+ const tot_tco=tot_capex+tot_opex_3y;
+ const tot_cover=TARGETS.reduce((a,t)=>a+t.cover_k,0);
+ const tot_net=tot_tco-tot_cover;
+ const tot_value=TARGETS.reduce((a,t)=>a+t.value_3y_k,0);
+ const roi_pct=tot_net>0?Math.round((tot_value-tot_net)/tot_net*100):0;
+ const coverPct=tot_capex>0?Math.round(tot_cover/tot_capex*100):0;
+
+ let h='<h2>Visão do investidor — economia do programa de transformação</h2>';
+ h+='<div class="desc">A transformação digital não é custo — é <em>capital alocado</em>. Este painel responde quatro perguntas: <em>quanto custa o programa, quanto é coberto por fundos públicos, quanto fica para o fundo, e quanto valor cria em 36 meses</em>. Os alvos mais potencializáveis são os que endereçam múltiplas investidas do portfolio.</div>';
+
+ /* KPI strip */
+ h+='<div class="iv-kpis">';
+ h+=ivKpi('Custo bruto do programa',`€${tot_tco.toFixed(0)}k`,`CAPEX €${tot_capex.toFixed(0)}k + OPEX 3y €${tot_opex_3y.toFixed(0)}k`,'warn');
+ h+=ivKpi('Cobertura fundos EU/PT',`€${tot_cover.toFixed(0)}k`,`${coverPct}% do CAPEX · não-diluitivo`,'gold');
+ h+=ivKpi('Custo líquido (equity)',`€${tot_net.toFixed(0)}k`,'O que efectivamente sai do fundo','');
+ h+=ivKpi('Valor criado 36m',`€${tot_value.toFixed(0)}k`,'Revenue uplift + margem + risco evitado','ok');
+ h+=ivKpi('ROI líquido 3y',`${roi_pct>0?'+':''}${roi_pct}%`,'Valor / custo líquido do fundo',roi_pct>50?'ok':(roi_pct>0?'':'warn'));
+ h+='</div>';
+
+ /* Cascade: Bruto -> Cobertura -> Líquido -> Valor */
+ h+='<div class="iv-panel" style="margin-bottom:16px">';
+ h+='<div class="iv-panel-head"><div><div class="iv-panel-title">Cascata económica do programa</div><div class="iv-panel-sub">De custo bruto a valor criado, passando pela cobertura pública que reduz o cheque efetivo do fundo.</div></div></div>';
+ const maxBar=Math.max(tot_tco,tot_value)*1.05;
+ const barH=v=>Math.max(4,(v/maxBar)*160);
+ h+='<div class="iv-cascade">';
+ h+=`<div class="iv-cascade-bar"><div class="iv-cascade-seg" style="height:${barH(tot_capex)}px;background:var(--warn);opacity:.85"></div><div class="iv-cascade-seg" style="height:${barH(tot_opex_3y)}px;background:var(--warn);opacity:.45"></div><div class="iv-cascade-lbl">CAPEX + OPEX 3y</div><div class="iv-cascade-val" style="color:var(--warn)">€${tot_tco.toFixed(0)}k</div></div>`;
+ h+=`<div class="iv-cascade-bar"><div class="iv-cascade-seg" style="height:${barH(tot_cover)}px;background:var(--gold);opacity:.8"></div><div class="iv-cascade-lbl">Cobertura EU/PT</div><div class="iv-cascade-val" style="color:var(--gold)">−€${tot_cover.toFixed(0)}k</div></div>`;
+ h+=`<div class="iv-cascade-bar"><div class="iv-cascade-seg" style="height:${barH(tot_net)}px;background:var(--accent);opacity:.85"></div><div class="iv-cascade-lbl">Custo líquido equity</div><div class="iv-cascade-val" style="color:var(--accentL)">€${tot_net.toFixed(0)}k</div></div>`;
+ h+=`<div class="iv-cascade-bar"><div class="iv-cascade-seg" style="height:${barH(tot_value)}px;background:var(--success);opacity:.85"></div><div class="iv-cascade-lbl">Valor criado 36m</div><div class="iv-cascade-val" style="color:var(--success)">€${tot_value.toFixed(0)}k</div></div>`;
+ h+='</div>';
+ h+=`<div style="font-size:11.5px;color:var(--textDim);line-height:1.65;margin-top:12px;padding:10px 12px;background:rgba(16,185,129,.05);border-left:3px solid var(--success);border-radius:4px">Cada <b style="color:var(--text)">€1 de equity</b> investido em transformação digital neste programa é acompanhado por <b style="color:var(--gold)">€${(tot_cover/tot_net).toFixed(2)}</b> de fundos EU/PT e gera <b style="color:var(--success)">€${(tot_value/tot_net).toFixed(2)}</b> de valor em 36 meses.</div>`;
+ h+='</div>';
+
+ /* Row 1: Hypotheses by reach  |  Hypotheses by ROI */
+ /* Build hypothesis patterns by title — count how many companies share each */
+ const byTitle={};
+ TARGETS.forEach(t=>{
+  const key=normalizeTitle(t.title);
+  if(!byTitle[key])byTitle[key]={key,title:t.title,cos:new Set(),tgs:[],capex:0,opex:0,cover:0,value:0};
+  byTitle[key].cos.add(t.co);
+  byTitle[key].tgs.push(t);
+  byTitle[key].capex+=t.capex_k;
+  byTitle[key].opex+=t.opex_k*3;
+  byTitle[key].cover+=t.cover_k;
+  byTitle[key].value+=t.value_3y_k;
+ });
+ /* Also build dimension-level reach: for each dimension count unique companies in the targets */
+ const dimReach=DIMS.map(d=>{
+  const rel=TARGETS.filter(t=>t.dim===d.id);
+  const cos=new Set(rel.map(t=>t.co));
+  return {d,rel,reach:cos.size,capex:rel.reduce((a,t)=>a+t.capex_k,0),cover:rel.reduce((a,t)=>a+t.cover_k,0),value:rel.reduce((a,t)=>a+t.value_3y_k,0)};
+ }).filter(x=>x.rel.length>0).sort((a,b)=>b.reach-a.reach||b.value-a.value);
+
+ h+='<div class="iv-grid2">';
+
+ /* Dimensions ranked by cross-portfolio leverage */
+ h+='<div class="iv-panel">';
+ h+='<div class="iv-panel-head"><div><div class="iv-panel-title">Dimensões potencializáveis no portfolio</div><div class="iv-panel-sub">Onde um parceiro único, replicando intervenções em várias investidas, amortiza custo via economias de escala. Largura da barra = número de empresas atingidas.</div></div></div>';
+ const maxReach=Math.max(...dimReach.map(x=>x.reach),1);
+ dimReach.forEach(({d,rel,reach,capex,cover,value})=>{
+  const pct=(reach/maxReach)*100;
+  h+=`<div class="iv-bar-row" onclick="selDim='${d.id}';goLayer(2);renderSide()">`;
+  h+=`<div><div class="iv-bar-lbl" style="color:${d.c}">${d.name}</div><div class="iv-bar-co">${rel.length} alvo${rel.length>1?'s':''} · €${capex.toFixed(0)}k capex</div></div>`;
+  h+=`<div class="iv-bar-track"><div class="iv-bar-fill" style="width:${pct}%;background:${d.c}"></div></div>`;
+  h+=`<div class="iv-bar-num" style="color:${d.c}">${reach} emp</div>`;
+  h+=`<div class="iv-bar-tag">€${value.toFixed(0)}k val</div>`;
+  h+=`</div>`;
+ });
+ h+='</div>';
+
+ /* Cost distribution by company — treemap-like stacked bars */
+ h+='<div class="iv-panel">';
+ h+='<div class="iv-panel-head"><div><div class="iv-panel-title">Custo por investida</div><div class="iv-panel-sub">TCO 3 anos por empresa, com fatia coberta por fundos EU/PT destacada.</div></div></div>';
+ const byCompany=COMPANIES.map(co=>{
+  const rel=TARGETS.filter(t=>t.co===co.id);
+  const tco=rel.reduce((a,t)=>a+t.tco_3y_k,0);
+  const cover=rel.reduce((a,t)=>a+t.cover_k,0);
+  return {co,rel,tco,cover,net:tco-cover,value:rel.reduce((a,t)=>a+t.value_3y_k,0)};
+ }).filter(x=>x.rel.length>0).sort((a,b)=>b.tco-a.tco);
+ const maxTco=Math.max(...byCompany.map(x=>x.tco),1);
+ byCompany.forEach(({co,rel,tco,cover,net,value})=>{
+  const pctTotal=(tco/maxTco)*100;
+  const pctCover=tco>0?(cover/tco)*100:0;
+  h+=`<div class="iv-bar-row" onclick="gotoDiagnostic('${co.id}')">`;
+  h+=`<div><div class="iv-bar-lbl">${co.name}</div><div class="iv-bar-co">${rel.length} alvo${rel.length>1?'s':''} · val €${value.toFixed(0)}k</div></div>`;
+  h+=`<div class="iv-bar-track"><div class="iv-bar-fill" style="width:${pctTotal}%;background:linear-gradient(to right,var(--gold) 0% ${pctCover}%,var(--accent) ${pctCover}% 100%);opacity:.85"></div></div>`;
+  h+=`<div class="iv-bar-num">€${tco.toFixed(0)}k</div>`;
+  h+=`<div class="iv-bar-tag" style="color:var(--gold)">${Math.round(pctCover)}% cov</div>`;
+  h+=`</div>`;
+ });
+ h+='<div style="font-size:10px;color:var(--textMut);margin-top:10px;display:flex;gap:12px;align-items:center"><span><span class="dot" style="background:var(--gold)"></span>Cobertura EU/PT</span><span><span class="dot" style="background:var(--accent)"></span>Custo líquido equity</span></div>';
+ h+='</div>';
+
+ h+='</div>';
+
+ /* Coverage heatmap: Fund x Dimension */
+ h+='<div class="iv-panel" style="margin-bottom:16px">';
+ h+='<div class="iv-panel-head"><div><div class="iv-panel-title">Matriz de cobertura — dimensão × fundo</div><div class="iv-panel-sub">Cada célula mostra o CAPEX coberto por cada fundo em cada dimensão do modelo. Dimensões em cinza não têm fundo europeu elegível no backlog actual — são decisões 100% equity.</div></div></div>';
+ /* Compute dim x fund matrix: total capex*coverage attributed */
+ const mtx={};
+ DIMS.forEach(d=>{mtx[d.id]={};FUNDS.forEach(f=>{mtx[d.id][f.id]=0})});
+ TARGETS.forEach(t=>{
+  const share=t.funds.length?1/t.funds.length:0;
+  t.funds.forEach(fid=>{
+   if(mtx[t.dim]&&mtx[t.dim][fid]!==undefined)mtx[t.dim][fid]+=t.cover_k*share;
+  });
+ });
+ const mtxMax=Math.max(...DIMS.flatMap(d=>FUNDS.map(f=>mtx[d.id][f.id])),1);
+ h+='<div class="iv-heat">';
+ /* Header row */
+ h+='<div class="iv-heat-head"><div></div>';
+ FUNDS.forEach(f=>{h+=`<div class="iv-heat-lbl-col" title="${f.name}">${f.short.replace('P2030 ','').replace('PRR ','')}</div>`});
+ h+='</div>';
+ DIMS.forEach(d=>{
+  h+='<div class="iv-heat-row">';
+  h+=`<div class="iv-heat-lbl-row" style="color:${d.c}">${d.name}</div>`;
+  FUNDS.forEach(f=>{
+   const v=mtx[d.id][f.id];
+   const intensity=v/mtxMax;
+   const bg=v>0?`rgba(212,160,23,${0.15+intensity*0.75})`:'rgba(255,255,255,.015)';
+   const lbl=v>0?`€${v.toFixed(0)}k`:'—';
+   h+=`<div class="iv-heat-cell" style="background:${bg};color:${v>0?'#fff':'var(--textMut)'}" title="${d.name} × ${f.short}: €${v.toFixed(0)}k">${lbl}</div>`;
+  });
+  h+='</div>';
+ });
+ h+='</div>';
+
+ /* Dimension coverage summary */
+ h+='<div class="iv-dimcov">';
+ DIMS.forEach(d=>{
+  const rel=TARGETS.filter(t=>t.dim===d.id);
+  if(!rel.length){
+   h+=`<div class="iv-dimcov-cell" style="opacity:.45"><div class="iv-dimcov-name" style="color:${d.c}">${d.name}</div><div class="iv-dimcov-sub">Sem alvos</div><div class="iv-dimcov-num" style="color:var(--textMut)">—</div></div>`;
+   return;
+  }
+  const capex=rel.reduce((a,t)=>a+t.capex_k,0);
+  const cover=rel.reduce((a,t)=>a+t.cover_k,0);
+  const pct=capex>0?Math.round(cover/capex*100):0;
+  const col=pct>=60?'var(--success)':(pct>=30?'var(--gold)':'var(--warn)');
+  h+=`<div class="iv-dimcov-cell"><div class="iv-dimcov-name" style="color:${d.c}">${d.name}</div><div class="iv-dimcov-sub">${rel.length} alvo · €${capex.toFixed(0)}k capex</div><div class="iv-dimcov-num" style="color:${col}">${pct}% cov</div></div>`;
+ });
+ h+='</div>';
+ h+='</div>';
+
+ /* Ranked hypothesis table */
+ h+='<div class="iv-panel">';
+ h+='<div class="iv-panel-head"><div><div class="iv-panel-title">Backlog ordenado por alavancagem</div><div class="iv-panel-sub">Cada linha é uma hipótese de intervenção. Ordenado por <em style="color:var(--gold);font-style:normal">ROI líquido 3 anos</em> sobre o custo efetivo pós-cobertura. Clique numa linha para abrir a ficha no painel lateral.</div></div></div>';
+ h+='<table class="iv-target-tbl"><thead><tr>';
+ h+='<th>Hipótese</th><th>Empresa · Dimensão</th><th>Impacto</th><th class="num">CAPEX</th><th class="num">Cov.</th><th class="num">Líquido</th><th class="num">Valor 3y</th><th class="num">ROI 3y</th>';
+ h+='</tr></thead><tbody>';
+ const ranked=[...TARGETS].sort((a,b)=>b.roi_3y-a.roi_3y);
+ ranked.forEach(t=>{
+  const co=CMAP[t.co],d=DMAP[t.dim],im=IMAP[t.primary_impact];
+  const on=selTg===t.id?'on':'';
+  const roiCol=t.roi_3y>2?'var(--success)':(t.roi_3y>1?'var(--successL)':(t.roi_3y>0?'var(--warn)':'var(--danger)'));
+  h+=`<tr class="${on}" onclick="selTg='${t.id}';renderSide()">`;
+  h+=`<td style="max-width:260px"><div style="font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div><div style="font-size:9.5px;color:${t.quickwin?'var(--success)':'var(--warn)'};text-transform:uppercase;letter-spacing:.4px;margin-top:2px;font-weight:700">${t.quickwin?'Quick win':'Estrutural'} · ${t.priority}</div></td>`;
+  h+=`<td><div style="color:var(--textDim)">${co.name}</div><div style="font-size:9.5px;color:${d.c};margin-top:2px">${d.name}</div></td>`;
+  h+=`<td><span style="display:inline-flex;align-items:center;gap:4px;color:${im.c};font-size:10.5px;font-weight:700"><span class="dot" style="background:${im.c};margin:0"></span>${im.name}</span></td>`;
+  h+=`<td class="num">€${t.capex_k.toFixed(0)}k</td>`;
+  h+=`<td class="num" style="color:var(--gold)">${Math.round(t.coverage*100)}%</td>`;
+  h+=`<td class="num" style="color:var(--accentL)">€${t.net_cost_k.toFixed(0)}k</td>`;
+  h+=`<td class="num" style="color:var(--success)">€${t.value_3y_k.toFixed(0)}k</td>`;
+  h+=`<td class="num" style="color:${roiCol}">${t.roi_3y.toFixed(1)}×</td>`;
+  h+='</tr>';
+ });
+ h+='</tbody></table>';
+ h+='</div>';
+
+ c.innerHTML=h;
+}
+
+function ivKpi(lbl,val,sub,cls){
+ return `<div class="iv-kpi ${cls||''}"><div class="iv-kpi-lbl">${lbl}</div><div class="iv-kpi-val">${val}</div><div class="iv-kpi-sub">${sub}</div></div>`;
+}
+
+function normalizeTitle(t){
+ return t.toLowerCase().replace(/[^\w\s]/g,'').split(' ').slice(0,4).join(' ');
+}
+
+function sideInvestor(){
+ const tot_capex=TARGETS.reduce((a,t)=>a+t.capex_k,0);
+ const tot_opex_3y=TARGETS.reduce((a,t)=>a+t.opex_k*3,0);
+ const tot_tco=tot_capex+tot_opex_3y;
+ const tot_cover=TARGETS.reduce((a,t)=>a+t.cover_k,0);
+ const tot_net=tot_tco-tot_cover;
+ const tot_value=TARGETS.reduce((a,t)=>a+t.value_3y_k,0);
+
+ /* Top 3 by ROI */
+ const topRoi=[...TARGETS].sort((a,b)=>b.roi_3y-a.roi_3y).slice(0,3);
+ /* Uncovered dimensions */
+ const uncov=DIMS.map(d=>{
+  const rel=TARGETS.filter(t=>t.dim===d.id);
+  const capex=rel.reduce((a,t)=>a+t.capex_k,0);
+  const cover=rel.reduce((a,t)=>a+t.cover_k,0);
+  return {d,rel:rel.length,capex,cover,pct:capex>0?cover/capex:0};
+ }).filter(x=>x.rel>0).sort((a,b)=>a.pct-b.pct).slice(0,3);
+ /* Impact mix */
+ const impMix={};IMPACTS.forEach(i=>impMix[i.id]=0);
+ TARGETS.forEach(t=>{impMix[t.primary_impact]+=t.value_3y_k});
+
+ let h='<div class="sn-group" style="color:var(--gold)"><div style="width:8px;height:8px;border-radius:4px;background:var(--gold)"></div>Investidor</div>';
+ h+='<div class="sn-title">Tese económica do programa</div>';
+ h+=`<div class="sn-detail">De <em style="color:var(--text);font-style:normal;font-weight:700">€${tot_tco.toFixed(0)}k</em> em custo bruto, <em style="color:var(--gold);font-style:normal;font-weight:700">€${tot_cover.toFixed(0)}k</em> é coberto por fundos EU/PT — o cheque efetivo do fundo é <em style="color:var(--accentL);font-style:normal;font-weight:700">€${tot_net.toFixed(0)}k</em> contra <em style="color:var(--success);font-style:normal;font-weight:700">€${tot_value.toFixed(0)}k</em> de valor criado em 36 meses.</div>`;
+
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Custo bruto</span><span class="sn-meta-val">€${tot_tco.toFixed(0)}k</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Cobertura</span><span class="sn-meta-val" style="color:var(--gold)">${Math.round(tot_cover/tot_capex*100)}%</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Múltiplo</span><span class="sn-meta-val" style="color:var(--success)">${(tot_value/tot_net).toFixed(1)}×</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Top 3 alvos por ROI 3y</div>';
+ topRoi.forEach(t=>{
+  const co=CMAP[t.co];
+  h+=`<div class="sn-edge" onclick="selTg='${t.id}';renderSide()"><div class="sn-edge-dot" style="background:${t.quickwin?'var(--success)':'var(--warn)'}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${t.title}</div><div class="sn-edge-label">${co.name} · €${t.net_cost_k.toFixed(0)}k líquido</div></div><span class="sn-edge-val" style="color:var(--success)">${t.roi_3y.toFixed(1)}×</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Dimensões sub-financiadas</div>';
+ h+='<div style="font-size:11px;color:var(--textMut);margin-bottom:8px;line-height:1.6">Onde o fundo está mais sozinho — menor cobertura por instrumentos públicos. Decisão estratégica: investir mesmo assim ou deixar para depois?</div>';
+ uncov.forEach(({d,rel,capex,pct})=>{
+  const col=pct<0.3?'var(--danger)':(pct<0.5?'var(--warn)':'var(--gold)');
+  h+=`<div class="sn-edge"><div class="sn-edge-dot" style="background:${d.c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${d.name}</div><div class="sn-edge-label">${rel} alvo · €${capex.toFixed(0)}k capex</div></div><span class="sn-edge-val" style="color:${col}">${Math.round(pct*100)}%</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Mix de impacto esperado</div>';
+ IMPACTS.forEach(i=>{
+  const v=impMix[i.id]||0;
+  const pct=tot_value>0?Math.round(v/tot_value*100):0;
+  h+=`<div class="sn-edge"><div class="sn-edge-dot" style="background:${i.c}"></div><div style="flex:1"><div class="sn-edge-name">${i.name}</div><div class="sn-edge-label">€${v.toFixed(0)}k · ${pct}%</div></div></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Nota de leitura</div>';
+ h+='<div style="font-size:11.5px;color:var(--textDim);line-height:1.7">O ROI líquido é calculado sobre o <em style="color:var(--text);font-style:normal;font-weight:700">custo efetivo do fundo</em> — capex + 3 anos de opex, menos cobertura pública. A transformação digital, orquestrada com fundos europeus, não é despesa: é <em style="color:var(--gold);font-style:normal;font-weight:700">capital alavancado</em>.</div>';
+ h+='</div>';
+ return h;
+}
+
+/* ============ KNOWLEDGE GRAPH ============ */
+/* Build nodes & edges from the conceptual model */
+function buildKG(){
+ const nodes=[];
+ const edges=[];
+ /* Companies */
+ COMPANIES.forEach(c=>nodes.push({id:'co:'+c.id,type:'co',label:c.name,data:c,r:18,c:STATUS[c.status].c}));
+ /* Dimensions */
+ DIMS.forEach(d=>nodes.push({id:'dim:'+d.id,type:'dim',label:d.name,data:d,r:14,c:d.c}));
+ /* Targets */
+ TARGETS.forEach(t=>nodes.push({id:'tg:'+t.id,type:'tg',label:t.title.length>38?t.title.slice(0,35)+'…':t.title,data:t,r:11,c:t.quickwin?'var(--success)':'var(--warn)'}));
+ /* Funds */
+ FUNDS.forEach(f=>nodes.push({id:'fd:'+f.id,type:'fd',label:f.short,data:f,r:13,c:'var(--accentL)'}));
+ /* Impacts */
+ IMPACTS.forEach(i=>nodes.push({id:'im:'+i.id,type:'im',label:i.name,data:i,r:15,c:i.c}));
+ /* Edges: Target -> Dimension (addresses) */
+ TARGETS.forEach(t=>edges.push({s:'tg:'+t.id,t:'dim:'+t.dim,kind:'addresses',w:1.6}));
+ /* Edges: Target -> Company (belongs to) */
+ TARGETS.forEach(t=>edges.push({s:'tg:'+t.id,t:'co:'+t.co,kind:'belongs',w:1.6}));
+ /* Edges: Target -> Fund (financed by) */
+ TARGETS.forEach(t=>t.funds.forEach(fid=>edges.push({s:'tg:'+t.id,t:'fd:'+fid,kind:'funded',w:1.1})));
+ /* Edges: Target -> Impact (generates) */
+ TARGETS.forEach(t=>targetImpacts(t).forEach(iid=>edges.push({s:'tg:'+t.id,t:'im:'+iid,kind:'impacts',w:1.2})));
+ /* Edges: Company -> Dimension (top 2 gaps per company — "where value is stuck") */
+ COMPANIES.forEach(c=>{
+  const sorted=DIMS.map(d=>({d,v:c.s[d.id]})).sort((a,b)=>a.v-b.v).slice(0,2);
+  sorted.forEach(({d,v})=>edges.push({s:'co:'+c.id,t:'dim:'+d.id,kind:'gap',w:0.6,meta:v}));
+ });
+ return {nodes,edges};
+}
+
+/* Position cache — preserves node positions across filter toggles */
+let kgPositions={};
+let kgD3Refs=null;
+/* Layout mode: 'force' (physics) | 'layers' (swimlanes by type) */
+let kgLayout='force';
+/* Sizing mode: 'uniform' (fixed r per type) | 'attr' (scaled by node attribute) */
+let kgSizing='uniform';
+
+/* Compute node radius — either uniform defaults or scaled by a domain attribute */
+function applyNodeSizing(nodes){
+ const defaults={co:18,dim:14,tg:11,fd:13,im:15};
+ if(kgSizing==='uniform'){nodes.forEach(n=>n.r=defaults[n.type]);return;}
+ /* Attribute extractors per type */
+ function attrOf(n){
+  if(n.type==='co'){const m=n.data.rev&&n.data.rev.match(/[\d.]+/);return m?parseFloat(m[0]):0;}
+  if(n.type==='dim'){
+   /* Size = aggregate gap — lower portfolio avg score means bigger node (more systemic gap) */
+   const vs=COMPANIES.map(c=>c.s[n.data.id]);
+   const avg=vs.reduce((a,b)=>a+b,0)/vs.length;
+   return 100-avg;
+  }
+  if(n.type==='tg'){return n.data.value_3y_k||n.data.capex_k||0;}
+  if(n.type==='fd'){const m=n.data.max&&n.data.max.match(/[\d.]+/);return m?parseFloat(m[0]):0;}
+  if(n.type==='im'){let ct=0;TARGETS.forEach(t=>{if(targetImpacts(t).indexOf(n.data.id)>=0)ct++;});return ct;}
+  return 1;
+ }
+ const ranges={co:[11,24],dim:[9,20],tg:[7,18],fd:[9,20],im:[10,22]};
+ const perType={};
+ nodes.forEach(n=>{
+  if(!perType[n.type])perType[n.type]={vals:{},min:Infinity,max:-Infinity};
+  const v=attrOf(n);
+  perType[n.type].vals[n.id]=v;
+  if(v<perType[n.type].min)perType[n.type].min=v;
+  if(v>perType[n.type].max)perType[n.type].max=v;
+ });
+ nodes.forEach(n=>{
+  const pt=perType[n.type];
+  const [rMin,rMax]=ranges[n.type]||[10,18];
+  const v=pt.vals[n.id];
+  const norm=pt.max>pt.min?(v-pt.min)/(pt.max-pt.min):0.5;
+  n.r=rMin+norm*(rMax-rMin);
+ });
+}
+
+function renderKnowledge(c){
+ let h='<div class="kg-wrap">';
+ h+='<h2>Navegador — o sistema inteiro, num só plano</h2>';
+ h+='<div class="desc">O ponto de entrada. Cinco classes de nós, cinco tipos de ligação — <em>investidas ↔ dimensões ↔ alvos ↔ fundos ↔ impactos</em> — e o programa todo torna-se navegável. Clique num nó para fixar foco; use os atalhos do painel lateral para descer ao <em>Portfolio</em>, ao <em>Diagnóstico</em>, aos <em>Alvos</em>, aos <em>Fundos</em> ou à <em>Visão do investidor</em>. Arrastar reposiciona · scroll faz zoom · hover revela vizinhos.</div>';
+
+ /* Toolbar: legend + filters */
+ h+='<div class="kg-toolbar">';
+ h+='<div class="kg-legend">';
+ h+='<span class="kg-legend-item"><svg class="kg-legend-shape" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="var(--success)" fill-opacity=".2" stroke="var(--success)" stroke-width="1.6"/></svg>Empresa</span>';
+ h+='<span class="kg-legend-item"><svg class="kg-legend-shape" viewBox="0 0 14 14"><polygon points="7,1.8 12.5,11.5 1.5,11.5" fill="var(--purple)" fill-opacity=".3" stroke="var(--purple)" stroke-width="1.6" stroke-linejoin="round"/></svg>Dimensão</span>';
+ h+='<span class="kg-legend-item"><svg class="kg-legend-shape" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="var(--warn)" fill-opacity=".25" stroke="var(--warn)" stroke-width="1.6"/></svg>Alvo</span>';
+ h+='<span class="kg-legend-item"><svg class="kg-legend-shape" viewBox="0 0 14 14"><polygon points="7,1 13,7 7,13 1,7" fill="var(--accent)" fill-opacity=".26" stroke="var(--accent)" stroke-width="1.6"/></svg>Fundo</span>';
+ h+='<span class="kg-legend-item"><svg class="kg-legend-shape" viewBox="0 0 14 14"><polygon points="12,7 9.5,11.3 4.5,11.3 2,7 4.5,2.7 9.5,2.7" fill="var(--cyan)" fill-opacity=".25" stroke="var(--cyan)" stroke-width="1.6"/></svg>Impacto</span>';
+ h+='</div>';
+ h+='<div class="kg-filters">';
+ const flts=[['co','Empresas'],['dim','Dimensões'],['tg','Alvos'],['fd','Fundos'],['im','Impactos']];
+ flts.forEach(([k,lbl])=>h+=`<button class="kg-fbtn ${kgFilters[k]?'on':''}" onclick="kgFilters['${k}']=!kgFilters['${k}'];renderContent();renderSide()">${lbl}</button>`);
+ h+='<span style="width:1px;height:18px;background:var(--border);margin:0 4px"></span>';
+ h+=`<button class="kg-fbtn ${kgLayout==='force'?'on':''}" title="Layout força — simulação física" onclick="kgLayout='force';kgPositions={};renderContent();renderSide()">Força</button>`;
+ h+=`<button class="kg-fbtn ${kgLayout==='layers'?'on':''}" title="Layout camadas — classes em swimlanes horizontais" onclick="kgLayout='layers';kgPositions={};renderContent();renderSide()">Camadas</button>`;
+ h+='<span style="width:1px;height:18px;background:var(--border);margin:0 4px"></span>';
+ h+=`<button class="kg-fbtn ${kgSizing==='uniform'?'on':''}" title="Tamanho uniforme por tipo" onclick="kgSizing='uniform';renderContent();renderSide()">Tam. uniforme</button>`;
+ h+=`<button class="kg-fbtn ${kgSizing==='attr'?'on':''}" title="Empresa=faturamento · Dimensão=gap · Alvo=valor 3y · Fundo=montante · Impacto=alcance" onclick="kgSizing='attr';renderContent();renderSide()">Tam. por atributo</button>`;
+ h+='<button class="kg-fbtn" style="margin-left:6px;border-color:rgba(212,160,23,.35);color:var(--gold)" onclick="kgPositions={};renderContent();renderSide()">Recentrar</button>';
+ h+='</div>';
+ h+='</div>';
+
+ /* SVG canvas */
+ h+='<div class="kg-canvas">';
+ h+='<div class="kg-hint" id="kg-hint">a compor…</div>';
+ h+='<svg class="kg-svg" id="kg-svg"></svg>';
+ h+='</div>';
+
+ /* Summary bar below graph */
+ h+='<div class="kg-meta-grid">';
+ h+=`<div class="kg-meta-cell"><div class="kg-meta-cell-lbl">Empresas</div><div class="kg-meta-cell-val" style="color:var(--success)">${COMPANIES.length}</div></div>`;
+ h+=`<div class="kg-meta-cell"><div class="kg-meta-cell-lbl">Dimensões</div><div class="kg-meta-cell-val" style="color:var(--purpleL)">${DIMS.length}</div></div>`;
+ h+=`<div class="kg-meta-cell"><div class="kg-meta-cell-lbl">Alvos</div><div class="kg-meta-cell-val" style="color:var(--warn)">${TARGETS.length}</div></div>`;
+ h+=`<div class="kg-meta-cell"><div class="kg-meta-cell-lbl">Fundos</div><div class="kg-meta-cell-val" style="color:var(--accentL)">${FUNDS.length}</div></div>`;
+ h+=`<div class="kg-meta-cell"><div class="kg-meta-cell-lbl">Impactos</div><div class="kg-meta-cell-val" style="color:var(--cyan)">${IMPACTS.length}</div></div>`;
+ h+='</div>';
+
+ h+='</div>';
+ c.innerHTML=h;
+
+ setTimeout(buildD3KG,30);
+}
+
+function pickKG(type,id){
+ if(selKG&&selKG.type===type&&selKG.id===id)selKG=null;
+ else selKG={type,id};
+ if(kgD3Refs&&kgD3Refs.applyFocus)kgD3Refs.applyFocus();
+ renderSide();
+}
+
+/* Build D3 force-directed graph with drag, zoom, hover, pin */
+function buildD3KG(){
+ const svgEl=document.getElementById('kg-svg');
+ if(!svgEl||typeof d3==='undefined')return;
+ const canvas=svgEl.parentElement;
+ const W=Math.max(canvas.clientWidth||1100,800);
+ const H=Math.max(canvas.clientHeight||560,500);
+
+ const svg=d3.select(svgEl);
+ svg.selectAll('*').remove();
+ svg.attr('viewBox',`0 0 ${W} ${H}`);
+
+ /* Build data */
+ const {nodes:allNodes,edges:allEdges}=buildKG();
+ const visible=new Set(allNodes.filter(n=>kgFilters[n.type]).map(n=>n.id));
+ const nodes=allNodes.filter(n=>visible.has(n.id)).map(n=>{
+  const o={...n};
+  /* Seed positions: from cache if exists, otherwise by type-radial */
+  if(kgPositions[n.id]){o.x=kgPositions[n.id].x;o.y=kgPositions[n.id].y}
+  else{
+   const typeAngles={co:-Math.PI*0.75,dim:-Math.PI*0.25,tg:0,fd:Math.PI*0.25,im:Math.PI*0.75};
+   const typeRadius={co:0.78,dim:0.42,tg:0.12,fd:0.58,im:0.82};
+   const peers=allNodes.filter(x=>x.type===n.type);
+   const idx=peers.indexOf(n);
+   const spread=peers.length>1?(idx/(peers.length-1)-0.5)*Math.PI*0.55:0;
+   const ang=typeAngles[n.type]+spread;
+   const R=Math.min(W,H)*0.38*typeRadius[n.type];
+   let hash=0;for(let i=0;i<n.id.length;i++){hash=((hash<<5)-hash)+n.id.charCodeAt(i);hash|=0}
+   const jitter=((hash%1000)/1000-0.5)*20;
+   o.x=W/2+Math.cos(ang)*R+jitter;
+   o.y=H/2+Math.sin(ang)*R+((hash>>8)%1000/1000-0.5)*20;
+  }
+  return o;
+ });
+ const nodeMap={};nodes.forEach(n=>nodeMap[n.id]=n);
+ const edges=allEdges.filter(e=>nodeMap[e.s]&&nodeMap[e.t]).map(e=>({source:e.s,target:e.t,kind:e.kind,w:e.w}));
+
+ /* Apply node sizing (uniform vs. attribute-scaled) */
+ applyNodeSizing(nodes);
+
+ /* Layered layout — position nodes in horizontal swimlanes by type (Empresa → Dimensão → Alvo → Fundo → Impacto) */
+ if(kgLayout==='layers'){
+  const lanes=[['co',0.11],['dim',0.30],['tg',0.52],['fd',0.74],['im',0.92]];
+  lanes.forEach(([type,yFrac])=>{
+   const peers=nodes.filter(n=>n.type===type);
+   peers.forEach((n,i)=>{
+    const x=W*((i+1)/(peers.length+1));
+    const y=H*yFrac;
+    n.x=x;n.y=y;n.fx=x;n.fy=y;
+   });
+  });
+ }else{
+  /* Clear pins from a previous 'layers' session so force mode can flow again */
+  nodes.forEach(n=>{if(!kgPositions[n.id]){n.fx=null;n.fy=null;}});
+ }
+
+ /* Defs: glow + arrow markers per edge kind */
+ const defs=svg.append('defs');
+ const glow=defs.append('filter').attr('id','kg-glow').attr('x','-50%').attr('y','-50%').attr('width','200%').attr('height','200%');
+ glow.append('feGaussianBlur').attr('stdDeviation','2.5').attr('result','blur');
+ const mg=glow.append('feMerge');mg.append('feMergeNode').attr('in','blur');mg.append('feMergeNode').attr('in','SourceGraphic');
+
+ const edgeStyle={
+  addresses:{c:'#8b5cf6',op:0.55},
+  belongs:{c:'#94a3b8',op:0.32},
+  funded:{c:'#3b82f6',op:0.55},
+  impacts:{c:'#10b981',op:0.58},
+  gap:{c:'#ef4444',op:0.42}
+ };
+ Object.keys(edgeStyle).forEach(k=>{
+  defs.append('marker').attr('id','kg-arr-'+k).attr('viewBox','0 -4 8 8').attr('refX',6).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+   .append('path').attr('d','M0,-3.2L8,0L0,3.2').attr('fill',edgeStyle[k].c).attr('fill-opacity',0.8);
+ });
+
+ /* Root g for zoom */
+ const root=svg.append('g');
+ const zoom=d3.zoom().scaleExtent([.3,3]).on('zoom',ev=>root.attr('transform',ev.transform));
+ svg.call(zoom);
+
+ /* Simulation */
+ /* Identify isolated nodes (no edges) — they need stronger centering to avoid drift */
+ const degMap={};nodes.forEach(n=>degMap[n.id]=0);
+ edges.forEach(e=>{
+  const sid=typeof e.source==='string'?e.source:e.source.id;
+  const tid=typeof e.target==='string'?e.target:e.target.id;
+  degMap[sid]=(degMap[sid]||0)+1;degMap[tid]=(degMap[tid]||0)+1;
+ });
+ const sim=d3.forceSimulation(nodes)
+  .force('link',d3.forceLink(edges).id(d=>d.id).distance(d=>{
+   if(d.kind==='belongs')return 90;
+   if(d.kind==='addresses')return 85;
+   if(d.kind==='funded')return 110;
+   if(d.kind==='impacts')return 120;
+   if(d.kind==='gap')return 100;
+   return 100;
+  }).strength(d=>d.kind==='gap'?0.25:0.55))
+  .force('charge',d3.forceManyBody().strength(-340).distanceMax(Math.min(W,H)*0.55))
+  .force('center',d3.forceCenter(W/2,H/2).strength(0.06))
+  .force('x',d3.forceX(W/2).strength(d=>degMap[d.id]===0?0.18:0.04))
+  .force('y',d3.forceY(H/2).strength(d=>degMap[d.id]===0?0.18:0.05))
+  .force('collision',d3.forceCollide().radius(d=>d.r+12));
+
+ /* Edge pair offsets for bezier (slight curve) */
+ const edgePairs={};
+ edges.forEach((e,i)=>{
+  const a=typeof e.source==='string'?e.source:e.source.id;
+  const b=typeof e.target==='string'?e.target:e.target.id;
+  const key=[a,b].sort().join('|');
+  if(!edgePairs[key])edgePairs[key]=[];
+  edgePairs[key].push(i);
+ });
+ edges.forEach((e,i)=>{
+  const a=typeof e.source==='string'?e.source:e.source.id;
+  const b=typeof e.target==='string'?e.target:e.target.id;
+  const key=[a,b].sort().join('|');
+  const grp=edgePairs[key];
+  const idx=grp.indexOf(i);
+  const cnt=grp.length;
+  if(cnt===1)e._curve=0.10;
+  else e._curve=0.16*(idx-(cnt-1)/2)+(a<b?0.06:-0.06);
+ });
+
+ function bezier(d){
+  const sx=d.source.x,sy=d.source.y,tx=d.target.x,ty=d.target.y;
+  const dx=tx-sx,dy=ty-sy,dist=Math.sqrt(dx*dx+dy*dy)||1;
+  const nx=-dy/dist,ny=dx/dist;
+  const off=dist*d._curve;
+  const cx=(sx+tx)/2+nx*off,cy=(sy+ty)/2+ny*off;
+  const tdx=tx-cx,tdy=ty-cy,tdist=Math.sqrt(tdx*tdx+tdy*tdy)||1;
+  const pad=(d.target.r||12)+6;
+  const ex=tx-(tdx/tdist)*pad,ey=ty-(tdy/tdist)*pad;
+  const sdx=sx-cx,sdy=sy-cy,sdist=Math.sqrt(sdx*sdx+sdy*sdy)||1;
+  const spad=(d.source.r||12)+3;
+  const ssx=sx-(sdx/sdist)*spad,ssy=sy-(sdy/sdist)*spad;
+  const mx=0.25*ssx+0.5*cx+0.25*ex,my=0.25*ssy+0.5*cy+0.25*ey;
+  return {sx:ssx,sy:ssy,cx,cy,ex,ey,mx,my};
+ }
+
+ /* Links as paths */
+ const linkG=root.append('g').attr('class','kg-links');
+ const link=linkG.selectAll('path').data(edges).join('path')
+  .attr('fill','none')
+  .attr('stroke',d=>edgeStyle[d.kind].c)
+  .attr('stroke-opacity',d=>edgeStyle[d.kind].op)
+  .attr('stroke-width',d=>d.kind==='gap'?1.0:1.3)
+  .attr('stroke-dasharray',d=>d.kind==='gap'?'4,4':null)
+  .attr('marker-end',d=>`url(#kg-arr-${d.kind})`);
+
+ /* Edge labels (shown on focus) */
+ const edgeKindLabel={addresses:'endereça',belongs:'pertence a',funded:'financiado por',impacts:'gera',gap:'gap crítico'};
+ const elG=root.append('g').attr('class','kg-edge-labels');
+ const el=elG.selectAll('g').data(edges).join('g').style('opacity',0).style('pointer-events','none');
+ el.append('rect').attr('fill','rgba(10,14,26,.92)').attr('stroke','var(--border)').attr('stroke-width',0.5).attr('rx',3);
+ el.append('text').attr('text-anchor','middle').attr('dy',3).attr('font-size',9).attr('font-weight',600).attr('font-family','Inter').attr('fill',d=>edgeStyle[d.kind].c).text(d=>edgeKindLabel[d.kind]);
+
+ /* Nodes — different shape per type */
+ const nodeG=root.append('g').attr('class','kg-nodes');
+ const node=nodeG.selectAll('g').data(nodes).join('g').attr('class','kg-node').style('cursor','pointer');
+
+ node.each(function(d){
+  const g=d3.select(this);
+  const col=d.c;
+  /* Outer glow shape */
+  if(d.type==='co'){
+   g.append('circle').attr('class','kg-shape').attr('r',d.r).attr('fill',col).attr('fill-opacity',0.18).attr('stroke',col).attr('stroke-width',1.8).attr('stroke-opacity',0.75).style('filter','url(#kg-glow)');
+   g.append('circle').attr('class','kg-dot').attr('r',d.r*0.35).attr('fill',col).attr('fill-opacity',0.7);
+  }else if(d.type==='dim'){
+   /* Triangle (equilateral, pointing up) — distinguishes dimension from company circle */
+   const s=d.r*1.25;
+   const pts=`0,${(-s).toFixed(1)} ${(s*0.866).toFixed(1)},${(s*0.5).toFixed(1)} ${(-s*0.866).toFixed(1)},${(s*0.5).toFixed(1)}`;
+   g.append('polygon').attr('class','kg-shape').attr('points',pts).attr('stroke-linejoin','round').attr('fill',col).attr('fill-opacity',0.28).attr('stroke',col).attr('stroke-width',1.8).attr('stroke-opacity',0.8).style('filter','url(#kg-glow)');
+   g.append('circle').attr('class','kg-dot').attr('r',d.r*0.32).attr('fill',col).attr('fill-opacity',0.85);
+  }else if(d.type==='tg'){
+   const s=d.r*1.7;
+   g.append('rect').attr('class','kg-shape').attr('x',-s/2).attr('y',-s/2).attr('width',s).attr('height',s).attr('rx',2.5).attr('fill',col).attr('fill-opacity',0.22).attr('stroke',col).attr('stroke-width',1.8).attr('stroke-opacity',0.8).style('filter','url(#kg-glow)');
+   g.append('circle').attr('class','kg-dot').attr('r',d.r*0.3).attr('fill',col).attr('fill-opacity',0.85);
+  }else if(d.type==='fd'){
+   const s=d.r*1.35;
+   g.append('polygon').attr('class','kg-shape').attr('points',`0,${-s} ${s},0 0,${s} ${-s},0`).attr('fill',col).attr('fill-opacity',0.26).attr('stroke',col).attr('stroke-width',1.8).attr('stroke-opacity',0.8).style('filter','url(#kg-glow)');
+   g.append('circle').attr('class','kg-dot').attr('r',d.r*0.32).attr('fill',col).attr('fill-opacity',0.85);
+  }else if(d.type==='im'){
+   const s=d.r;let pts='';
+   for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;pts+=(s*Math.cos(a))+','+(s*Math.sin(a))+' '}
+   g.append('polygon').attr('class','kg-shape').attr('points',pts.trim()).attr('fill',col).attr('fill-opacity',0.24).attr('stroke',col).attr('stroke-width',1.8).attr('stroke-opacity',0.8).style('filter','url(#kg-glow)');
+   g.append('circle').attr('class','kg-dot').attr('r',d.r*0.35).attr('fill',col).attr('fill-opacity',0.85);
+  }
+  /* Label — dy offset adjusted per shape (triangle extends further below center than a circle) */
+  const isHub=d.type==='co'||d.type==='im';
+  const lbl=d.label.length>22?d.label.slice(0,20)+'…':d.label;
+  const labelDy=d.type==='dim'?d.r*0.75+12:d.r+14;
+  g.append('text').attr('class','kg-node-lbl'+(isHub?' big':'')).attr('text-anchor','middle').attr('dy',labelDy).attr('font-family','Inter').attr('font-size',isHub?10.5:9.5).attr('font-weight',isHub?700:600).attr('fill',isHub?'var(--text)':'var(--textDim)').style('pointer-events','none').style('text-shadow','0 1px 4px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.7)').text(lbl);
+ });
+
+ /* Helpers */
+ function getNeighbors(d){
+  const s=new Set([d.id]);
+  edges.forEach(e=>{
+   const sid=typeof e.source==='string'?e.source:e.source.id;
+   const tid=typeof e.target==='string'?e.target:e.target.id;
+   if(sid===d.id)s.add(tid);
+   if(tid===d.id)s.add(sid);
+  });
+  return s;
+ }
+
+ function applyFocus(hover){
+  const focus=hover||(selKG?nodeMap[selKG.type+':'+selKG.id]:null);
+  const any=!!focus;
+  const nbr=focus?getNeighbors(focus):new Set();
+  node.select('.kg-shape')
+   .attr('fill-opacity',d=>{
+    if(!any)return d.type==='co'?0.18:(d.type==='dim'?0.28:(d.type==='tg'?0.22:(d.type==='fd'?0.26:0.24)));
+    if(focus&&d.id===focus.id)return 0.55;
+    if(nbr.has(d.id))return 0.4;
+    return 0.04;
+   })
+   .attr('stroke-opacity',d=>{if(!any)return 0.8;return nbr.has(d.id)?1:0.1})
+   .attr('stroke-width',d=>{if(focus&&d.id===focus.id)return 2.8;return nbr.has(d.id)||!any?1.8:1.2});
+  node.select('.kg-dot').attr('fill-opacity',d=>{if(!any)return 0.75;return nbr.has(d.id)?0.95:0.12});
+  node.select('text').style('opacity',d=>{if(!any)return 1;return nbr.has(d.id)?1:0.12});
+  link
+   .attr('stroke-opacity',d=>{
+    if(!any)return edgeStyle[d.kind].op;
+    const sid=typeof d.source==='string'?d.source:d.source.id;
+    const tid=typeof d.target==='string'?d.target:d.target.id;
+    if(focus&&(sid===focus.id||tid===focus.id))return 0.92;
+    return 0.04;
+   })
+   .attr('stroke-width',d=>{
+    if(!any)return d.kind==='gap'?1.0:1.3;
+    const sid=typeof d.source==='string'?d.source:d.source.id;
+    const tid=typeof d.target==='string'?d.target:d.target.id;
+    if(focus&&(sid===focus.id||tid===focus.id))return 2.2;
+    return 0.6;
+   });
+  el.style('opacity',d=>{
+   if(!any)return 0;
+   const sid=typeof d.source==='string'?d.source:d.source.id;
+   const tid=typeof d.target==='string'?d.target:d.target.id;
+   return (focus&&(sid===focus.id||tid===focus.id))?1:0;
+  });
+ }
+
+ /* Drag */
+ let dragging=false;
+ const drag=d3.drag()
+  .on('start',(ev,d)=>{dragging=true;if(!ev.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y})
+  .on('drag',(ev,d)=>{d.fx=ev.x;d.fy=ev.y})
+  .on('end',(ev,d)=>{dragging=false;if(!ev.active)sim.alphaTarget(0);/* keep pinned where released */d.fx=ev.x;d.fy=ev.y;kgPositions[d.id]={x:d.x,y:d.y}});
+ node.call(drag);
+
+ /* Hover */
+ node.on('mouseover',(ev,d)=>{if(dragging)return;applyFocus(d)})
+  .on('mouseout',()=>{if(dragging)return;applyFocus()});
+
+ /* Click to pin */
+ node.on('click',(ev,d)=>{
+  ev.stopPropagation();
+  const t=d.type,id=d.id.split(':')[1];
+  pickKG(t,id);
+  applyFocus();
+ });
+
+ /* Click background to clear */
+ svg.on('click',()=>{if(selKG){selKG=null;applyFocus();renderSide()}});
+
+ /* Tick */
+ sim.on('tick',()=>{
+  /* Boundary clamp — safety net so no node escapes the canvas (e.g. isolated nodes under charge repulsion) */
+  const pad=30;
+  nodes.forEach(n=>{
+   if(n.fx==null){
+    const r=(n.r||12)+4;
+    n.x=Math.max(pad+r,Math.min(W-pad-r,n.x));
+    n.y=Math.max(pad+r,Math.min(H-pad-r,n.y));
+   }
+  });
+  link.attr('d',d=>{const b=bezier(d);return `M${b.sx.toFixed(1)},${b.sy.toFixed(1)}Q${b.cx.toFixed(1)},${b.cy.toFixed(1)},${b.ex.toFixed(1)},${b.ey.toFixed(1)}`});
+  node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  el.attr('transform',d=>{const b=bezier(d);return `translate(${b.mx.toFixed(1)},${b.my.toFixed(1)})`});
+  el.each(function(){const t=d3.select(this).select('text');const r=d3.select(this).select('rect');const bb=t.node()&&t.node().getBBox();if(bb)r.attr('x',bb.x-4).attr('y',bb.y-1.5).attr('width',bb.width+8).attr('height',bb.height+3)});
+  /* Cache positions so they persist across re-renders */
+  nodes.forEach(n=>{kgPositions[n.id]={x:n.x,y:n.y}});
+ });
+
+ /* Update hint */
+ const hint=document.getElementById('kg-hint');
+ if(hint)hint.textContent=`${nodes.length} nós · ${edges.length} ligações · arraste · scroll para zoom · clique para focar`;
+
+ /* Initial zoom framing */
+ setTimeout(()=>{svg.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W*0.02,H*0.02).scale(0.96))},100);
+
+ kgD3Refs={applyFocus,sim,nodes,edges};
+ if(selKG)applyFocus();
+}
+
+function sideKnowledgeSummary(){
+ /* Hub analysis: node with highest degree */
+ const {nodes,edges}=buildKG();
+ const deg={};nodes.forEach(n=>deg[n.id]=0);
+ edges.forEach(e=>{deg[e.s]=(deg[e.s]||0)+1;deg[e.t]=(deg[e.t]||0)+1});
+ const topHubs=nodes.map(n=>({n,d:deg[n.id]||0})).sort((a,b)=>b.d-a.d).slice(0,5);
+ const typeLabel={co:'Empresa',dim:'Dimensão',tg:'Alvo',fd:'Fundo',im:'Impacto'};
+
+ let h='<div class="sn-group" style="color:var(--gold)"><div style="width:8px;height:8px;border-radius:4px;background:var(--gold)"></div>Knowledge graph</div>';
+ h+='<div class="sn-title">Leitura estrutural</div>';
+ h+=`<div class="sn-detail">${nodes.length} nós, ${edges.length} ligações. A topologia diz mais do que o score agregado — <em style="color:var(--gold);font-style:normal;font-weight:700">hubs são pontos de alavanca</em>. Onde há mais conexões, há maior efeito sistémico por intervenção.</div>`;
+
+ h+='<div class="sn-meta">';
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Nós</span><span class="sn-meta-val">${nodes.length}</span></div>`;
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Ligações</span><span class="sn-meta-val">${edges.length}</span></div>`;
+ const avgDeg=(edges.length*2/nodes.length).toFixed(1);
+ h+=`<div class="sn-meta-item"><span class="sn-meta-label">Grau médio</span><span class="sn-meta-val">${avgDeg}</span></div>`;
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Hubs do sistema</div>';
+ topHubs.forEach(({n,d})=>{
+  const t=n.id.split(':');
+  h+=`<div class="sn-edge" onclick="pickKG('${n.type}','${t[1]}')"><div class="sn-edge-dot" style="background:${n.c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${n.label}</div><div class="sn-edge-label">${typeLabel[n.type]}</div></div><span class="sn-edge-val">${d}</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Tipos de ligação</div>';
+ const kinds=[
+  ['addresses','Alvo → Dimensão','endereça',edges.filter(e=>e.kind==='addresses').length,'rgba(139,92,246,.6)'],
+  ['belongs','Alvo → Empresa','pertence',edges.filter(e=>e.kind==='belongs').length,'rgba(148,163,184,.5)'],
+  ['funded','Alvo → Fundo','financiado',edges.filter(e=>e.kind==='funded').length,'rgba(59,130,246,.6)'],
+  ['impacts','Alvo → Impacto','gera',edges.filter(e=>e.kind==='impacts').length,'rgba(16,185,129,.6)'],
+  ['gap','Empresa → Dim','gap crítico',edges.filter(e=>e.kind==='gap').length,'rgba(239,68,68,.45)']
+ ];
+ kinds.forEach(([k,lbl,desc,ct,col])=>{
+  h+=`<div class="sn-edge"><div class="sn-edge-dot" style="background:${col}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${lbl}</div><div class="sn-edge-label">${desc}</div></div><span class="sn-edge-val">${ct}</span></div>`;
+ });
+ h+='</div>';
+
+ h+='<div class="sn-sec"><div class="sn-sec-title">Como ler</div>';
+ h+='<div style="font-size:11.5px;color:var(--textDim);line-height:1.7">O alvo mais conectado é o alvo que, <em style="color:var(--text);font-style:normal;font-weight:700">ao ser executado</em>, ativa mais nós adjacentes — fundos, impactos, dimensões. O fundo mais conectado é o instrumento que cobre mais backlog. A dimensão mais conectada é onde o portfolio tem mais gaps críticos <em style="color:var(--textMut);font-style:normal">e</em> mais intervenções desenhadas.</div>';
+ h+='</div>';
+ return h;
+}
+
+function sideKnowledgeNode(){
+ const {nodes,edges}=buildKG();
+ const selId=selKG.type+':'+selKG.id;
+ const node=nodes.find(n=>n.id===selId);
+ if(!node)return sideKnowledgeSummary();
+ const neighbors=[];
+ edges.forEach(e=>{
+  if(e.s===selId){const n=nodes.find(x=>x.id===e.t);if(n)neighbors.push({n,kind:e.kind,dir:'out'})}
+  if(e.t===selId){const n=nodes.find(x=>x.id===e.s);if(n)neighbors.push({n,kind:e.kind,dir:'in'})}
+ });
+ const typeLabel={co:'Empresa',dim:'Dimensão',tg:'Alvo',fd:'Fundo',im:'Impacto'};
+ const kindLabel={addresses:'endereça dimensão',belongs:'pertence a',funded:'financiado por',impacts:'gera impacto',gap:'gap crítico em'};
+
+ let h=`<div class="sn-group" style="color:${node.c}"><div style="width:8px;height:8px;border-radius:4px;background:${node.c}"></div>${typeLabel[node.type]}</div>`;
+ h+=`<div class="sn-title">${node.data.name||node.data.title||node.label}</div>`;
+ /* Description by type */
+ let descText='';
+ if(node.type==='co')descText=`${node.data.sector} · ${node.data.hq}`;
+ else if(node.type==='dim')descText=node.data.desc;
+ else if(node.type==='tg')descText=`${CMAP[node.data.co].name} · ${DMAP[node.data.dim].name}`;
+ else if(node.type==='fd')descText=node.data.fit;
+ else if(node.type==='im')descText=node.data.desc;
+ h+=`<div class="sn-detail">${descText}</div>`;
+
+ /* Type-specific meta */
+ if(node.type==='co'){
+  h+='<div class="sn-meta">';
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Readiness</span><span class="sn-meta-val" style="color:${scoreColor(node.data.score)}">${node.data.score}/100</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Receita</span><span class="sn-meta-val">${node.data.rev}</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Investimento</span><span class="sn-meta-val">${node.data.invest}</span></div>`;
+  h+='</div>';
+ }else if(node.type==='tg'){
+  h+='<div class="sn-meta">';
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Investimento</span><span class="sn-meta-val">${node.data.invest}</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Timeline</span><span class="sn-meta-val">${node.data.timeline}</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Prioridade</span><span class="sn-meta-val" style="color:${node.data.priority==='P1'?'var(--danger)':'var(--warn)'}">${node.data.priority}</span></div>`;
+  h+='</div>';
+ }else if(node.type==='fd'){
+  h+='<div class="sn-meta">';
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Gestor</span><span class="sn-meta-val" style="font-size:11.5px">${node.data.managed}</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Teto</span><span class="sn-meta-val" style="font-size:11.5px">${node.data.max.split('·')[0]}</span></div>`;
+  h+='</div>';
+ }else if(node.type==='dim'){
+  const avg=COMPANIES.reduce((a,c)=>a+c.s[node.data.id],0)/COMPANIES.length;
+  h+='<div class="sn-meta">';
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Média portfolio</span><span class="sn-meta-val" style="color:${scoreColor(avg)}">${avg.toFixed(0)}/100</span></div>`;
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Grau</span><span class="sn-meta-val">${neighbors.length}</span></div>`;
+  h+='</div>';
+ }else{
+  h+='<div class="sn-meta">';
+  h+=`<div class="sn-meta-item"><span class="sn-meta-label">Grau no grafo</span><span class="sn-meta-val">${neighbors.length}</span></div>`;
+  h+='</div>';
+ }
+
+ /* Group neighbors by type */
+ const byType={};
+ neighbors.forEach(({n,kind})=>{
+  if(!byType[n.type])byType[n.type]=[];
+  byType[n.type].push({n,kind});
+ });
+ const order=['co','dim','tg','fd','im'].filter(t=>byType[t]);
+ order.forEach(t=>{
+  h+=`<div class="sn-sec"><div class="sn-sec-title">${typeLabel[t]}s vizinhos <span class="sn-sec-count">${byType[t].length}</span></div>`;
+  byType[t].forEach(({n,kind})=>{
+   const id=n.id.split(':')[1];
+   h+=`<div class="sn-edge" onclick="pickKG('${n.type}','${id}')"><div class="sn-edge-dot" style="background:${n.c}"></div><div style="flex:1;min-width:0"><div class="sn-edge-name">${n.label}</div><div class="sn-edge-label">${kindLabel[kind]||''}</div></div></div>`;
+  });
+  h+='</div>';
+ });
+
+ /* Cross-nav */
+ h+='<div class="sn-sec"><div class="sn-sec-title">Ver nas outras vistas</div>';
+ if(node.type==='co')h+=`<div class="sn-edge" onclick="selCo='${node.data.id}';goLayer(2);renderSide()"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1"><div class="sn-edge-name">Abrir diagnóstico</div></div></div>`;
+ if(node.type==='tg')h+=`<div class="sn-edge" onclick="goLayer(3);setTimeout(()=>{selTg='${node.data.id}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1"><div class="sn-edge-name">Ver alvo no backlog</div></div></div>`;
+ if(node.type==='fd')h+=`<div class="sn-edge" onclick="goLayer(4);setTimeout(()=>{selFd='${node.data.id}';renderContent();renderSide()},50)"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1"><div class="sn-edge-name">Ver ficha do fundo</div></div></div>`;
+ if(node.type==='dim')h+=`<div class="sn-edge" onclick="selDim='${node.data.id}';goLayer(2);renderSide()"><div class="sn-edge-dot" style="background:var(--accent)"></div><div style="flex:1"><div class="sn-edge-name">Ver dimensão no diagnóstico</div></div></div>`;
+ h+='</div>';
+
+ return h;
+}
+
+/* ============ INIT ============ */
+goLayer(0);
+</script>
+</body>
+</html>
