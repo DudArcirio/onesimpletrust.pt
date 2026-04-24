@@ -62,62 +62,73 @@
         }
         .nav-links a:hover, .nav-links a.active { color: var(--accent); }
 
-        /* HERO */
-        .hero {
-            padding: 140px 40px 60px;
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .hero h1 {
-            font-family: var(--serif);
-            font-weight: 400;
-            font-size: 42px;
-            color: var(--text);
-            margin-bottom: 16px;
-        }
-        .hero p {
-            font-size: 16px;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 32px;
+        /* PAGE LAYOUT */
+        .page-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+            padding-top: 57px;
         }
 
-        /* SERIES FILTER */
-        .filters {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 48px;
-            flex-wrap: wrap;
-            padding: 0 20px;
+        /* SIDEBAR */
+        .sidebar {
+            position: sticky;
+            top: 57px;
+            height: calc(100vh - 57px);
+            overflow-y: auto;
+            padding: 28px 18px;
+            border-right: 1px solid var(--accent-border);
+            background: #0E1319;
         }
-        .filter-btn {
-            background: transparent;
-            border: 1px solid var(--accent-border);
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
             color: var(--text-muted);
-            padding: 8px 20px;
-            font-family: var(--sans);
-            font-size: 13px;
-            font-weight: 400;
-            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+        }
+        .sidebar-card {
+            border: 1px solid var(--accent-border);
+            background: var(--bg-card);
+            padding: 14px 16px;
+            margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            border-radius: 0;
         }
-        .filter-btn:hover { border-color: var(--accent); color: var(--text); }
-        .filter-btn.active {
-            background: var(--accent-dim);
-            border-color: var(--accent);
+        .sidebar-card:hover { border-color: rgba(200,169,110,0.3); background: var(--bg-card-hover); }
+        .sidebar-card.active { border-left: 2px solid var(--accent); background: var(--bg-card-hover); }
+        .sidebar-card-name {
+            font-family: var(--serif);
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .sidebar-card-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .sidebar-card-count {
+            font-size: 10px;
             color: var(--accent);
+            margin-top: 6px;
+            font-weight: 600;
+        }
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--accent-border);
+            margin: 20px 0;
+        }
+
+        /* MAIN */
+        .main-content {
+            padding: 32px 40px 80px;
+            max-width: 800px;
         }
 
         /* FEED */
-        .feed {
-            max-width: 760px;
-            margin: 0 auto;
-            padding: 0 20px 80px;
-        }
+        .feed { }
 
         /* POST CARD */
         .post-card {
@@ -363,14 +374,30 @@
         }
 
         /* RESPONSIVE */
-        @media (max-width: 640px) {
-            .hero { padding: 120px 20px 40px; }
-            .hero h1 { font-size: 30px; }
+        @media (max-width: 768px) {
+            .page-layout { grid-template-columns: 1fr; }
+            .sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--accent-border);
+                display: flex;
+                gap: 8px;
+                padding: 12px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            .sidebar-label { display: none; }
+            .sidebar-divider { display: none; }
+            .sidebar-card { min-width: 160px; margin-bottom: 0; padding: 10px 12px; }
+            .sidebar-card-desc { display: none; }
+            .main-content { padding: 20px 16px 60px; }
             .post-header { padding: 20px 20px 0; }
             .post-meta { padding: 0 20px 16px; }
             .expand-indicator { padding: 8px 20px 16px; }
             .post-body-inner { padding: 0 20px 24px; padding-top: 20px; }
-            .nav { padding: 14px 20px; }
+            .nav { padding: 14px 16px; }
             .post-title { font-size: 20px; }
             .artifacts-grid { grid-template-columns: 1fr; }
         }
@@ -388,19 +415,42 @@
         </div>
     </nav>
 
-    <section class="hero">
-        <h1>Insights</h1>
-        <p>Posts, research, and interactive artifacts from five weekly series on organizational systems, leadership, and the work beneath the work.</p>
-    </section>
+    <div class="page-layout">
 
-    <div class="filters">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="its-rare">It's Rare But Happens Often</button>
-        <button class="filter-btn" data-filter="marginalia">Marginalia</button>
-        <button class="filter-btn" data-filter="running-notes">Running Notes</button>
-        <button class="filter-btn" data-filter="interactive">Interactive Tools</button>
-    </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-label">Series</div>
+        <div class="sidebar-card active" onclick="filterSeries(this,'all')">
+            <div class="sidebar-card-name">All Posts</div>
+            <div class="sidebar-card-desc">Everything published across all series</div>
+            <div class="sidebar-card-count">10 posts</div>
+        </div>
+        <div class="sidebar-card" onclick="filterSeries(this,'its-rare')">
+            <div class="sidebar-card-name">It's Rare But Happens Often</div>
+            <div class="sidebar-card-desc">Diagnostic observations on systemic archetypes in growth-obsessed organisations</div>
+            <div class="sidebar-card-count">3 posts</div>
+        </div>
+        <div class="sidebar-card" onclick="filterSeries(this,'marginalia')">
+            <div class="sidebar-card-name">Marginalia</div>
+            <div class="sidebar-card-desc">Reflections on reading, following citations backwards</div>
+            <div class="sidebar-card-count">3 posts</div>
+        </div>
+        <div class="sidebar-card" onclick="filterSeries(this,'running-notes')">
+            <div class="sidebar-card-name">Running Notes</div>
+            <div class="sidebar-card-desc">Reflections on podcasts heard while running, filtered through systems thinking</div>
+            <div class="sidebar-card-count">4 posts</div>
+        </div>
+        <hr class="sidebar-divider">
+        <div class="sidebar-label">Tools</div>
+        <div class="sidebar-card" onclick="filterSeries(this,'interactive')">
+            <div class="sidebar-card-name">Interactive Artifacts</div>
+            <div class="sidebar-card-desc">Navigators, system dynamics models, and dashboards built with AI</div>
+            <div class="sidebar-card-count">8 tools</div>
+        </div>
+    </aside>
 
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
     <div class="feed">
 
         <!-- Running Notes #3 — Karen Hao / Empire of AI -->
@@ -767,6 +817,12 @@
                     <a href="assets/artifacts/knowledge-graph-ai-factory.html" class="artifact-link">Open Graph</a>
                 </div>
                 <div class="artifact-card">
+                    <div class="artifact-product">PMI</div>
+                    <div class="artifact-title">AI Factory Control Panel</div>
+                    <div class="artifact-desc">Simulate and monitor AI Factory operations. Control resource allocation, throughput, and cost visibility.</div>
+                    <a href="assets/artifacts/ai-factory-control-panel.html" class="artifact-link">Open Simulator</a>
+                </div>
+                <div class="artifact-card">
                     <div class="artifact-product">La Vie</div>
                     <div class="artifact-title">Operational Diagnostic</div>
                     <div class="artifact-desc">Deep diagnostic of operational systems, structures, and flows. Identify leverage points and system constraints.</div>
@@ -788,6 +844,9 @@
         </div>
     </div>
 
+    </main>
+    </div><!-- /page-layout -->
+
     <footer>
         <a href="eduardo.html">Back to Profile</a>
         <p>Eduardo Arcirio | One Simple Trust</p>
@@ -800,35 +859,31 @@
             card.classList.toggle('expanded');
         }
 
-        // Series filter and artifacts toggle
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        // Sidebar series filter
+        function filterSeries(card, filter) {
+            document.querySelectorAll('.sidebar-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
 
-                const filter = btn.dataset.filter;
-                const artifactsSection = document.getElementById('artifactsSection');
+            const feed = document.querySelector('.feed');
+            const artifactsSection = document.getElementById('artifactsSection');
 
-                if (filter === 'interactive') {
-                    document.querySelectorAll('.post-card').forEach(card => {
-                        card.style.display = 'none';
-                        card.classList.remove('visible');
-                    });
-                    artifactsSection.classList.add('visible');
-                } else {
-                    artifactsSection.classList.remove('visible');
-                    document.querySelectorAll('.post-card').forEach(card => {
-                        if (filter === 'all' || card.dataset.series === filter) {
-                            card.style.display = 'block';
-                            setTimeout(() => card.classList.add('visible'), 50);
-                        } else {
-                            card.classList.remove('visible');
-                            card.style.display = 'none';
-                        }
-                    });
-                }
-            });
-        });
+            if (filter === 'interactive') {
+                feed.style.display = 'none';
+                artifactsSection.classList.add('visible');
+            } else {
+                feed.style.display = 'block';
+                artifactsSection.classList.remove('visible');
+                document.querySelectorAll('.post-card').forEach(post => {
+                    if (filter === 'all' || post.dataset.series === filter) {
+                        post.style.display = 'block';
+                        setTimeout(() => post.classList.add('visible'), 50);
+                    } else {
+                        post.classList.remove('visible');
+                        post.style.display = 'none';
+                    }
+                });
+            }
+        }
 
         // Scroll animation
         const observer = new IntersectionObserver((entries) => {
