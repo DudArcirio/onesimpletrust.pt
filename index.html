@@ -76,19 +76,28 @@
         .section-subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; font-weight: 300; line-height: 1.8; }
 
         /* ── About / Who We Are ── */
-        #about { background: var(--bg-subtle); }
-        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 4rem; }
-        .about-text p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.05rem; font-weight: 300; }
-
-        /* CLD Graph Canvas */
-        .cld-container { position: relative; width: 100%; aspect-ratio: 1; }
-        #cldCanvas { width: 100%; height: 100%; border-radius: 12px; }
+        #about { background: var(--bg-subtle); padding: 5rem 3rem 4rem; }
+        .about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 2rem; }
+        .about-left .section-label { margin-bottom: 1rem; }
+        .about-left .section-title { margin-bottom: 1rem; font-size: clamp(1.6rem, 3.2vw, 2.4rem); }
+        .about-left p { color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; font-weight: 300; line-height: 1.7; }
+        .about-right { display: flex; flex-direction: column; gap: 1.5rem; }
 
         /* Partners */
-        .partners-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 4rem; max-width: 700px; }
-        .partner-card { background: var(--surface); border: 1px solid rgba(200,169,110,0.08); border-radius: 8px; padding: 2rem; text-align: center; transition: all 0.4s ease; }
+        .partners-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .partner-card { background: var(--surface); border: 1px solid rgba(200,169,110,0.08); border-radius: 8px; padding: 1.5rem; text-align: center; transition: all 0.4s ease; }
         .partner-card:hover { border-color: rgba(200,169,110,0.2); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-        .partner-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--surface-hover), var(--accent-glow)); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--accent); border: 2px solid rgba(200,169,110,0.15); }
+        .partner-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--surface-hover), var(--accent-glow)); margin: 0 auto 0.75rem; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--accent); border: 2px solid rgba(200,169,110,0.15); }
+
+        /* Interactive Tools CTA Banner */
+        .tools-banner { background: var(--surface); border: 1px solid rgba(200,169,110,0.12); border-radius: 8px; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1.5rem; transition: all 0.4s ease; text-decoration: none; color: inherit; }
+        .tools-banner:hover { border-color: rgba(200,169,110,0.3); transform: translateY(-2px); box-shadow: 0 12px 35px rgba(0,0,0,0.25); }
+        .tools-icon { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(200,169,110,0.15), rgba(200,169,110,0.05)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .tools-banner-text { flex: 1; }
+        .tools-banner-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text); }
+        .tools-banner-text p { font-size: 0.78rem; color: var(--text-muted); font-weight: 300; margin: 0; }
+        .tools-banner-arrow { color: var(--accent); font-size: 1.2rem; flex-shrink: 0; transition: transform 0.3s; }
+        .tools-banner:hover .tools-banner-arrow { transform: translateX(4px); }
         .partner-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
         .partner-card .partner-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
         .partner-links { display: flex; justify-content: center; gap: 1.5rem; }
@@ -212,7 +221,7 @@
             .menu-toggle { display: block; z-index: 101; }
             section { padding: 5rem 1.5rem; }
             .hero { padding: 6rem 1.5rem; }
-            .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .about-layout { grid-template-columns: 1fr; gap: 2rem; }
             .cld-container { display: none; }
             .partners-grid { grid-template-columns: 1fr; }
             .opp-leader-grid { grid-template-columns: 1fr; }
@@ -261,39 +270,45 @@
 <!-- Who We Are -->
 <section id="about">
     <div class="section-container">
-        <div class="about-grid">
-            <div class="about-text reveal">
+        <div class="about-layout">
+            <div class="about-left reveal">
                 <div class="section-label">Who We Are</div>
                 <h2 class="section-title">Built on the belief that trust is the foundation of transformation</h2>
-                <p>One Simple Trust was founded to bridge the gap between how organizations are structured and how work actually happens. We partner with leaders and enterprises navigating the complexity of modern business — not with pre-built frameworks, but with the capacity to see the system and evolve it from within.</p>
-                <p>Our consultancy practice has produced <strong style="color:var(--accent)">noise.os</strong> — an operating system for organizations that recognize themselves as complex adaptive systems. It connects what they know (data) with how they think (mental models) and what they feel (tensions) — and then gives them the means to experiment, learn, and evolve.</p>
+                <p>One Simple Trust bridges the gap between how organizations are structured and how work actually happens. We partner with leaders navigating complexity — not with pre-built frameworks, but with the capacity to see the system and evolve it from within.</p>
+                <p>Our practice has produced <strong style="color:var(--accent)">noise.os</strong> — an operating system for organizations that recognize themselves as complex adaptive systems. It connects data, mental models, and tensions — then gives them the means to experiment, learn, and evolve.</p>
             </div>
-            <div class="cld-container reveal">
-                <canvas id="cldCanvas"></canvas>
-            </div>
-        </div>
-
-        <!-- Partners -->
-        <div class="partners-grid reveal">
-            <div class="partner-card">
-                <div class="partner-avatar">EA</div>
-                <h4>Eduardo Arcirio</h4>
-                <p class="partner-role">Founding Partner</p>
-                <div class="partner-links">
-                    <a href="eduardo.html">Profile</a>
-                    <a href="eduardo.html#experience">Cases</a>
-                    <a href="https://calendar.app.google/hKtZqY7mXKvpLAv77" target="_blank">Contact</a>
+            <div class="about-right reveal">
+                <!-- Partners -->
+                <div class="partners-grid">
+                    <div class="partner-card">
+                        <div class="partner-avatar">EA</div>
+                        <h4>Eduardo Arcirio</h4>
+                        <p class="partner-role">Founding Partner</p>
+                        <div class="partner-links">
+                            <a href="eduardo.html">Profile</a>
+                            <a href="eduardo.html#experience">Cases</a>
+                            <a href="https://calendar.app.google/hKtZqY7mXKvpLAv77" target="_blank">Contact</a>
+                        </div>
+                    </div>
+                    <div class="partner-card">
+                        <div class="partner-avatar">PL</div>
+                        <h4>Patrícia Leite</h4>
+                        <p class="partner-role">Partner</p>
+                        <div class="partner-links">
+                            <a href="insights.html#interactive-artifacts">Tools</a>
+                            <a href="mailto:patricia.leite@onesimpletrust.pt">Contact</a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="partner-card">
-                <div class="partner-avatar">PL</div>
-                <h4>Patrícia Leite</h4>
-                <p class="partner-role">Partner</p>
-                <div class="partner-links">
-                    <a href="#">Profile</a>
-                    <a href="#">Cases</a>
-                    <a href="mailto:patricia.leite@onesimpletrust.pt">Contact</a>
-                </div>
+                <!-- Interactive Tools Banner -->
+                <a href="insights.html#interactive-artifacts" class="tools-banner">
+                    <div class="tools-icon">⚡</div>
+                    <div class="tools-banner-text">
+                        <h4>Interactive Tools</h4>
+                        <p>Explore our diagnostic simulators, control panels, and strategic navigators</p>
+                    </div>
+                    <span class="tools-banner-arrow">&rarr;</span>
+                </a>
             </div>
         </div>
     </div>

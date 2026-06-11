@@ -442,7 +442,7 @@
         </div>
         <hr class="sidebar-divider">
         <div class="sidebar-label">Tools</div>
-        <div class="sidebar-card" onclick="filterSeries(this,'interactive')">
+        <div class="sidebar-card" id="interactive-artifacts" onclick="filterSeries(this,'interactive')">
             <div class="sidebar-card-name">Interactive Artifacts</div>
             <div class="sidebar-card-desc">Navigators, system dynamics models, and dashboards built with AI</div>
             <div class="sidebar-card-count">8 tools</div>
@@ -898,6 +898,12 @@
             card.classList.add('visible');
             observer.observe(card);
         });
+
+        // Auto-filter when arriving via #interactive-artifacts anchor
+        if (window.location.hash === '#interactive-artifacts') {
+            const artifactCard = document.getElementById('interactive-artifacts');
+            if (artifactCard) filterSeries(artifactCard, 'interactive');
+        }
     </script>
 
 </body>
