@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insights | Eduardo Arcirio — One Simple Trust</title>
+    <title>Publications | Eduardo Arcirio — One Simple Trust</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -286,75 +286,6 @@
             border-bottom: 1px solid var(--accent-border);
         }
 
-        /* ARTIFACTS SECTION */
-        .artifacts-section {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-            margin: 48px auto 0;
-            padding: 0 20px;
-            max-width: 760px;
-        }
-        .artifacts-section.visible {
-            max-height: 3000px;
-        }
-        .artifacts-header {
-            font-family: var(--serif);
-            font-size: 20px;
-            font-weight: 400;
-            color: var(--text);
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--accent-border);
-        }
-        .artifacts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 48px;
-        }
-        .artifact-card {
-            border: 1px solid var(--accent-border);
-            background: var(--bg-card);
-            padding: 24px;
-            transition: all 0.3s;
-        }
-        .artifact-card:hover { border-color: var(--accent); }
-        .artifact-product {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 8px;
-        }
-        .artifact-title {
-            font-family: var(--serif);
-            font-size: 16px;
-            font-weight: 400;
-            color: var(--text);
-            margin-bottom: 12px;
-        }
-        .artifact-desc {
-            font-size: 13px;
-            color: var(--text-body);
-            margin-bottom: 16px;
-            line-height: 1.6;
-        }
-        .artifact-link {
-            display: inline-block;
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--accent-border);
-            padding-bottom: 2px;
-            transition: all 0.3s;
-        }
-        .artifact-link:hover {
-            border-bottom-color: var(--accent);
-        }
 
         /* FOOTER */
         footer {
@@ -410,7 +341,8 @@
         <div class="nav-links">
             <a href="eduardo.html">Profile</a>
             <a href="eduardo.html#experience">Experience</a>
-            <a href="insights.html" class="active">Insights</a>
+            <a href="insights.html" class="active">Publications</a>
+            <a href="tools.html">Tools</a>
             <a href="eduardo.html#fitCheck">Fit Check</a>
         </div>
     </nav>
@@ -442,11 +374,11 @@
         </div>
         <hr class="sidebar-divider">
         <div class="sidebar-label">Tools</div>
-        <div class="sidebar-card" id="interactive-artifacts" onclick="filterSeries(this,'interactive')">
-            <div class="sidebar-card-name">Interactive Artifacts</div>
-            <div class="sidebar-card-desc">Navigators, system dynamics models, and dashboards built with AI</div>
-            <div class="sidebar-card-count">8 tools</div>
-        </div>
+        <a href="tools.html" class="sidebar-card" style="text-decoration:none; color:inherit;">
+            <div class="sidebar-card-name">Interactive Tools &rarr;</div>
+            <div class="sidebar-card-desc">Navigators, simulators, and system models</div>
+            <div class="sidebar-card-count" style="color:var(--accent);">8 tools</div>
+        </a>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -787,62 +719,6 @@
 
     </div>
 
-    <!-- Interactive Tools / Artifacts Section -->
-    <div class="artifacts-section" id="artifactsSection">
-        <div style="max-width: 760px; margin: 0 auto; padding: 0 20px;">
-            <div class="artifacts-header">Interactive Tools</div>
-            <div class="artifacts-grid">
-                <div class="artifact-card">
-                    <div class="artifact-product">noise.os</div>
-                    <div class="artifact-title">SaaS Revenue System Navigator</div>
-                    <div class="artifact-desc">Interactive causal loop diagram of SaaS revenue systems. Explore the reinforcing and balancing loops that drive growth and constrain it.</div>
-                    <a href="assets/artifacts/revenue-system-navigator.html" class="artifact-link">Open Navigator</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">noise.os</div>
-                    <div class="artifact-title">Digital Readiness Navigator</div>
-                    <div class="artifact-desc">Assess organizational readiness for digital transformation. Understand the capability gaps and activation paths.</div>
-                    <a href="assets/artifacts/digital-readiness-navigator.html" class="artifact-link">Open Navigator</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">TAESA</div>
-                    <div class="artifact-title">Corporate Finance Navigator</div>
-                    <div class="artifact-desc">Model financial structures and capital flows. Explore valuation frameworks and investment scenarios.</div>
-                    <a href="assets/artifacts/corporate-finance-navigator.html" class="artifact-link">Open Navigator</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">PMI</div>
-                    <div class="artifact-title">AI Factory Knowledge Graph</div>
-                    <div class="artifact-desc">Map the knowledge landscape of AI implementation in organizations. Understand dependencies, risks, and capabilities.</div>
-                    <a href="assets/artifacts/knowledge-graph-ai-factory.html" class="artifact-link">Open Graph</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">PMI</div>
-                    <div class="artifact-title">AI Factory Control Panel</div>
-                    <div class="artifact-desc">Simulate and monitor AI Factory operations. Control resource allocation, throughput, and cost visibility.</div>
-                    <a href="assets/artifacts/ai-factory-control-panel.html" class="artifact-link">Open Simulator</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">La Vie</div>
-                    <div class="artifact-title">Operational Diagnostic</div>
-                    <div class="artifact-desc">Deep diagnostic of operational systems, structures, and flows. Identify leverage points and system constraints.</div>
-                    <a href="assets/artifacts/diagnostico-operacional.html" class="artifact-link">Open Diagnostic</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">La Vie</div>
-                    <div class="artifact-title">Stocks and Flows Diagram</div>
-                    <div class="artifact-desc">Understand the accumulation dynamics in your system. Track stocks, flows, and feedback loops over time.</div>
-                    <a href="assets/artifacts/stocks-flows-diagram.html" class="artifact-link">Open Diagram</a>
-                </div>
-                <div class="artifact-card">
-                    <div class="artifact-product">La Vie</div>
-                    <div class="artifact-title">Sensitivity Analysis</div>
-                    <div class="artifact-desc">Explore how changes in key variables affect system outcomes. Build intuition for leverage points and policy interventions.</div>
-                    <a href="assets/artifacts/sensitivity-analysis.html" class="artifact-link">Open Analysis</a>
-                </div>
-            </div>
-        </div>
-    </div>
 
     </main>
     </div><!-- /page-layout -->
@@ -865,24 +741,16 @@
             card.classList.add('active');
 
             const feed = document.querySelector('.feed');
-            const artifactsSection = document.getElementById('artifactsSection');
-
-            if (filter === 'interactive') {
-                feed.style.display = 'none';
-                artifactsSection.classList.add('visible');
-            } else {
-                feed.style.display = 'block';
-                artifactsSection.classList.remove('visible');
-                document.querySelectorAll('.post-card').forEach(post => {
-                    if (filter === 'all' || post.dataset.series === filter) {
-                        post.style.display = 'block';
-                        setTimeout(() => post.classList.add('visible'), 50);
-                    } else {
-                        post.classList.remove('visible');
-                        post.style.display = 'none';
-                    }
-                });
-            }
+            feed.style.display = 'block';
+            document.querySelectorAll('.post-card').forEach(post => {
+                if (filter === 'all' || post.dataset.series === filter) {
+                    post.style.display = 'block';
+                    setTimeout(() => post.classList.add('visible'), 50);
+                } else {
+                    post.classList.remove('visible');
+                    post.style.display = 'none';
+                }
+            });
         }
 
         // Scroll animation
@@ -899,11 +767,6 @@
             observer.observe(card);
         });
 
-        // Auto-filter when arriving via #interactive-artifacts anchor
-        if (window.location.hash === '#interactive-artifacts') {
-            const artifactCard = document.getElementById('interactive-artifacts');
-            if (artifactCard) filterSeries(artifactCard, 'interactive');
-        }
     </script>
 
 </body>

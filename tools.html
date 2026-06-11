@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Tools | One Simple Trust</title>
+    <meta name="description" content="Diagnostic simulators, control panels, and strategic navigators built with AI. Explore interactive tools from One Simple Trust.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B0F14;
+            --bg-subtle: #111820;
+            --surface: #1A2230;
+            --surface-hover: #222D3E;
+            --text: #E8ECF1;
+            --text-muted: #8899AA;
+            --accent: #C8A96E;
+            --accent-light: #E0C98D;
+            --accent-glow: rgba(200, 169, 110, 0.15);
+            --accent-border: rgba(200, 169, 110, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        ::selection { background: var(--accent); color: var(--bg); }
+
+        /* ── Nav ── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 1rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(11,15,20,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(200,169,110,0.1);
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+        .logo-text span { color: var(--accent); }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.3s ease; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active { color: var(--accent); }
+        .nav-links a.active::after { width: 100%; }
+        .nav-cta { background: transparent !important; border: 1px solid var(--accent) !important; color: var(--accent) !important; padding: 0.6rem 1.5rem; border-radius: 4px; font-size: 0.8rem !important; letter-spacing: 0.08em; transition: all 0.3s ease !important; cursor: pointer; }
+        .nav-cta:hover { background: var(--accent) !important; color: var(--bg) !important; }
+        .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        .menu-toggle span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: all 0.3s; }
+
+        /* ── Hero ── */
+        .tools-hero {
+            padding: 8rem 3rem 4rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .tools-hero .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .tools-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 400;
+            line-height: 1.25;
+            margin-bottom: 1.5rem;
+        }
+        .tools-hero .intro {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* ── Filter ── */
+        .filter-bar {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 3rem 2rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--accent-border);
+            color: var(--text-muted);
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-btn:hover { border-color: rgba(200,169,110,0.4); color: var(--text); }
+        .filter-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+
+        /* ── Grid ── */
+        .tools-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 3rem 5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* ── Card ── */
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid rgba(200,169,110,0.08);
+            border-radius: 8px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .tool-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tool-card:hover {
+            border-color: rgba(200,169,110,0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .tool-card-context {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tool-card-context .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.5;
+        }
+        .tool-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            line-height: 1.35;
+            margin-bottom: 0.75rem;
+        }
+        .tool-card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            flex: 1;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+        .tool-card-type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+        .tool-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            transition: all 0.3s;
+            align-self: flex-start;
+        }
+        .tool-card-link:hover { color: var(--accent-light); }
+        .tool-card-link .arrow { transition: transform 0.3s; }
+        .tool-card-link:hover .arrow { transform: translateX(4px); }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid rgba(200,169,110,0.1);
+            padding: 3rem;
+            text-align: center;
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        footer a:hover { color: var(--accent-light); }
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-links { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg); flex-direction: column; justify-content: center; align-items: center; gap: 2rem; }
+            .nav-links.open { display: flex; }
+            .menu-toggle { display: block; }
+            .tools-hero { padding: 7rem 1.5rem 3rem; }
+            .tools-hero h1 { font-size: 1.8rem; }
+            .filter-bar { padding: 0 1.5rem 2rem; }
+            .tools-grid { padding: 0 1.5rem 4rem; grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <span class="logo-text">One Simple <span>Trust</span></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#trackrecord">Track Record</a></li>
+        <li><a href="index.html#opportunity">For Leaders</a></li>
+        <li><a href="index.html#product">noise.os</a></li>
+        <li><a href="tools.html" class="active">Tools</a></li>
+        <li><a href="index.html#contact" class="nav-cta">Let's Talk</a></li>
+    </ul>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- Hero -->
+<section class="tools-hero">
+    <div class="section-label">Interactive Tools</div>
+    <h1>Diagnostic simulators, navigators, and system models</h1>
+    <p class="intro">Built from real consulting work. Each tool captures the thinking behind a specific engagement — operational diagnostics, revenue system dynamics, digital readiness, AI factory operations. Open them, explore them, break them apart.</p>
+</section>
+
+<!-- Filter -->
+<div class="filter-bar">
+    <button class="filter-btn active" onclick="filterTools(this, 'all')">All</button>
+    <button class="filter-btn" onclick="filterTools(this, 'noise-os')">noise.os</button>
+    <button class="filter-btn" onclick="filterTools(this, 'pmi')">PMI</button>
+    <button class="filter-btn" onclick="filterTools(this, 'la-vie')">La Vie</button>
+    <button class="filter-btn" onclick="filterTools(this, 'taesa')">TAESA</button>
+</div>
+
+<!-- Grid -->
+<div class="tools-grid" id="toolsGrid">
+
+    <div class="tool-card" data-context="noise-os">
+        <div class="tool-card-context">
+            <span>noise.os</span>
+        </div>
+        <h3>SaaS Revenue System Navigator</h3>
+        <p>Interactive causal loop diagram of SaaS revenue systems. Explore the reinforcing and balancing loops that drive growth and constrain it.</p>
+        <div class="tool-card-type">System Dynamics Navigator</div>
+        <a href="assets/artifacts/revenue-system-navigator.html" class="tool-card-link">
+            Open Navigator <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="noise-os">
+        <div class="tool-card-context">
+            <span>noise.os</span>
+        </div>
+        <h3>Digital Readiness Navigator</h3>
+        <p>Assess organizational readiness for digital transformation. Understand the capability gaps and activation paths.</p>
+        <div class="tool-card-type">Assessment Navigator</div>
+        <a href="assets/artifacts/digital-readiness-navigator.html" class="tool-card-link">
+            Open Navigator <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="taesa">
+        <div class="tool-card-context">
+            <span>TAESA</span>
+        </div>
+        <h3>Corporate Finance Navigator</h3>
+        <p>Model financial structures and capital flows. Explore valuation frameworks and investment scenarios.</p>
+        <div class="tool-card-type">Financial Model</div>
+        <a href="assets/artifacts/corporate-finance-navigator.html" class="tool-card-link">
+            Open Navigator <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="pmi">
+        <div class="tool-card-context">
+            <span>PMI</span>
+        </div>
+        <h3>AI Factory Knowledge Graph</h3>
+        <p>Map the knowledge landscape of AI implementation in organizations. Understand dependencies, risks, and capabilities.</p>
+        <div class="tool-card-type">Knowledge Graph</div>
+        <a href="assets/artifacts/knowledge-graph-ai-factory.html" class="tool-card-link">
+            Open Graph <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="pmi">
+        <div class="tool-card-context">
+            <span>PMI</span>
+        </div>
+        <h3>AI Factory Control Panel</h3>
+        <p>Simulate and monitor AI Factory operations. Control resource allocation, throughput, and cost visibility.</p>
+        <div class="tool-card-type">Simulator</div>
+        <a href="assets/artifacts/ai-factory-control-panel.html" class="tool-card-link">
+            Open Simulator <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="la-vie">
+        <div class="tool-card-context">
+            <span>La Vie</span>
+        </div>
+        <h3>Operational Diagnostic</h3>
+        <p>Deep diagnostic of operational systems, structures, and flows. Identify leverage points and system constraints.</p>
+        <div class="tool-card-type">Diagnostic Tool</div>
+        <a href="assets/artifacts/diagnostico-operacional.html" class="tool-card-link">
+            Open Diagnostic <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="la-vie">
+        <div class="tool-card-context">
+            <span>La Vie</span>
+        </div>
+        <h3>Stocks and Flows Diagram</h3>
+        <p>Understand the accumulation dynamics in your system. Track stocks, flows, and feedback loops over time.</p>
+        <div class="tool-card-type">System Dynamics Diagram</div>
+        <a href="assets/artifacts/stocks-flows-diagram.html" class="tool-card-link">
+            Open Diagram <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="tool-card" data-context="la-vie">
+        <div class="tool-card-context">
+            <span>La Vie</span>
+        </div>
+        <h3>Sensitivity Analysis</h3>
+        <p>Explore how changes in key variables affect system outcomes. Build intuition for leverage points and policy interventions.</p>
+        <div class="tool-card-type">Analysis Tool</div>
+        <a href="assets/artifacts/sensitivity-analysis.html" class="tool-card-link">
+            Open Analysis <span class="arrow">&rarr;</span>
+        </a>
+    </div>
+
+</div>
+
+<footer>
+    <a href="index.html">Back to One Simple Trust</a>
+    <p>One Simple Trust &mdash; Ignite Adaptivity From Within</p>
+</footer>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    // Filter tools
+    function filterTools(btn, context) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.tool-card').forEach(card => {
+            if (context === 'all' || card.dataset.context === context) {
+                card.style.display = 'flex';
+                setTimeout(() => card.classList.add('visible'), 50);
+            } else {
+                card.classList.remove('visible');
+                setTimeout(() => { card.style.display = 'none'; }, 300);
+            }
+        });
+    }
+
+    // Scroll animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.tool-card').forEach(card => observer.observe(card));
+
+    // Auto-filter from URL hash
+    if (window.location.hash) {
+        const context = window.location.hash.substring(1);
+        const btn = document.querySelector(`.filter-btn[onclick*="'${context}'"]`);
+        if (btn) filterTools(btn, context);
+    }
+</script>
+
+</body>
+</html>
