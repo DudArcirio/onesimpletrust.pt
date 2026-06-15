@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patricia Leite | One Simple Trust</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0B0F14;
+            --bg-subtle: #111820;
+            --surface: #1A2230;
+            --surface-hover: #222D3E;
+            --text: #E8ECF1;
+            --text-muted: #8899AA;
+            --accent: #C8A96E;
+            --accent-light: #E0C98D;
+            --accent-glow: rgba(200, 169, 110, 0.15);
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(11, 15, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(200, 169, 110, 0.1);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            color: var(--accent-light);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-ask-ai {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 0.6rem 1.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-ask-ai:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding-top: 120px;
+            padding-bottom: 80px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.6rem 1.4rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            font-weight: 500;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tag {
+            background: var(--surface);
+            color: var(--text-muted);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(136, 153, 170, 0.2);
+        }
+        .tag.current {
+            background: rgba(200, 169, 110, 0.12);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .hero-cta {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 4rem;
+        }
+
+        .hero-cta:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        .scroll-indicator {
+            animation: bounce 2s infinite;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        /* ===== HOW I OPERATE ===== */
+        .operate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .operate-card {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .operate-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .operate-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .operate-card:hover {
+            background: var(--surface-hover);
+            border-color: rgba(200, 169, 110, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .operate-card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .operate-card-text {
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        /* ===== EXPERIENCE SECTION ===== */
+        .experience-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .experience-card {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .experience-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .experience-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .experience-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .experience-card:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        .experience-card:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .experience-card:hover {
+            border-color: rgba(200, 169, 110, 0.3);
+            background: var(--surface-hover);
+        }
+
+        .experience-header {
+            padding: 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .experience-header:hover {
+            background: rgba(200, 169, 110, 0.05);
+        }
+
+        .experience-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-role {
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .expand-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .experience-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .experience-content.expanded {
+            max-height: 1000px;
+        }
+
+        .experience-bullets {
+            padding: 0 2rem 2rem 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+        }
+
+        .experience-bullets li {
+            list-style: none;
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        .experience-bullets li:before {
+            content: "\2022";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .ai-context {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(200, 169, 110, 0.05);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .ai-context-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-context p {
+            margin-bottom: 0.8rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+        }
+
+        /* ===== COMPETENCIES SECTION ===== */
+        .competencies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .competency-column {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .competency-column:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .competency-column:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .competency-column:hover {
+            border-color: rgba(200, 169, 110, 0.3);
+            background: var(--surface-hover);
+        }
+
+        .competency-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid;
+        }
+
+        .competency-header.strong {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .competency-header.developing {
+            color: var(--accent);
+            border-color: rgba(200, 169, 110, 0.3);
+        }
+
+        .competency-header.notspace {
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .competency-list {
+            list-style: none;
+        }
+
+        .competency-list li {
+            padding: 0.6rem 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(200, 169, 110, 0.05);
+        }
+
+        .competency-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* ===== FIT CHECK SECTION ===== */
+        .fit-check-container {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+            padding: 3rem;
+            border-radius: 8px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .fit-check-textarea {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+            margin: 1.5rem 0;
+        }
+
+        .fit-check-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(200, 169, 110, 0.05);
+        }
+
+        .fit-check-button {
+            background: var(--accent);
+            color: var(--bg);
+            padding: 0.8rem 2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .fit-check-button:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .fit-check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fit-check-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border-left: 4px solid;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .fit-check-results.show {
+            max-height: 1000px;
+        }
+
+        .fit-check-results.strong {
+            border-color: var(--success);
+        }
+
+        .fit-check-results.weak {
+            border-color: var(--warning);
+        }
+
+        .fit-check-results.moderate {
+            border-color: var(--accent);
+        }
+
+        .fit-result-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .fit-result-title.strong {
+            color: var(--success);
+        }
+
+        .fit-result-title.weak {
+            color: var(--warning);
+        }
+
+        .fit-result-title.moderate {
+            color: var(--accent);
+        }
+
+        .fit-result-section {
+            margin-bottom: 1rem;
+        }
+
+        .fit-result-section-title {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .fit-result-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ===== CHAT MODAL ===== */
+        .chat-modal {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 2000;
+        }
+
+        .chat-modal.open {
+            display: flex;
+        }
+
+        .chat-box {
+            background: var(--surface);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 12px 12px 0 0;
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(200, 169, 110, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .chat-close:hover {
+            color: var(--text);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 0.8rem;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .message-bubble.user {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .message-bubble.assistant {
+            background: var(--bg-subtle);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.1);
+        }
+
+        .chat-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.8rem 1rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-8px);
+            }
+        }
+
+        .suggested-questions {
+            padding: 0.8rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .suggested-questions.hidden { display: none; }
+        .suggested-q {
+            background: rgba(200, 169, 110, 0.08);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            color: var(--accent);
+            border-radius: 20px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.72rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .suggested-q:hover {
+            background: rgba(200, 169, 110, 0.18);
+            border-color: var(--accent);
+        }
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid rgba(200, 169, 110, 0.2);
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .chat-send {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .chat-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(200, 169, 110, 0.1);
+            text-align: center;
+            margin-top: 5rem;
+        }
+
+        .footer-link {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-light);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+        }
+
+        .fade-in.visible {
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+
+            .section {
+                padding: 3rem 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .hero {
+                padding-top: 80px;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-tags {
+                gap: 0.5rem;
+            }
+
+            .tag {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .chat-box {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .operate-grid,
+            .competencies-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fit-check-container {
+                padding: 1.5rem;
+            }
+
+            .experience-header {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav {
+                padding: 0.8rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .message-bubble {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">One Simple Trust</a>
+            <ul class="nav-links">
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#competencies">Competencies</a></li>
+                <li><a href="insights.html">Publications</a></li>
+                <li><a href="tools.html">Tools</a></li>
+                <li><a href="#fit-check">Fit Check</a></li>
+                <li><button class="nav-ask-ai" onclick="openChatModal()">Ask AI</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-badge">Co-Founder & Strategy & Operations Executive</div>
+        <h1>Patricia Leite</h1>
+        <p class="hero-subtitle">IT Governance | PMO & Business Transformation | Banking & Regulated Environments</p>
+        <p class="hero-description">
+            Transformation and governance leader with 20+ years bridging IT, operations, and business in regulated and large-scale organisations. From Lean Portfolio Management at Farfetch to cross-functional strategy execution at Spotify — I turn strategic intent into operational reality.
+        </p>
+        <div class="hero-tags">
+            <div class="tag current">One Simple Trust</div>
+            <div class="tag">Usercentrics</div>
+            <div class="tag">Spotify</div>
+            <div class="tag">Farfetch</div>
+            <div class="tag">Galp</div>
+            <div class="tag">Banco do Brasil</div>
+        </div>
+        <div class="hero-tags" style="margin-top: -1.5rem;">
+            <div class="tag">20+ Years</div>
+            <div class="tag">6 Industries</div>
+            <div class="tag">4 Countries</div>
+        </div>
+        <button class="hero-cta" onclick="openChatModal()">Ask AI About Me</button>
+        <div class="scroll-indicator">&darr; SCROLL TO EXPLORE</div>
+    </section>
+
+    <!-- HOW I OPERATE SECTION -->
+    <section class="section">
+        <h2 class="section-title">How I Operate</h2>
+        <div class="operate-grid">
+            <div class="operate-card">
+                <div class="operate-card-title">Align</div>
+                <div class="operate-card-text">
+                    Connect strategy to execution through governance frameworks, OKRs, and cadence design. Ensure every team knows the 'why' behind what they're building.
+                </div>
+            </div>
+            <div class="operate-card">
+                <div class="operate-card-title">Build</div>
+                <div class="operate-card-text">
+                    Design and implement the operating models, portfolio management, and cross-functional mechanisms that make strategy executable at scale.
+                </div>
+            </div>
+            <div class="operate-card">
+                <div class="operate-card-title">Scale</div>
+                <div class="operate-card-text">
+                    Create the structures, processes, and data-driven insights that allow organizations to grow without losing alignment or operational health.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXPERIENCE SECTION -->
+    <section class="section" id="experience">
+        <h2 class="section-title">Strategy & Operations Experience</h2>
+        <p class="section-subtitle">Each role includes expandable AI context — the real story behind the bullet points.</p>
+
+        <div class="experience-list">
+            <!-- Usercentrics -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Usercentrics (SaaS — Privacy Tech)</div>
+                        <div class="experience-meta">Lisbon | Jul 2025–Present</div>
+                        <div class="experience-role">Sr Strategy & Operations Manager — Growth</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Drive growth operations during the scaling phase: KPI governance, execution cadences, and cross-functional alignment toward the &euro;100M ARR milestone</li>
+                        <li>Own Growth budget management, including Capex/Opex allocation tied directly to strategic priorities — operating in a compliance-sensitive (GDPR/consent) environment</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Regulated privacy tech SaaS scaling toward &euro;100M ARR, needing operational excellence and cross-functional alignment.</p>
+                        <p><strong>Approach:</strong> Built KPI governance, execution cadences, and budget management tied to strategic priorities in a GDPR-sensitive environment.</p>
+                        <p><strong>Lessons:</strong> "Scaling in regulated tech requires governance that enables speed, not governance that slows it down."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galp -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Galp (Energy)</div>
+                        <div class="experience-meta">Lisbon | May 2024–Jul 2025</div>
+                        <div class="experience-role">Organisational Development Specialist & Consultant — 5,000+ employees</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Led organisational development, operations management, and business transformation across 5 business units and the Corporate Center</li>
+                        <li>Introduced network analysis (Kumu, Neo4J) and AI-first approaches to map organisational dependencies and drive effectiveness</li>
+                        <li>Designed ROI and Value Creation strategies to achieve organisational effectiveness</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Large energy company (5,000+ employees) needing organizational effectiveness across 5 BUs and Corporate Center.</p>
+                        <p><strong>Approach:</strong> Combined traditional org development with modern tools — network analysis via Kumu and Neo4J, AI-first approaches to map dependencies.</p>
+                        <p><strong>Lessons:</strong> "Network analysis reveals the organization you actually have, not the one on the org chart. That's where the real intervention opportunities are."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spotify -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Spotify (Tech — Global)</div>
+                        <div class="experience-meta">Stockholm, Sweden | Jan 2023–May 2024</div>
+                        <div class="experience-role">Strategy & Operations Manager — Platform Mission — 400+ people per Studio</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Led Strategy & Operations for the Platform Mission (User Platform, User Fraud, Productivity & Engineering, and Security)</li>
+                        <li>Directed governance framework redesign and organisational-design improvements across multiple domains</li>
+                        <li>Led the Jira Data Center-to-Cloud migration and Jira Align adoption — a platform migration program coordinated end-to-end</li>
+                        <li>Owned annual planning, OKRs, HC planning, budgeting & finance, and launch-period strategy</li>
+                        <li>Ensured cross-functional alignment via Tableau, Power BI, and Google Analytics</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Platform Mission at Spotify spanning User Platform, Fraud, Productivity & Engineering, and Security — 400+ people per Studio needing strategy alignment and operational excellence.</p>
+                        <p><strong>Approach:</strong> Redesigned governance frameworks, led platform migration (Jira DC&rarr;Cloud), owned the full strategy-to-execution cycle: annual planning, OKRs, HC planning, budgeting.</p>
+                        <p><strong>Lessons:</strong> "At Spotify's scale, the operating system is the strategy. If the cadences, governance, and alignment mechanisms aren't right, even brilliant strategy gets lost in translation."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farfetch -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Farfetch (E-Commerce — Unicorn)</div>
+                        <div class="experience-meta">Lisbon | Jul 2018–Jan 2023</div>
+                        <div class="experience-role">Product Ops & Transformation Manager — 5,000+ employees</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Built Lean Portfolio Management from scratch — the strategic and governance backbone for all of F-tech — and improved final delivery rate by 37%</li>
+                        <li>Implemented OKRs across the entire organisation, establishing the goal-setting framework and cadences</li>
+                        <li>Led a team of 15 Product Ops and Tech Intelligence specialists</li>
+                        <li>Led Agile Coaches and Business Specialists across Product, Engineering, Design, Architecture, and Infrastructure</li>
+                        <li>Managed product vision, roadmap, OKRs, KPIs, Capex/Opex</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> Farfetch (luxury e-commerce unicorn, 5,000+ employees) needed a strategic backbone to manage portfolio governance across all of F-tech.</p>
+                        <p><strong>Approach:</strong> Built the Lean Portfolio Management system from scratch. Implemented OKRs organization-wide. Led the transition from chaotic project management to structured portfolio governance.</p>
+                        <p><strong>Key Result:</strong> +37% improvement in final delivery rate through process redesign and portfolio governance.</p>
+                        <p><strong>Lessons:</strong> "LPM isn't just a framework — it's the operating rhythm that connects strategy to execution. When you build it right, the organization starts making better decisions naturally."</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banco do Brasil -->
+            <div class="experience-card">
+                <div class="experience-header" onclick="toggleExperience(this)">
+                    <div>
+                        <div class="experience-title">Banco do Brasil (Banking — 80,000+ employees)</div>
+                        <div class="experience-meta">Bras&iacute;lia, Brazil | Apr 2003–Jul 2018</div>
+                        <div class="experience-role">15-Year Progressive Career: Software Developer &rarr; SAP Analyst &rarr; Business Analyst &rarr; Product Manager &rarr; IT Analyst &rarr; Transformation Lead</div>
+                    </div>
+                    <div class="expand-icon">+</div>
+                </div>
+                <div class="experience-content">
+                    <ul class="experience-bullets">
+                        <li>Led the transformation agenda across technology teams: business architecture, governance, cadences, and portfolio management</li>
+                        <li>Drove organisational-design change across 10+ Brazilian states and upskilled 100+ staff</li>
+                        <li>Won the E-finance Award 2018 (Exchange Applications) for the foreign-currency purchase solution built into the Banco do Brasil mobile app</li>
+                        <li>Product Manager at BB International — FX and international banking products</li>
+                        <li>Led agile transformation: Scrum, Kanban, coaching product owners and scrum masters</li>
+                        <li>Foundation in regulated banking systems: Natural, Cobol, Adabas, SQL, SAP HR</li>
+                    </ul>
+                    <div class="ai-context">
+                        <div class="ai-context-title">AI Context</div>
+                        <p><strong>Situation:</strong> One of the world's largest banks (80,000+ employees). Patricia built a 15-year career spanning software development through transformation leadership.</p>
+                        <p><strong>Approach:</strong> Progressive career that started in engineering (Natural, Cobol, SAP) and evolved into business architecture, governance design, and organisational transformation. Led agile transformation efforts that culminated in the E-finance Award 2018.</p>
+                        <p><strong>Career Arc:</strong> "From software developer to transformation leader at one of the world's largest banks. My career arc reflects a consistent pattern: enter complex organisations, understand their operating system, and redesign it for scale, alignment, and performance."</p>
+                        <p><strong>Lessons:</strong> "15 years in banking taught me that transformation in regulated environments requires patience, precision, and deep respect for the constraints that exist for good reasons."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPETENCIES SECTION -->
+    <section class="section" id="competencies">
+        <h2 class="section-title">Where I'm Strong — And Where I'm Not</h2>
+
+        <div class="competencies-grid">
+            <div class="competency-column">
+                <div class="competency-header strong">&check; Strong</div>
+                <ul class="competency-list">
+                    <li>Strategy-to-Execution & Operating Model Design</li>
+                    <li>IT Governance & Frameworks</li>
+                    <li>Program & Portfolio Management</li>
+                    <li>Lean Portfolio Management (LPM)</li>
+                    <li>OKRs & Cadence Design</li>
+                    <li>Cross-Functional Coordination</li>
+                    <li>Regulated & Audit-Aware Environments</li>
+                </ul>
+            </div>
+            <div class="competency-column">
+                <div class="competency-header developing">&#9680; Moderate</div>
+                <ul class="competency-list">
+                    <li>Organisational Network Analysis</li>
+                    <li>AI-First Approaches to Org Design</li>
+                    <li>Data Visualization & BI (Tableau, Power BI, Looker)</li>
+                    <li>Change Management & Culture</li>
+                </ul>
+            </div>
+            <div class="competency-column">
+                <div class="competency-header notspace">&otimes; Not My Space</div>
+                <ul class="competency-list">
+                    <li>Software Engineering & Architecture</li>
+                    <li>Marketing & Growth</li>
+                    <li>UI/UX Design</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- FIT CHECK SECTION -->
+    <section class="section" id="fit-check">
+        <h2 class="section-title">Is Patricia Leite the right professional for your challenges?</h2>
+        <p class="section-subtitle">Describe your organizational challenge below or paste a job description. I'll give you an honest assessment.</p>
+
+        <div class="fit-check-container">
+            <textarea class="fit-check-textarea" id="fitCheckInput" placeholder="Describe your organizational challenge, governance need, or transformation goal..."></textarea>
+            <button class="fit-check-button" onclick="checkFit()">Check Fit</button>
+            <div class="fit-check-results" id="fitCheckResults">
+                <div class="fit-result-title" id="fitResultTitle"></div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Analysis</div>
+                    <div class="fit-result-text" id="fitResultAnalysis"></div>
+                </div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Potential Gaps</div>
+                    <div class="fit-result-text" id="fitResultGaps"></div>
+                </div>
+                <div class="fit-result-section">
+                    <div class="fit-result-section-title">Recommendation</div>
+                    <div class="fit-result-text" id="fitResultRecommendation"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAT MODAL -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-box">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <span>Ask AI About Patricia</span>
+                    <div class="status-dot"></div>
+                </div>
+                <button class="chat-close" onclick="closeChatModal()">&times;</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="suggested-questions" id="suggestedQuestions">
+                <button class="suggested-q" onclick="askSuggested(this)">What's your approach to organizational transformation?</button>
+                <button class="suggested-q" onclick="askSuggested(this)">Tell me about building LPM at Farfetch</button>
+                <button class="suggested-q" onclick="askSuggested(this)">What kind of organizations are NOT a good fit?</button>
+                <button class="suggested-q" onclick="askSuggested(this)">How do you bridge strategy and execution?</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask anything about Patricia..." onkeypress="handleChatKeyPress(event)">
+                <button class="chat-send" id="chatSendBtn" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <a href="index.html" class="footer-link">&larr; Back to One Simple Trust</a>
+        <p class="footer-text">Patricia Leite | Lisbon | <a href="mailto:pat.arcirio@gmail.com" style="color: var(--accent); text-decoration: none;">pat.arcirio@gmail.com</a></p>
+    </footer>
+
+    <script>
+        // API calls go through Cloudflare Worker proxy (key stored server-side)
+        const API_URL = 'https://ost-ai-proxy.eduardo-arcirio.workers.dev';
+        const MODEL = 'claude-haiku-4-5-20251001';
+
+        // PATRICIA'S SYSTEM PROMPT FOR CHAT
+        const PATRICIA_SYSTEM_PROMPT = `You are an AI assistant that knows everything about Patricia Leite, Co-Founder of One Simple Trust. You speak about Patricia in third person when describing her, but you represent her perspective honestly.
+
+## YOUR CORE DIRECTIVE
+You must be BRUTALLY HONEST. Your job is NOT to sell Patricia to everyone. Your job is to help visitors quickly determine if there's a genuine fit. This means:
+- If they ask about something Patricia can't do, SAY SO DIRECTLY
+- If a challenge seems like a bad fit, TELL THEM
+- Never hedge or use weasel words
+- It's perfectly acceptable to say "Patricia is probably not your person for this"
+- Honesty builds trust. Overselling wastes everyone's time.
+
+## ANTI-SYCOPHANCY RULES
+- Never oversell Patricia's capabilities
+- If a visitor describes a need Patricia doesn't cover, say so directly
+- Use phrases like "that's not Patricia's space" or "you'd be better served by a [specific type of professional]"
+- Don't hedge — be direct
+- It's okay to recommend they NOT engage Patricia
+
+EXAMPLE OF CORRECT HONESTY:
+Visitor: "We need someone to build our mobile app and design the user experience"
+Good: "That's not Patricia's space at all. Her expertise is in strategy & operations, IT governance, and portfolio management — the operating system that makes organizations execute. For mobile development and UX design, you'd want a product-focused technical lead or a design agency. Patricia wouldn't be the right fit here."
+Bad: "While Patricia hasn't done mobile specifically, her strong technical background..."
+
+## PATRICIA'S PROFILE
+- 20+ years of international experience across 6 industries (SaaS/Privacy Tech, Energy, Tech/Streaming, E-Commerce, Banking, and Consulting) and 4 countries (Brazil, Portugal, Sweden, and international scope)
+- Co-Founder of One Simple Trust
+- Brazilian, based in Lisbon. Fluent in Portuguese (native), English (C2), Spanish (professional working proficiency)
+
+## HOW SHE OPERATES (Align → Build → Scale)
+- Align: Connect strategy to execution through governance frameworks, OKRs, and cadence design. Ensure every team knows the 'why' behind what they're building.
+- Build: Design and implement the operating models, portfolio management, and cross-functional mechanisms that make strategy executable at scale.
+- Scale: Create the structures, processes, and data-driven insights that allow organizations to grow without losing alignment or operational health.
+
+## CAREER HISTORY (use specific data when answering)
+
+Usercentrics (SaaS — Privacy Tech) | Jul 2025–Present
+Sr Strategy & Operations Manager — Growth
+- Drive growth operations during the scaling phase: KPI governance, execution cadences, and cross-functional alignment toward the €100M ARR milestone
+- Own Growth budget management, including Capex/Opex allocation tied directly to strategic priorities — operating in a compliance-sensitive (GDPR/consent) environment
+- Lesson: "Scaling in regulated tech requires governance that enables speed, not governance that slows it down."
+
+Galp (Energy) | May 2024–Jul 2025
+Organisational Development Specialist & Consultant — 5,000+ employees
+- Led organisational development, operations management, and business transformation across 5 business units and the Corporate Center
+- Introduced network analysis (Kumu, Neo4J) and AI-first approaches to map organisational dependencies and drive effectiveness
+- Designed ROI and Value Creation strategies to achieve organisational effectiveness
+- Lesson: "Network analysis reveals the organization you actually have, not the one on the org chart. That's where the real intervention opportunities are."
+
+Spotify (Tech — Global) | Jan 2023–May 2024
+Strategy & Operations Manager — Platform Mission — 400+ people per Studio
+- Led Strategy & Operations for the Platform Mission (User Platform, User Fraud, Productivity & Engineering, and Security)
+- Directed governance framework redesign and organisational-design improvements across multiple domains
+- Led the Jira Data Center-to-Cloud migration and Jira Align adoption — a platform migration program coordinated end-to-end
+- Owned annual planning, OKRs, HC planning, budgeting & finance, and launch-period strategy
+- Ensured cross-functional alignment via Tableau, Power BI, and Google Analytics
+- Lesson: "At Spotify's scale, the operating system is the strategy. If the cadences, governance, and alignment mechanisms aren't right, even brilliant strategy gets lost in translation."
+
+Farfetch (E-Commerce — Unicorn) | Jul 2018–Jan 2023
+Product Ops & Transformation Manager — 5,000+ employees
+Sub-roles: Product Operations Manager (Aug 2020–Jan 2023), Business Transformation Manager (Aug 2019–Aug 2020), Agile Business Transformation Specialist (Jul 2018–Aug 2019)
+- Built Lean Portfolio Management from scratch — the strategic and governance backbone for all of F-tech — and improved final delivery rate by 37%
+- Implemented OKRs across the entire organisation, establishing the goal-setting framework and cadences
+- Led a team of 15 Product Ops and Tech Intelligence specialists
+- Led Agile Coaches and Business Specialists across Product, Engineering, Design, Architecture, and Infrastructure
+- Managed product vision, roadmap, OKRs, KPIs, Capex/Opex
+- Key Result: +37% improvement in final delivery rate
+- Lesson: "LPM isn't just a framework — it's the operating rhythm that connects strategy to execution. When you build it right, the organization starts making better decisions naturally."
+
+Banco do Brasil (Banking — 80,000+ employees) | Apr 2003–Jul 2018
+15-Year Progressive Career: Software Developer → SAP Analyst → Business Analyst → Product Manager → IT Analyst → Transformation Lead
+- Led the transformation agenda across technology teams: business architecture, governance, cadences, and portfolio management
+- Drove organisational-design change across 10+ Brazilian states and upskilled 100+ staff
+- Won the E-finance Award 2018 (Exchange Applications) for the foreign-currency purchase solution built into the Banco do Brasil mobile app
+- Product Manager at BB International — FX and international banking products
+- Led agile transformation: Scrum, Kanban, coaching product owners and scrum masters
+- Foundation in regulated banking systems: Natural, Cobol, Adabas, SQL, SAP HR
+- Career Arc: "From software developer to transformation leader at one of the world's largest banks. My career arc reflects a consistent pattern: enter complex organisations, understand their operating system, and redesign it for scale, alignment, and performance."
+- Lesson: "15 years in banking taught me that transformation in regulated environments requires patience, precision, and deep respect for the constraints that exist for good reasons."
+
+## EDUCATION
+- MBA, Evolutionary Leadership — Cuidadoria (2022)
+- MBA, Software Engineering — IGTI (2016–2017)
+- BSc, International Commerce — UNISUL (2013)
+
+## CERTIFICATIONS
+- SAFe 6.0 Lean Portfolio Management — Scaled Agile (2023)
+- AI Business Strategy — Johns Hopkins (2025)
+- Leading Transformations — Macquarie University (2025)
+- Flight Levels Systems Architecture
+- Kanban System Improvement & Fit for Purpose — Kanban University
+- O2 Organic Organisations — Target Teal
+- Product Management & Product Growth — PM3
+
+## LANGUAGES
+- Portuguese (native), English (C2), Spanish (professional working proficiency)
+
+## TOOLS
+- Jira / Jira Align / Confluence, Excel / Power BI / Tableau / Looker, SQL, Neo4J / Kumu, Mural / Miro / FigJam, Google Workspace / MS Office
+
+## SKILLS — STRONG
+- Strategy-to-Execution & Operating Model Design
+- IT Governance & Frameworks
+- Program & Portfolio Management
+- Lean Portfolio Management (LPM) — built it from scratch at Farfetch, certified SAFe 6.0 LPM
+- OKRs & Cadence Design — implemented org-wide at Farfetch and Spotify
+- Cross-Functional Coordination — led across Product, Engineering, Design, Architecture, Infrastructure
+- Regulated & Audit-Aware Environments — 15 years in banking (Banco do Brasil), GDPR-sensitive SaaS (Usercentrics)
+
+## SKILLS — MODERATE (real experience, but not primary focus today)
+- Organisational Network Analysis (introduced Kumu and Neo4J at Galp, still building depth)
+- AI-First Approaches to Org Design (exploring at Galp, Johns Hopkins AI Business Strategy certification)
+- Data Visualization & BI — Tableau, Power BI, Looker (used at Spotify for cross-functional alignment, not a data engineer)
+- Change Management & Culture (practical experience across all roles, not a certified change management specialist)
+
+## SKILLS — NOT HER SPACE (BE UPFRONT)
+- Software Engineering & Architecture — she started as a developer but hasn't coded since the Banco do Brasil era. Don't hire her to write code or design system architecture.
+- Marketing & Growth — no experience in demand generation, SEO, or growth hacking
+- UI/UX Design — no design background
+
+## WHAT MAKES PATRICIA DIFFERENT
+- Technical Foundation: Started as a software developer (Natural, Cobol, SAP) before moving into governance and transformation. She understands engineering constraints from the inside.
+- Regulated Environment Depth: 15 years in one of the world's largest banks. She knows what governance means when regulators are watching.
+- Scale Experience: Farfetch (5,000+), Spotify (400+ per Studio), Banco do Brasil (80,000+), Galp (5,000+). She's operated at genuine enterprise scale.
+- LPM Pioneer: Built Lean Portfolio Management from zero at Farfetch — not adopted a framework, but created the entire system that became the strategic backbone.
+- International: Brazil, Portugal, Sweden. She adapts operating models to different cultural and organizational contexts.
+
+## WHAT SHE'S LOOKING FOR
+- Organizations that need strategy-to-execution alignment at scale
+- Companies where governance is either missing or blocking execution
+- Regulated environments that need operational excellence without bureaucratic overhead
+- Leaders who want to build sustainable operating models, not just project plans
+
+## WHAT SHE'S NOT LOOKING FOR
+- Organizations that want someone to write code or design UIs
+- Roles that are purely strategic with no operational involvement
+- Startups that need product/market fit (that's not her domain)
+- Marketing or growth roles
+
+## RESPONSE GUIDELINES
+- Be warm but direct
+- Keep responses concise unless detail is asked for
+- When discussing gaps, own them confidently — they're features, not bugs
+- If someone asks about a role or challenge that's clearly not a fit, tell them directly and explain why
+- Always cite specific projects, numbers, and experiences when possible
+- If you don't know something specific about Patricia, say so honestly`;
+
+        // FIT CHECK SYSTEM PROMPT
+        const FIT_CHECK_SYSTEM_PROMPT = `You are analyzing an organizational challenge to assess fit for Patricia Leite's expertise at One Simple Trust.
+
+## YOUR CORE DIRECTIVE
+Be BRUTALLY HONEST. If there are 3+ major gaps between what the client needs and what Patricia offers, recommend they NOT engage her. This isn't about selling — it's about qualifying.
+
+## PATRICIA'S STRONG AREAS
+- Strategy-to-Execution & Operating Model Design (redesigning how strategy flows into execution through governance, cadences, and alignment mechanisms)
+- IT Governance & Frameworks (governance framework redesign at Spotify, IT governance across Banco do Brasil's technology teams)
+- Program & Portfolio Management (managed complex programs at Spotify including Jira DC-to-Cloud migration, led 15 Product Ops specialists at Farfetch)
+- Lean Portfolio Management (LPM) — built the entire LPM system from scratch at Farfetch, improved delivery rate by 37%, SAFe 6.0 LPM certified
+- OKRs & Cadence Design — implemented organization-wide OKRs at Farfetch and owned annual planning/OKRs at Spotify
+- Cross-Functional Coordination — led across Product, Engineering, Design, Architecture, and Infrastructure at Farfetch; cross-functional alignment at Spotify Platform Mission
+- Regulated & Audit-Aware Environments — 15 years at Banco do Brasil (one of the world's largest banks), GDPR-sensitive operations at Usercentrics
+- Budget & Financial Governance — Capex/Opex allocation at Usercentrics and Farfetch, budgeting at Spotify
+
+## PATRICIA'S DEVELOPING AREAS (be cautious here)
+- Organisational Network Analysis (introduced tools at Galp, still building depth)
+- AI-First Approaches to Org Design (exploring, Johns Hopkins certification, not deep expertise yet)
+- Data Visualization & BI (used Tableau, Power BI, Looker at Spotify — she's a consumer and analyst, not a data engineer)
+- Change Management & Culture (practical experience, not a certified specialist)
+
+## PATRICIA IS NOT EQUIPPED FOR (be direct about these)
+- Software Engineering & Architecture — she started as a developer but hasn't coded since Banco do Brasil. Don't hire her to write code.
+- Marketing & Growth — no demand gen, SEO, or growth hacking experience
+- UI/UX Design — no design background
+- Startups needing product/market fit
+- Roles that are purely advisory with no operational involvement
+
+## ANTI-SYCOPHANCY CALIBRATION
+EXAMPLE — When it's NOT a fit:
+Challenge: "We need someone to build our mobile app and improve user acquisition"
+Correct response: FIT_LEVEL: Honest Assessment — Probably Not Your Best Option. Patricia's expertise is in strategy & operations, IT governance, and portfolio management — not product development or growth marketing. You'd be better served by a product-focused technical lead or a growth agency.
+
+EXAMPLE — When it IS a fit:
+Challenge: "Our engineering organization has grown to 500+ people but we have no portfolio governance, OKRs are inconsistent, and leadership can't see what's being delivered"
+Correct response: FIT_LEVEL: Strong Fit. This is exactly what Patricia does. She built Lean Portfolio Management from scratch at Farfetch (5,000+ employees), improving delivery rates by 37%. At Spotify, she owned the full strategy-to-execution cycle for the Platform Mission (400+ people per Studio). She's done this exact work at scale, in complex organizations.
+
+## OUTPUT FORMAT
+Respond with exactly this format:
+FIT_LEVEL: [Strong Fit|Worth a Conversation|Honest Assessment — Probably Not Your Best Option]
+ANALYSIS: [2-3 sentences on what aligns with Patricia's strengths, citing specific past projects]
+GAPS: [2-3 sentences on what Patricia can't cover, being direct about limitations]
+RECOMMENDATION: [2-3 sentences with a clear, honest recommendation. If not a fit, suggest what type of professional they should look for instead]`;
+
+        // ===== CHAT FUNCTIONALITY =====
+        function openChatModal() {
+            const modal = document.getElementById('chatModal');
+            modal.classList.add('open');
+            document.getElementById('chatInput').focus();
+
+            // Add initial greeting if no messages yet
+            if (document.getElementById('chatMessages').children.length === 0) {
+                addChatMessage('assistant', "Hi! I'm the AI assistant representing Patricia. What would you like to know about her experience, approach, or how she can help your organization?");
+            }
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').classList.remove('open');
+        }
+
+        function addChatMessage(role, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${role}`;
+            bubble.textContent = content;
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message assistant';
+            typingDiv.id = 'typingIndicator';
+
+            const typingBubble = document.createElement('div');
+            typingBubble.className = 'message-bubble assistant chat-typing';
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingBubble.appendChild(dot);
+            }
+
+            typingDiv.appendChild(typingBubble);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const sendBtn = document.getElementById('chatSendBtn');
+            sendBtn.disabled = true;
+
+            // Hide suggested questions after first message
+            document.getElementById('suggestedQuestions').classList.add('hidden');
+
+            // Add user message to UI
+            addChatMessage('user', message);
+            input.value = '';
+
+            // Show typing indicator
+            addTypingIndicator();
+
+            try {
+                // Collect conversation history
+                const messagesContainer = document.getElementById('chatMessages');
+                const conversationHistory = [];
+
+                const messageElements = messagesContainer.querySelectorAll('.chat-message');
+                let foundFirstUser = false;
+                messageElements.forEach((el) => {
+                    if (el.id === 'typingIndicator') return;
+                    const role = el.classList.contains('user') ? 'user' : 'assistant';
+                    const text = el.querySelector('.message-bubble').textContent;
+                    // Skip assistant messages before the first user message (greeting)
+                    if (!foundFirstUser && role === 'assistant') return;
+                    if (role === 'user') foundFirstUser = true;
+                    conversationHistory.push({ role, content: text });
+                });
+
+                // Call Claude API via proxy
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        max_tokens: 500,
+                        system: PATRICIA_SYSTEM_PROMPT,
+                        messages: conversationHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                removeTypingIndicator();
+
+                if (data.content && data.content[0]) {
+                    const aiResponse = data.content[0].text;
+                    addChatMessage('assistant', aiResponse);
+                } else {
+                    addChatMessage('assistant', "I encountered an issue. Could you try rephrasing your question?");
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                removeTypingIndicator();
+                addChatMessage('assistant', "I encountered a technical issue. Please try again.");
+            } finally {
+                sendBtn.disabled = false;
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function askSuggested(btn) {
+            document.getElementById('chatInput').value = btn.textContent;
+            document.getElementById('suggestedQuestions').classList.add('hidden');
+            sendChatMessage();
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        // ===== FIT CHECK FUNCTIONALITY =====
+        async function checkFit() {
+            const input = document.getElementById('fitCheckInput').value.trim();
+
+            if (!input) {
+                alert('Please describe your organizational challenge.');
+                return;
+            }
+
+            const button = document.querySelector('.fit-check-button');
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        max_tokens: 600,
+                        system: FIT_CHECK_SYSTEM_PROMPT,
+                        messages: [{
+                            role: 'user',
+                            content: `Please assess the fit for Patricia Leite for this challenge:\n\n${input}\n\nProvide your response in this exact format:\nFIT_LEVEL: [Strong Fit|Honest Assessment]\nANALYSIS: [2-3 sentences on alignment]\nGAPS: [2-3 sentences on potential concerns]\nRECOMMENDATION: [2-3 sentences with clear recommendation]`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.content && data.content[0]) {
+                    const responseText = data.content[0].text;
+                    parseFitCheckResponse(responseText);
+                } else {
+                    alert('Unable to process response. Please try again.');
+                }
+            } catch (error) {
+                console.error('Fit check error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Check Fit';
+            }
+        }
+
+        function parseFitCheckResponse(responseText) {
+            const resultsDiv = document.getElementById('fitCheckResults');
+            const titleEl = document.getElementById('fitResultTitle');
+            const analysisEl = document.getElementById('fitResultAnalysis');
+            const gapsEl = document.getElementById('fitResultGaps');
+            const recommendationEl = document.getElementById('fitResultRecommendation');
+
+            // Parse response
+            const fitMatch = responseText.match(/FIT_LEVEL:\s*([^\n]+)/);
+            const analysisMatch = responseText.match(/ANALYSIS:\s*([^\n]+(?:\n(?!GAPS:)[^\n]*)*)/);
+            const gapsMatch = responseText.match(/GAPS:\s*([^\n]+(?:\n(?!RECOMMENDATION:)[^\n]*)*)/);
+            const recommendationMatch = responseText.match(/RECOMMENDATION:\s*([^\n]+(?:\n[^\n]*)*)/);
+
+            const fitLevel = fitMatch ? fitMatch[1].trim() : 'Honest Assessment';
+            const analysis = analysisMatch ? analysisMatch[1].trim() : 'Unable to analyze';
+            const gaps = gapsMatch ? gapsMatch[1].trim() : 'N/A';
+            const recommendation = recommendationMatch ? recommendationMatch[1].trim() : 'Please consult directly';
+
+            const isStrongFit = fitLevel.toLowerCase().includes('strong');
+            const isWorth = fitLevel.toLowerCase().includes('worth');
+
+            if (isStrongFit) {
+                titleEl.textContent = '✓ Strong Fit';
+                titleEl.className = 'fit-result-title strong';
+                resultsDiv.className = 'fit-check-results show strong';
+            } else if (isWorth) {
+                titleEl.textContent = '◐ Worth a Conversation';
+                titleEl.className = 'fit-result-title moderate';
+                resultsDiv.className = 'fit-check-results show moderate';
+            } else {
+                titleEl.textContent = '⚠ Honest Assessment — Probably Not Your Best Option';
+                titleEl.className = 'fit-result-title weak';
+                resultsDiv.className = 'fit-check-results show weak';
+            }
+
+            analysisEl.textContent = analysis;
+            gapsEl.textContent = gaps;
+            recommendationEl.textContent = recommendation;
+        }
+
+        // ===== EXPERIENCE CARD TOGGLE =====
+        function toggleExperience(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.expand-icon');
+
+            content.classList.toggle('expanded');
+            icon.textContent = content.classList.contains('expanded') ? '−' : '+';
+        }
+
+        // ===== SCROLL ANIMATIONS =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Add fade-in class to cards on load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.operate-card, .experience-card, .competency-column').forEach(el => {
+                if (!el.classList.contains('fade-in')) {
+                    el.classList.add('fade-in');
+                    observer.observe(el);
+                }
+            });
+        });
+
+        // Smooth navigation links
+        document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
