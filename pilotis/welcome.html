@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilotis — hoje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/pilotis.css">
+</head>
+<body>
+<div id="back-to-tools" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(11,15,20,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,169,110,0.15);padding:12px 24px;display:flex;align-items:center;gap:16px;font-family:Inter,-apple-system,sans-serif;"><a href="/tools.html" style="color:#C8A96E;text-decoration:none;font-size:13px;font-weight:400;letter-spacing:0.5px;display:flex;align-items:center;gap:6px;"><span style="font-size:16px;">&#8592;</span> Back to Tools</a><span style="color:rgba(200,169,110,0.3);">|</span><a href="/index.html" style="color:#8A8680;text-decoration:none;font-size:13px;">Home</a></div><div style="height:48px;"></div>
+<div class="wrap">
+  <div class="kicker" id="dataHoje"></div>
+  <h1 id="saud" style="margin-top:8px"></h1>
+  <p class="mut" style="margin:6px 0 0;max-width:720px">Sua carteira, os temas vinculados e o que merece a sua
+  atenção — o resto o backoffice já sustentou.</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid" style="grid-template-columns:1.6fr 1fr;align-items:start">
+    <div>
+      <div class="card">
+        <span class="hd">O que mudou de ontem para hoje</span>
+        <div id="mudou" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <span class="hd sinal">Destaques que merecem atenção</span>
+        <div id="dest" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <span class="hd">Carteira de clientes · temas vinculados</span>
+        <div id="clis" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+          <span class="hd">Agenda do dia · parlamento</span>
+          <span class="mono" id="agStatus" style="font-size:10px;color:var(--text2)"></span>
+        </div>
+        <div id="agenda" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <span class="hd sinal">Tarefas pendentes · decisões do consultor</span>
+        <div id="tarefas" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span>pilotis · rig-os — a infraestrutura silenciosa da influência institucional</span>
+  <span class="mono" id="ger"></span></div>
+</div>
+
+<script src="data/plataforma.js"></script>
+<script src="data/agenda.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/agente.js" defer></script>
+<script>
+if (exigeSessao()) {
+  renderTopbar('Hoje');
+  const P = window.PILOTIS, u = sessao.get();
+  const hoje = new Date();
+  const h = hoje.getHours();
+  $('#saud').textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + ', ' + u.nome.split(' ')[0] + '.';
+  $('#dataHoje').textContent = hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+  $('#ger').textContent = 'dados consolidados em ' + fmtDT(P.gerado);
+
+  // ── KPIs ──────────────────────────────────────────────────────────
+  const movTot = P.clientes.reduce((s, c) => s + (c.nMovimentos ?? c.movimentos.length), 0);
+  const cartTot = P.clientes.reduce((s, c) => s + c.carteira.length, 0);
+  const filaTot = P.clientes.reduce((s, c) => s + c.filaTriagem, 0);
+  const tar = tarefasPendentes();
+  $('#kpis').innerHTML = `
+    <div class="kpi sinal"><b>${movTot}</b><span>movimentos desde ontem</span></div>
+    <div class="kpi dado"><b>${cartTot}</b><span>atos em carteira · 3 clientes</span></div>
+    <div class="kpi"><b>${filaTot}</b><span>na fila de triagem</span></div>
+    <div class="kpi sinal"><b>${tar.length}</b><span>tarefas pendentes</span></div>`;
+
+  // ── o que mudou ───────────────────────────────────────────────────
+  $('#mudou').innerHTML = P.clientes.map(c => {
+    const n = c.nMovimentos ?? c.movimentos.length;
+    const top = c.movimentos.slice(0, 2).map(m =>
+      `<div class="evt"><span class="h" style="min-width:auto">${m.ts.slice(11, 16)}</span>
+       <div><span class="tag">${esc(m.rotulo)}</span> <span class="mut" style="font-size:12px">${esc(m.evento.slice(0, 110))}</span></div></div>`).join('');
+    return `<div style="margin-bottom:14px">
+      <div class="clirow" style="margin-bottom:4px">
+        <div class="cliini">${esc(c.nome.split(' ')[0].slice(0, 2).toUpperCase())}</div>
+        <div style="flex:1"><b>${esc(c.nome)}</b>
+          <div class="mut" style="font-size:12px">${esc(c.setor)}</div></div>
+        <span class="pill ${n ? 'acao' : ''}">${n} movimento${n === 1 ? '' : 's'}</span>
+        <a class="btn btn-ghost btn-sm" href="cliente.html?c=${c.slug}">abrir →</a>
+      </div>${top}</div>`;
+  }).join('');
+
+  // ── destaques ─────────────────────────────────────────────────────
+  $('#dest').innerHTML = destaques().map(d => {
+    const ut = d.p.ultimaTramitacao || {};
+    return `<div class="evt">
+      <div style="min-width:52px"><span class="pill dark">${esc(d.cli.slug.toUpperCase())}</span></div>
+      <div class="t"><span class="tag">${esc(d.p.rotulo)}</span> ${pillPri(d.p.prioridade)} ${pillPol(d.p.polaridade)}<br>
+        <span class="mut" style="font-size:12.5px">${esc(d.p.ementa.slice(0, 130))}…</span><br>
+        <span class="mono mut" style="font-size:10.5px">${esc(d.p.orgao || '—')} · ${esc((ut.despacho || d.p.situacao || '').slice(0, 80))}</span></div>
+    </div>`;
+  }).join('');
+
+  // ── clientes / temas ──────────────────────────────────────────────
+  $('#clis').innerHTML = P.clientes.map(c => {
+    const temas = [...new Set(c.carteira.flatMap(p => p.cats))].slice(0, 5);
+    const ct = c.contagens;
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <div class="clirow">
+        <div style="flex:1"><a href="cliente.html?c=${c.slug}" style="font-weight:600;color:var(--sombra);text-decoration:none">${esc(c.nome)}</a>
+        <div class="mut" style="font-size:12px">${esc(c.leiAncora)}</div></div>
+        <span class="mono mut" style="font-size:11px">${ct.acompanhando || 0} acomp. · ${(ct.lobby || 0) + (ct.prospectiva || 0)} lobby · ${ct.relatorio || 0} relat.</span>
+      </div>
+      <div style="margin-top:6px">${temas.map(t => `<span class="pill" style="margin-right:5px">${esc(t)}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // ── tarefas ───────────────────────────────────────────────────────
+  const ICO = { triagem: '▤', gate: '◈', prospectiva: '▷' };
+  $('#tarefas').innerHTML = tar.map(t =>
+    `<div class="evt"><span class="h" style="min-width:24px">${ICO[t.tipo]}</span>
+     <div class="t"><a href="${t.href}" style="color:var(--sombra);text-decoration:none"><b>${esc(t.cli.nome.split(' ')[0])}</b> — ${esc(t.txt)}</a></div></div>`).join('')
+    || '<div class="mut" style="padding:10px 0">Nenhum gate pendente. O vão é seu.</div>';
+
+  // ── agenda (snapshot + refresh ao vivo) ───────────────────────────
+  function renderAgenda(evts, fonte) {
+    $('#agStatus').textContent = fonte;
+    $('#agenda').innerHTML = (evts || []).slice(0, 12).map(e =>
+      `<div class="evt"><span class="h">${esc(e.hora || '—')}</span>
+       <div><div class="o">${e.casa === 'camara' ? 'CÂMARA' : 'SENADO'} · ${esc(e.orgao || '')} ${e.situacao ? '· ' + esc(e.situacao) : ''}</div>
+       <div class="t">${esc((e.tipo || '') + (e.titulo ? ' — ' + e.titulo : '')).slice(0, 150)}</div></div></div>`).join('')
+      || '<div class="mut" style="padding:10px 0">Sem eventos na agenda de hoje.</div>';
+  }
+  const snap = (window.PILOTIS_AGENDA || { dias: {} });
+  const doDia = snap.dias[hojeISO()] || Object.values(snap.dias)[0] || [];
+  renderAgenda(doDia, 'snapshot · ' + fmtDT(snap.gerado));
+  // refresh ao vivo (Câmara; se offline, mantém snapshot)
+  fetch(`https://dadosabertos.camara.leg.br/api/v2/eventos?dataInicio=${hojeISO()}&dataFim=${hojeISO()}&itens=100&ordem=ASC&ordenarPor=dataHoraInicio`,
+    { headers: { accept: 'application/json' } })
+    .then(r => r.json())
+    .then(j => {
+      const cam = (j.dados || []).map(x => ({
+        casa: 'camara', hora: (x.dataHoraInicio || '').slice(11, 16), tipo: x.descricaoTipo,
+        situacao: x.situacao, orgao: ((x.orgaos || [])[0] || {}).sigla,
+        titulo: (x.descricao || '').replace(/\s+/g, ' ').slice(0, 200),
+      }));
+      const sen = doDia.filter(e => e.casa === 'senado');
+      renderAgenda([...cam, ...sen].sort((a, b) => (a.hora || '99') < (b.hora || '99') ? -1 : 1), 'ao vivo · Câmara + Senado');
+    })
+    .catch(() => {});
+}
+</script>
+</body>
+</html>

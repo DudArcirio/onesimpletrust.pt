@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 96" aria-label="ANJL">
+  <!-- wordmark simplificada para demo -->
+  <rect x="4" y="12" width="72" height="72" rx="14" fill="#0E2A47"/>
+  <circle cx="40" cy="48" r="20" fill="none" stroke="#3FB57E" stroke-width="7"/>
+  <circle cx="40" cy="48" r="5" fill="#3FB57E"/>
+  <text x="92" y="66" font-family="Poppins,Arial,sans-serif" font-size="52" font-weight="700"
+        fill="#0E2A47" letter-spacing="3">ANJL</text>
+  <text x="94" y="84" font-family="Poppins,Arial,sans-serif" font-size="11" font-weight="500"
+        fill="#4A4A46" letter-spacing="1">JOGO E LOTERIAS · SETOR REGULADO</text>
+</svg>

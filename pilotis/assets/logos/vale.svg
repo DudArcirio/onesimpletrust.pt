@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 96" aria-label="Vale">
+  <!-- wordmark simplificada para demo: V em duas faixas (verde/amarelo), ALE em verde -->
+  <polygon points="8,10 42,10 66,78 46,86" fill="#007E7A"/>
+  <polygon points="100,10 66,10 46,86 66,86" fill="#ECB11F"/>
+  <text x="108" y="72" font-family="Poppins,Arial,sans-serif" font-size="66" font-weight="700"
+        fill="#007E7A" letter-spacing="2">ALE</text>
+</svg>

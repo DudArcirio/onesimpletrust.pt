@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilotis — cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/pilotis.css">
+<style>
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 6px 4px 11px}
+  .chip.add{background:var(--dado-bg);border-color:transparent}
+  .chip b{cursor:pointer;color:var(--text2);font-weight:700;padding:0 5px;border-radius:50%}
+  .chip b:hover{color:#fff;background:var(--sinal)}
+  .tin{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:var(--sans);font-size:13px;flex:1;outline:none}
+  .tin:focus{border-color:var(--verde)}
+  .tin.num{width:64px;flex:none;margin-left:6px}
+  .vet{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--luz)}
+  .vet .vhd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .vet select,.vet input.peso{border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-family:var(--mono);font-size:11px;background:#fff}
+  .ent-tier{margin-bottom:18px}
+  .ent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:960px){.ent-grid{grid-template-columns:1fr}}
+  .ent{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .ent .nm{font-weight:600;font-size:14.5px}
+  .ent .eq{font-family:var(--mono);font-size:10px;color:var(--text2);margin:3px 0 8px}
+  .ent .ds{font-size:12.5px;color:var(--text2);line-height:1.4;margin-bottom:10px}
+  .kpi.clk{cursor:pointer;transition:all var(--dur) var(--ease)}
+  .kpi.clk:hover{border-color:var(--verde);transform:translateY(-1px)}
+  .selv{border:1px solid var(--border);border-radius:7px;padding:3px 6px;font-family:var(--mono);font-size:10.5px;background:#fff}
+  .tip{cursor:help;position:relative;border-bottom:1px dotted var(--text2)}
+  .tip:hover::after{content:attr(data-tip);position:absolute;left:0;top:130%;z-index:70;width:300px;
+    background:var(--grafite);color:var(--luz);font-family:var(--sans);font-size:11.5px;font-weight:400;
+    text-transform:none;letter-spacing:0;line-height:1.45;padding:10px 12px;border-radius:8px;
+    box-shadow:0 8px 24px rgba(41,43,38,.3);white-space:normal}
+</style>
+</head>
+<body>
+<div id="back-to-tools" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(11,15,20,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,169,110,0.15);padding:12px 24px;display:flex;align-items:center;gap:16px;font-family:Inter,-apple-system,sans-serif;"><a href="/tools.html" style="color:#C8A96E;text-decoration:none;font-size:13px;font-weight:400;letter-spacing:0.5px;display:flex;align-items:center;gap:6px;"><span style="font-size:16px;">&#8592;</span> Back to Tools</a><span style="color:rgba(200,169,110,0.3);">|</span><a href="/index.html" style="color:#8A8680;text-decoration:none;font-size:13px;">Home</a></div><div style="height:48px;"></div>
+<div class="wrap">
+  <div class="kicker">DASHBOARD DO CLIENTE</div>
+  <div class="clirow" style="margin-top:10px">
+    <div style="width:150px;height:56px;display:flex;align-items:center;flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 10px">
+      <img id="logo" alt="" style="max-width:100%;max-height:100%;display:block;margin:auto"></div>
+    <div style="flex:1">
+      <h1 id="nome"></h1>
+      <div class="mut" id="setor" style="font-size:13.5px"></div>
+    </div>
+  </div>
+  <div class="card flat" style="margin-top:16px"><span class="hd">Tese · lógica de interesse</span>
+    <div class="mut" id="tese" style="margin-top:6px;font-size:14px"></div></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tabs" id="tt">
+    <button class="on" data-t="p-desc">Boletim de descoberta</button>
+    <button data-t="p-tri">Triagem &amp; priorização</button>
+    <button data-t="p-and">Boletim de andamentos</button>
+    <button data-t="p-pro">Estratégias</button>
+    <button data-t="p-log">Lógica de interesse</button>
+    <button data-t="p-ent">Entregáveis</button>
+  </div>
+
+  <div class="panel on" id="p-desc"><iframe class="doc" data-src="" id="if-desc"></iframe></div>
+  <div class="panel" id="p-and"><iframe class="doc" data-src="" id="if-and"></iframe></div>
+
+  <div class="panel tri" id="p-tri">
+    <div class="grid" style="grid-template-columns:1fr;gap:16px">
+      <div class="card">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div><span class="hd sinal">Caixa de triagem</span>
+          <div class="mut" style="font-size:13px;margin-top:8px">Descobertas relevantes aguardando a sua decisão — Acompanhar? Com que prioridade? Ao aceitar, o ato entra na carteira priorizada abaixo.</div></div>
+          <span class="mono mut" id="triCount" style="font-size:11px"></span>
+        </div>
+        <div style="overflow-x:auto;margin-top:12px"><table class="pil" id="tblTri"></table></div>
+      </div>
+      <div class="card">
+        <span class="hd">Carteira priorizada</span>
+        <div class="mut" style="font-size:13px;margin:8px 0 12px">Score = lógica de interesse auditável · o vetor orienta a postura — ajustável por ato · <b>→ Estratégia</b> é a decisão do consultor que manda o ato para o mapeamento de stakeholders.</div>
+        <div style="overflow-x:auto"><table class="pil" id="tblCart"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p-pro">
+    <div class="grid" style="grid-template-columns:1fr 1.4fr;align-items:start">
+      <div>
+        <div class="card">
+          <span class="hd">Estratégia global do cliente</span>
+          <p class="mut" style="font-size:13.5px;margin-top:8px">Overview combinado das estratégias por ato + cenário político atual e seu impacto na atuação.</p>
+          <a class="btn btn-primary btn-sm" id="lnkGlobal" target="_blank" rel="noopener">Abrir visão global →</a>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <span class="hd sinal">Atos priorizados · estratégia dedicada</span>
+          <div id="atos" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <iframe class="doc" id="if-pro" style="min-height:78vh"></iframe>
+    </div>
+  </div>
+
+  <div class="panel" id="p-log">
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div><span class="hd">Lógica de interesse · editável pelo consultor</span>
+        <div class="mut" style="font-size:13px;margin-top:4px">Score = 5 (núcleo presente) + soma dos pesos dos vetores que batem.
+        Adicione ou exclua termos; as alterações ficam salvas neste navegador e podem ser exportadas para aplicar no backoffice.</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="pill" id="logStatus"></span>
+          <button class="btn btn-ghost btn-sm" onclick="logReset()">Restaurar padrão</button>
+          <button class="btn btn-dark btn-sm" onclick="logExport()">Exportar lógica (.json)</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr 1.4fr;align-items:start">
+      <div>
+        <div class="card">
+          <span class="hd">Núcleo — gatilho de relevância</span>
+          <div class="mut" style="font-size:12px;margin:4px 0 10px">Um ato só é considerado relevante se a ementa contiver ao menos um termo do núcleo.</div>
+          <div class="chips" id="chipsNucleo"></div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <input class="tin" id="inNucleo" placeholder="adicionar termo ao núcleo…">
+            <button class="btn btn-primary btn-sm" onclick="logAdd('nucleo')">+</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <span class="hd">Buscas — varredura nas fontes</span>
+          <div class="mut" style="font-size:12px;margin:4px 0 10px">Palavras-chave usadas na descoberta dirigida (Câmara + Senado).</div>
+          <div class="chips" id="chipsBuscas"></div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <input class="tin" id="inBuscas" placeholder="adicionar busca…">
+            <button class="btn btn-primary btn-sm" onclick="logAdd('buscas')">+</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <span class="hd">Limiares de prioridade</span>
+          <div style="display:flex;gap:16px;margin-top:10px;align-items:center">
+            <label class="mono mut" style="font-size:11px">ALTA ≥ <input class="tin num" id="limAlta" type="number" min="6" max="20"></label>
+            <label class="mono mut" style="font-size:11px">MÉDIA ≥ <input class="tin num" id="limMedia" type="number" min="5" max="15"></label>
+            <span class="mut" style="font-size:11.5px">abaixo → Baixa</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="hd">Vetores — modificadores de prioridade e postura</span>
+        <div class="mut" style="font-size:12px;margin:4px 0 6px">Cada vetor soma o seu peso ao score e empurra a polaridade dominante (oportunidade / ameaça / defensivo).</div>
+        <div id="vetores"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p-ent">
+    <div class="card" style="margin-bottom:16px">
+      <span class="hd">Catálogo de entregáveis · superfície de produto</span>
+      <div class="mut" style="font-size:13px;margin-top:4px">Os entregáveis que o mercado de public affairs já reconhece e precifica —
+      produzidos pela máquina em três camadas: self-serve a custo marginal zero, assistida com gate do consultor, e premium onde o
+      julgamento do sênior é o produto.</div>
+    </div>
+    <div id="entregaveis"></div>
+  </div>
+
+  <div class="foot"><span>pilotis · rig-os · backoffice → front-office, ponta a ponta</span>
+  <span class="mono" id="ger"></span></div>
+</div>
+
+<script src="data/plataforma.js"></script>
+<script src="data/agenda.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/agente.js" defer></script>
+<script>
+if (exigeSessao()) {
+  const slug = new URLSearchParams(location.search).get('c') || 'anjl';
+  const c = cliente(slug);
+  if (!c) location.href = 'welcome.html';
+  renderTopbar({ anjl: 'ANJL', vale: 'Vale', expedia: 'Expedia' }[slug]);
+  document.title = 'Pilotis — ' + c.nome;
+  $('#nome').textContent = c.nome;
+  $('#logo').src = 'assets/logos/' + slug + '.svg';
+  $('#logo').alt = c.nome;
+  $('#setor').textContent = c.setor + ' · ' + c.leiAncora;
+  $('#tese').textContent = c.tese;
+  $('#ger').textContent = 'dados consolidados em ' + fmtDT(PILOTIS.gerado);
+
+  const ct = c.contagens;
+  const nMov = c.nMovimentos ?? c.movimentos.length;
+  window.abrirAba = function (id) { const b = $(`button[data-t="${id}"]`); if (b) { b.click(); b.scrollIntoView({ block: 'nearest' }); } };
+  $('#kpis').innerHTML = `
+    <div class="kpi sinal clk" onclick="abrirAba('p-and')" title="ver boletim de andamentos"><b>${nMov}</b><span>movimentos desde ontem →</span></div>
+    <div class="kpi clk" onclick="abrirAba('p-tri')" title="abrir triagem & priorização"><b>${c.filaTriagem}</b><span>fila de triagem →</span></div>
+    <div class="kpi dado clk" onclick="abrirAba('p-tri')" title="ver carteira priorizada"><b>${ct.acompanhando || 0}</b><span>em acompanhamento →</span></div>
+    <div class="kpi clk" onclick="abrirAba('p-pro')" title="ver estratégias"><b>${(ct.lobby || 0) + (ct.prospectiva || 0)}</b><span>em lobby →</span></div>
+    <div class="kpi dado clk" onclick="abrirAba('p-pro')" title="ver estratégias"><b>${ct.relatorio || 0}</b><span>estratégias →</span></div>`;
+
+  $('#if-desc').dataset.src = c.boletins.descoberta;
+  $('#if-desc').src = c.boletins.descoberta;
+  $('#if-and').dataset.src = c.boletins.andamentos;
+  $('#lnkGlobal').href = c.prospectivas.global;
+
+  // ── triagem viva: Sim move para a carteira priorizada ─────────────
+  const TRI_KEY = 'pilotis_tri_' + slug, VET_KEY = 'pilotis_vetor_' + slug, EST_KEY = 'pilotis_estrategia_' + slug;
+  const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } };
+  const dec = lsGet(TRI_KEY);          // {id: {acompanhar, prioridade}}
+  const vetOver = lsGet(VET_KEY);      // {id: polaridade}
+  const estSel = lsGet(EST_KEY);       // {id: true} — decisão do consultor p/ estratégia
+  const salva = () => { localStorage.setItem(TRI_KEY, JSON.stringify(dec));
+    localStorage.setItem(VET_KEY, JSON.stringify(vetOver)); localStorage.setItem(EST_KEY, JSON.stringify(estSel)); };
+
+  const filaViva = () => c.fila.filter(p => !(dec[p.id] && dec[p.id].acompanhar !== undefined));
+  const aceitos = () => c.fila.filter(p => dec[p.id] && dec[p.id].acompanhar)
+    .map(p => ({ ...p, estado: 'acompanhando', prioridade: dec[p.id].prioridade || p.sugestao || 'Baixa', novoNaCarteira: true }));
+
+  const TIP_SCORE = 'Score = 5 (um termo do núcleo bate na ementa) + soma dos pesos dos vetores temáticos presentes. ' +
+    'Prioridade: Alta ≥ ' + c.logica.limiares.alta + ', Média ≥ ' + c.logica.limiares.media + ', senão Baixa. ' +
+    'Auditável: os termos batidos ficam registrados em cada ato. Ajuste termos e pesos na aba Lógica de interesse.';
+  const thScore = `<th><span class="tip" data-tip="${esc(TIP_SCORE)}">Score ⓘ</span></th>`;
+
+  window.setAcc = function (id, v) {
+    dec[id] = dec[id] || {};
+    dec[id].acompanhar = !!v;
+    if (v && !dec[id].prioridade) { const p = c.fila.find(x => x.id === id); dec[id].prioridade = (p && p.sugestao) || 'Baixa'; }
+    salva(); renderTri(); renderCart();
+  };
+  window.setPri = function (id, pr, el) {
+    $$('.btn-t.pri', el.closest('tr')).forEach(b => b.classList.remove('on'));
+    el.classList.add('on');
+    dec[id] = dec[id] || {};
+    dec[id].prioridade = pr;
+    salva();
+  };
+  window.setVet = function (id, v) { vetOver[id] = v; salva(); renderCart(); };
+  window.setEst = function (id) { estSel[id] = !estSel[id]; salva(); renderCart(); };
+
+  function renderTri() {
+    const fila = filaViva();
+    $('#triCount').textContent = (c.fila.length - fila.length) + ' / ' + c.fila.length + ' decididos';
+    $('#tblTri').innerHTML = `<thead><tr><th>Ato</th>${thScore}<th>Vetor</th><th>Ementa</th><th>Acompanhar</th><th>Prioridade sugerida</th></tr></thead><tbody>` +
+      (fila.map(p => `<tr>
+        <td class="tag"><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.rotulo)}</a></td>
+        <td style="text-align:center"><b class="tip" data-tip="${esc(TIP_SCORE)}">${p.score}</b></td><td>${pillPol(p.polaridade)}</td>
+        <td style="min-width:260px">${esc(p.ementa.slice(0, 150))}…</td>
+        <td style="white-space:nowrap"><button class="btn-t sim" onclick="setAcc('${p.id}',1)">Sim</button>
+          <button class="btn-t nao" onclick="setAcc('${p.id}',0)">Não</button></td>
+        <td style="white-space:nowrap">${['Alta', 'Média', 'Baixa'].map(x =>
+          `<button class="btn-t pri ${x === (p.sugestao || 'Baixa') ? 'on' : ''}" onclick="setPri('${p.id}','${x}',this)">${x}</button>`).join(' ')}</td>
+      </tr>`).join('') || '<tr><td colspan=6 class="mut" style="padding:16px">Fila vazia — tudo triado. Descartados podem ser recuperados limpando as decisões locais.</td></tr>') + '</tbody>';
+  }
+
+  const EST = { acompanhando: ['Acompanhando', 'dado'], lobby: ['Estratégia', 'acao'], prospectiva: ['Estratégia', 'acao'], relatorio: ['Entregue', 'dark'] };
+  const POLS_ATO = ['oportunidade', 'ameaca', 'defensivo', 'tributario', 'monitorar'];
+  function renderCart() {
+    const todos = [...aceitos(), ...c.carteira];
+    $('#tblCart').innerHTML = `<thead><tr><th>Ato</th><th>Fonte</th>${thScore}<th>Prioridade</th><th><span class="tip" data-tip="Vetor = polaridade dominante entre os vetores temáticos que batem (por peso). Ajuste a polaridade de cada vetor na aba Lógica de interesse — ou faça o override deste ato aqui.">Vetor ⓘ</span></th><th>Estado</th><th>Órgão · situação</th><th>Estratégia</th></tr></thead><tbody>` +
+      todos.map(p => {
+        const [el, ec] = EST[p.estado] || [p.estado, ''];
+        const pol = vetOver[p.id] || p.polaridade;
+        const emEstr = p.estado !== 'acompanhando';
+        const btn = emEstr
+          ? `<span class="pill dark">em estratégia</span>`
+          : (estSel[p.id]
+            ? `<span class="pill acao" style="cursor:pointer" onclick="setEst('${p.id}')" title="clique para desfazer">✓ selecionado</span>`
+            : `<button class="btn btn-ghost btn-sm" onclick="setEst('${p.id}')">→ Estratégia</button>`);
+        return `<tr${p.novoNaCarteira ? ' style="background:var(--verde-bg)"' : ''}>
+        <td class="tag"><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.rotulo)}</a>${p.novoNaCarteira ? '<br><span class="pill dado" style="font-size:9px">novo · triagem local</span>' : ''}</td>
+        <td class="mono mut" style="font-size:11px">${p.casa === 'camara' ? 'Câmara' : 'Senado'}</td>
+        <td style="text-align:center"><b>${p.score}</b></td><td>${pillPri(p.prioridade)}</td>
+        <td><select class="selv" onchange="setVet('${p.id}',this.value)">${POLS_ATO.map(v =>
+          `<option value="${v}" ${v === pol ? 'selected' : ''}>${(POL[v] || [v])[0]}</option>`).join('')}</select>${vetOver[p.id] && vetOver[p.id] !== p.polaridade ? '<br><span class="mut" style="font-size:9.5px">override do consultor</span>' : ''}</td>
+        <td><span class="pill ${ec}">${el}</span></td>
+        <td class="mut" style="font-size:12px">${esc(p.orgao || '—')} · ${esc((p.situacao || '—').slice(0, 70))}</td>
+        <td style="white-space:nowrap">${btn}</td></tr>`;
+      }).join('') + '</tbody>';
+  }
+  renderTri();
+  renderCart();
+
+  // ── estratégias por ato ───────────────────────────────────────────
+  $('#atos').innerHTML = c.prospectivas.atos.map((a, i) => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <a href="#" class="tag" style="font-weight:700" onclick="verPro('${a.html}',this);return false">${esc(a.rotulo)}</a>
+        ${pillPol(a.polaridade)}
+        <a class="btn btn-primary btn-sm" style="margin-left:auto" href="${a.ppt}" download>Gerar PPT ↓</a>
+      </div>
+      <div class="mut" style="font-size:12px;margin-top:4px">${esc(a.ementa)}…</div>
+    </div>`).join('') || '<div class="mut">Nenhum ato selecionado para estratégia ainda — decida na Carteira Priorizada.</div>';
+  window.verPro = function (href, el) {
+    $('#if-pro').src = href;
+    $$('#atos .tag').forEach(x => x.style.color = '');
+    el.style.color = 'var(--verde)';
+  };
+  if (c.prospectivas.atos.length) $('#if-pro').src = c.prospectivas.atos[0].html;
+  else $('#if-pro').src = c.prospectivas.global;
+
+  // ── lógica de interesse (editável) ────────────────────────────────
+  const LOG_KEY = 'pilotis_logica_' + slug;
+  const logPadrao = JSON.parse(JSON.stringify(c.logica));
+  let logica = (() => {
+    try { return JSON.parse(localStorage.getItem(LOG_KEY)) || JSON.parse(JSON.stringify(logPadrao)); }
+    catch (e) { return JSON.parse(JSON.stringify(logPadrao)); }
+  })();
+
+  function logSalva() {
+    localStorage.setItem(LOG_KEY, JSON.stringify(logica));
+    logRender();
+  }
+  function chip(txt, onDel, extra) {
+    return `<span class="chip ${extra || ''}">${esc(txt)}<b title="excluir termo" onclick="${onDel}">×</b></span>`;
+  }
+  window.logDel = function (campo, i, cat) {
+    if (cat) logica.categorias[cat].termos.splice(i, 1);
+    else logica[campo].splice(i, 1);
+    logSalva();
+  };
+  window.logAdd = function (campo, cat) {
+    const el = cat ? $('#in_' + cat) : $('#in' + campo.charAt(0).toUpperCase() + campo.slice(1));
+    const v = (el.value || '').trim().toLowerCase();
+    if (!v) return;
+    (cat ? logica.categorias[cat].termos : logica[campo]).push(v);
+    el.value = '';
+    logSalva();
+  };
+  window.logPeso = function (cat, v) { logica.categorias[cat].peso = +v; logSalva(); };
+  window.logPol = function (cat, v) { logica.categorias[cat].polaridade = v; logSalva(); };
+  window.logReset = function () { logica = JSON.parse(JSON.stringify(logPadrao)); logSalva(); };
+  window.logExport = function () {
+    const cfg = { cliente: c.nome, slug, setor: c.setor, tese: c.tese, lei_ancora: c.leiAncora,
+                  buscas: logica.buscas, nucleo: logica.nucleo, categorias: logica.categorias, limiares: logica.limiares };
+    const blob = new Blob([JSON.stringify(cfg, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = slug + '.json';
+    a.click();
+  };
+  const POLS = ['oportunidade', 'ameaca', 'defensivo', 'tributario', 'monitorar'];
+  function logRender() {
+    const alterada = JSON.stringify(logica) !== JSON.stringify(logPadrao);
+    $('#logStatus').textContent = alterada ? '● alterações locais — exporte p/ aplicar no backoffice' : '● padrão em produção';
+    $('#logStatus').className = 'pill ' + (alterada ? 'acao' : 'dado');
+    $('#chipsNucleo').innerHTML = logica.nucleo.map((t, i) => chip(t, `logDel('nucleo',${i})`)).join('');
+    $('#chipsBuscas').innerHTML = logica.buscas.map((t, i) => chip(t, `logDel('buscas',${i})`)).join('');
+    $('#limAlta').value = logica.limiares.alta;
+    $('#limMedia').value = logica.limiares.media;
+    $('#vetores').innerHTML = Object.entries(logica.categorias).map(([k, cv]) => `
+      <div class="vet">
+        <div class="vhd">
+          <b style="font-size:13.5px">${esc(cv.rotulo)}</b>
+          <label class="mono mut" style="font-size:10px">PESO <input class="peso" type="number" min="1" max="6" value="${cv.peso}"
+            onchange="logPeso('${k}',this.value)" style="width:46px"></label>
+          <select onchange="logPol('${k}',this.value)">${POLS.map(p =>
+            `<option value="${p}" ${p === cv.polaridade ? 'selected' : ''}>${p}</option>`).join('')}</select>
+          ${pillPol(cv.polaridade)}
+        </div>
+        <div class="chips">${cv.termos.map((t, i) => chip(t, `logDel(null,${i},'${k}')`)).join('')}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input class="tin" id="in_${k}" placeholder="adicionar termo…">
+          <button class="btn btn-ghost btn-sm" onclick="logAdd(null,'${k}')">+</button>
+        </div>
+      </div>`).join('');
+  }
+  $('#limAlta').addEventListener('change', e => { logica.limiares.alta = +e.target.value; logSalva(); });
+  $('#limMedia').addEventListener('change', e => { logica.limiares.media = +e.target.value; logSalva(); });
+  logRender();
+
+  // ── entregáveis (catálogo em 3 camadas) ───────────────────────────
+  const primeiroPPT = (c.prospectivas.atos[0] || {}).ppt || '#';
+  const primeiraPro = (c.prospectivas.atos[0] || {}).html || c.prospectivas.global;
+  const TIERS = [
+    ['BASE · SELF-SERVE AUTOMATIZADA', 'dado', 'custo marginal ~zero · toque humano zero · ancora a conta', [
+      ['Boletim de descoberta', 'monitoramento · entrega diária', 'Varredura diária dirigida na Câmara e no Senado, pontuada pela lógica de interesse.', c.boletins.descoberta, 'Abrir'],
+      ['Boletim de andamentos', 'monitoramento · entrega diária', 'Movimentações de tudo o que está em carteira, com prioridade e órgão.', c.boletins.andamentos, 'Abrir'],
+      ['Agenda parlamentar', 'monitoramento · ao vivo + snapshot', 'Eventos do dia no plenário e nas comissões das duas casas, com refresh ao vivo.', 'welcome.html', 'Ver no Hoje'],
+    ]],
+    ['MEIO · ASSISTIDA (MÁQUINA PROPÕE, CONSULTOR VALIDA)', '', 'retainer médio · gates do consultor', [
+      ['Análise de proposição', 'inteligência · por ato', 'Prospectiva por ato com dado estrutural real, pronta para o scoring do consultor.', primeiraPro, 'Abrir'],
+      ['Mapa de stakeholders', 'inteligência · rede de influência', 'Grafo de influência: autor, relator, blocos, caminho até o decisor.', 'parlamento.html', 'Abrir grafo'],
+      ['Triagem & priorização', 'inteligência · fluxo completo pontuado', 'Todo o fluxo legislativo pontuado contra a lógica de interesse — não amostras.', 'cliente.html?c=' + slug + '#triagem', 'Abrir'],
+    ]],
+    ['TOPO · PREMIUM HIGH-TOUCH (O SÊNIOR É O PRODUTO)', 'acao', 'retainer alto + resultado · método completo, trilha auditável', [
+      ['Plano de Ação', 'estratégia · deck completo por ato', 'Deck completo: MICMAC → grafo → MACTOR → Shapley → SMIC → mechanism design.', primeiroPPT, 'Baixar deck (PPT)'],
+      ['Cenários prospectivos', 'estratégia · diferencial Pilotis', 'SMIC: quatro futuros com probabilidade e a aposta robusta nos dois cenários dominantes.', primeiraPro, 'Ver método'],
+      ['Registro de conformidade', 'estratégia · conformidade by design', 'Trilha auditável de interação e evidência — pronta para a regulação do lobby.', c.prospectivas.global, 'Visão global'],
+    ]],
+  ];
+  $('#entregaveis').innerHTML = TIERS.map(([titulo, cls, sub, itens]) => `
+    <div class="ent-tier">
+      <div style="display:flex;gap:10px;align-items:baseline;margin-bottom:10px;flex-wrap:wrap">
+        <span class="pill ${cls}">${titulo}</span>
+        <span class="mono mut" style="font-size:10.5px">${sub}</span>
+      </div>
+      <div class="ent-grid">${itens.map(([nm, eq, ds, href, cta]) => `
+        <div class="ent"><div class="nm">${nm}</div><div class="eq">${eq}</div><div class="ds">${ds}</div>
+        <a class="btn ${cls === 'acao' ? 'btn-primary' : 'btn-ghost'} btn-sm" href="${href}" ${href.endsWith('.pptx') ? 'download' : ''}>${cta}</a></div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  tabs(document);
+  if (location.hash === '#triagem') $('button[data-t="p-tri"]').click();
+  if (location.hash === '#prospectiva') $('button[data-t="p-pro"]').click();
+  if (location.hash === '#logica') $('button[data-t="p-log"]').click();
+  if (location.hash === '#entregaveis') $('button[data-t="p-ent"]').click();
+}
+</script>
+</body>
+</html>
