@@ -262,6 +262,85 @@ window.PilotisGrafo = (function () {
     }
   }
 
+  // ── perfil temático (Stakeholders F1 — app/data/perfil_tematico.js) ─
+  const PERFIL = (window.PILOTIS_PERFIL || { clientes: {} }).clientes;
+  const perfilIdx = (() => {
+    const m = new Map();
+    for (const slug of Object.keys(PERFIL)) {
+      const sub = new Map();
+      for (const nome of Object.keys(PERFIL[slug])) sub.set(limpaNome(nome), PERFIL[slug][nome]);
+      m.set(slug, sub);
+    }
+    return m;
+  })();
+  function perfilTematicoHTML(nome) {
+    const chave = limpaNome(nome);
+    const fontes = cliAtual() ? [cliAtual()] : CLIENTES;
+    let blocos = '';
+    for (const c of fontes) {
+      const perfil = (perfilIdx.get(c.slug) || new Map()).get(chave);
+      if (!perfil) continue;
+      const linhas = Object.values(perfil).map(v => {
+        const f = v.formal.map(x => x.comissao).join(', ');
+        const cp = v.comportamental.slice(0, 3).map(x =>
+          `<a href="${x.url}" target="_blank" style="color:#8FB99B">${x.ato}</a> <span style="opacity:.7">(${x.papel})</span>`).join(' · ');
+        return `<div style="margin:3px 0"><b style="font-size:11.5px">${v.rotulo}</b><br>
+          ${f ? `<span class="badge" style="background:#3C4A3A;color:#DCE7DF" title="estruturado — competência de comissão (curadoria única)">estruturado · ${f}</span> ` : ''}
+          ${cp ? `<span class="badge" style="background:#1B6C39;color:#F4F2ED" title="calculado — relatoria/autoria classificada nos vetores">calculado</span> <span style="font-size:11px">${cp}</span>` : ''}</div>`;
+      }).join('');
+      if (linhas) blocos += `<div class="rot">Vetores temáticos — ${c.nome.split(' (')[0]}</div>${linhas}`;
+    }
+    return blocos;
+  }
+
+  // ── interações consultor→pessoa (dado proprietário; localStorage → export JSON) ─
+  const intKey = () => `pilotis_int_${S.cliente || 'geral'}`;
+  const intLoad = () => { try { return JSON.parse(localStorage.getItem(intKey()) || '[]'); } catch (e) { return []; } };
+  const intSave = (arr) => localStorage.setItem(intKey(), JSON.stringify(arr));
+  // mesmo schema/chave da aba Stakeholders de cliente.html — os dois pontos de registro compartilham o dado
+  const CANAIS = { reuniao: 'Reunião', call: 'Call', email: 'E-mail', evento: 'Evento', audiencia: 'Audiência pública' };
+  function interacoesHTML(nome) {
+    const todas = intLoad().filter(i => i.pessoa === nome).sort((a, b) => (b.quando || '').localeCompare(a.quando || ''));
+    const li = todas.slice(0, 6).map(i =>
+      `<div style="margin:3px 0;font-size:11.5px"><span class="badge" style="background:#E7E3DA;color:#292B26">${i.quando || ''} · ${CANAIS[i.canal] || i.canal || ''}</span>
+       ${i.assunto || ''}${i.proximo ? ` <span style="opacity:.7">→ ${i.proximo}</span>` : ''}</div>`).join('');
+    return `<div class="rot">Interações${S.cliente ? '' : ' (geral)'} <span style="opacity:.6" title="registro de acesso/relacionamento da assessoria — não mede poder do stakeholder">· acesso ≠ influência</span></div>
+      ${li || '<div style="font-size:11.5px;opacity:.6">nenhuma registrada</div>'}
+      <div style="margin-top:6px">
+        <a href="#" id="int-add" style="color:#8FB99B;font-size:12px">+ interação</a>
+        ${todas.length ? ` &nbsp;<a href="#" id="int-exp" style="color:#8FB99B;font-size:12px">⭳ exportar</a>` : ''}
+      </div>
+      <form id="int-form" style="display:none;margin-top:6px;font-size:11.5px">
+        <input type="date" name="quando" value="${new Date().toISOString().slice(0, 10)}" style="width:48%">
+        <select name="canal" style="width:48%">${Object.entries(CANAIS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+        <input name="assunto" placeholder="assunto / vetor / ato" style="width:98%;margin-top:4px">
+        <input name="proximo" placeholder="próximo passo" style="width:98%;margin-top:4px">
+        <button style="margin-top:5px">salvar</button>
+      </form>`;
+  }
+  function wireInteracoes(el, nome) {
+    const add = el.querySelector('#int-add'), form = el.querySelector('#int-form'), exp = el.querySelector('#int-exp');
+    if (add) add.onclick = (e) => { e.preventDefault(); form.style.display = form.style.display === 'none' ? 'block' : 'none'; };
+    if (exp) exp.onclick = (e) => {
+      e.preventDefault();
+      const blob = new Blob([JSON.stringify(intLoad(), null, 1)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${intKey()}.json` });
+      a.click(); URL.revokeObjectURL(a.href);
+    };
+    if (form) form.onsubmit = (e) => {
+      e.preventDefault();
+      const f = new FormData(form);
+      const u = (window.sessao && window.sessao.get && window.sessao.get()) || {};
+      const reg = { id: 'i' + Date.now(), pessoa: nome, quando: f.get('quando'), canal: f.get('canal'),
+                    assunto: (f.get('assunto') || '').trim(), vetor: '', ato: '',
+                    proximo: (f.get('proximo') || '').trim(), consultor: u.iniciais || '—' };
+      if (!reg.assunto) return;
+      intSave([...intLoad(), reg]);
+      const alvo = sim && sim.nodes().find(n => n.nome === nome && n.tipo === 'pessoa');
+      if (alvo) detalhe(alvo);
+    };
+  }
+
   function detalhe(d) {
     const el = document.getElementById('detalhe');
     let h = `<span class="fech" onclick="this.parentElement.style.display='none'">×</span>`;
@@ -286,8 +365,12 @@ window.PilotisGrafo = (function () {
         <div class="rot">Influência por motriz</div>
         ${bar('Competência federativa', inf.cf)}${bar('Constitucionalidade / STF', inf.stf)}
         ${bar('Pressão reputacional', inf.rep)}${bar('Agenda internacional · ESG', inf.esg)}
+        ${perfilTematicoHTML(d.nome)}
+        ${interacoesHTML(d.nome)}
         <div class="nota">Posição = voto nominal real no PL 2159/2021. Influência = heurística
-        (base + voto + comissões-chave + relatoria). Sempre dado público — nunca perfil privado.</div>`;
+        (base + voto + comissões-chave + relatoria). Vetores temáticos: estruturado = competência
+        de comissão; calculado = relatoria/autoria (evidência clicável). Interações = registro
+        próprio da assessoria. Sempre dado público — nunca perfil privado.</div>`;
     } else if (d.tipo === 'ato') {
       h += `<b>${d.nome}</b><div class="mono">${d.prioridade || ''} · ${d.polaridade || ''} · ${d.orgao || ''}</div>
         <div style="margin-top:6px">${(d.ementa || '').slice(0, 160)}…</div>
@@ -299,6 +382,7 @@ window.PilotisGrafo = (function () {
     }
     el.innerHTML = h;
     el.style.display = 'block';
+    if (d.tipo === 'pessoa') wireInteracoes(el, d.nome);
   }
 
   function info(nodes, links) {
