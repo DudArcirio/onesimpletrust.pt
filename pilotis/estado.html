@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilotis — mapa do Estado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/pilotis.css">
+<style>
+  .lab{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin:16px 0 6px}
+  .lab:first-child{margin-top:0}
+  .painel{display:grid;grid-template-columns:280px 1fr;gap:0;border:1px solid var(--line);border-radius:var(--r-md);
+    overflow:hidden;background:#fff;margin-top:18px}
+  @media(max-width:900px){.painel{grid-template-columns:1fr}}
+  .lado{padding:16px;border-right:1px solid var(--line);max-height:calc(100vh - 250px);overflow-y:auto}
+  .lado select,.lado input{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+    font-family:var(--sans);font-size:13px;background:#fff;outline:none}
+  .lado select:focus,.lado input:focus{border-color:var(--verde)}
+  .chipset{display:flex;flex-wrap:wrap;gap:5px}
+  .chp{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border-radius:999px;
+    padding:4px 10px;cursor:pointer;background:#fff;color:var(--text2)}
+  .chp:hover{border-color:var(--verde)}
+  .chp.on{background:var(--verde);border-color:var(--verde);color:#fff}
+  #palco{position:relative;background:var(--grafite);min-height:560px;height:calc(100vh - 250px)}
+  #palco svg{display:block;width:100%;height:100%;cursor:grab}
+  #palco svg:active{cursor:grabbing}
+  #hint{position:absolute;left:12px;bottom:10px;font-family:var(--mono);font-size:10px;color:#8f9188}
+  #ctxinfo{position:absolute;left:12px;top:10px;right:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;
+    font-family:var(--mono);font-size:11px;color:#cfccc2;pointer-events:none}
+  #ctxinfo b{color:#4f9c6a;font-size:15px}
+  #detalhe{position:absolute;right:12px;top:44px;width:300px;max-height:calc(100% - 90px);overflow-y:auto;background:rgba(50,52,46,.96);border:1px solid rgba(79,156,106,.4);
+    border-radius:10px;padding:12px 14px;color:var(--luz);font-size:12px;display:none;line-height:1.45}
+  #detalhe .mono{font-size:10px;color:#8f9188}
+  #detalhe .fech{float:right;cursor:pointer;color:#8f9188}
+  #detalhe .rot{font-family:var(--mono);font-size:9px;color:#8f9188;letter-spacing:.08em;text-transform:uppercase;margin-top:8px}
+  #detalhe .badge{display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:999px;margin:2px 4px 2px 0}
+  #detalhe .nota{font-size:10px;color:#8f9188;margin-top:8px;border-top:1px solid rgba(244,242,237,.12);padding-top:7px;line-height:1.4}
+  #detalhe .trecho{font-size:11px;background:rgba(244,242,237,.07);border-left:2px solid #4F9C6A;padding:6px 8px;border-radius:0 6px 6px 0;margin:4px 0}
+  .leg{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text2)}
+  .leg span{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+  .leg .sq{border-radius:3px}.leg .di{transform:rotate(45deg);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="back-to-tools" style="background:rgba(11,15,20,0.95);border-bottom:1px solid rgba(200,169,110,0.15);padding:12px 24px;display:flex;align-items:center;gap:16px;font-family:Inter,-apple-system,sans-serif;"><a href="/tools.html" style="color:#C8A96E;text-decoration:none;font-size:13px;font-weight:400;letter-spacing:0.5px;display:flex;align-items:center;gap:6px;"><span style="font-size:16px;">&#8592;</span> Back to Tools</a><span style="color:rgba(200,169,110,0.3);">|</span><a href="/index.html" style="color:#8A8680;text-decoration:none;font-size:13px;">Home</a></div>
+
+<div class="wrap" style="max-width:1400px">
+  <div class="kicker">MAPA DO ESTADO · EXECUTIVO FEDERAL</div>
+  <h1 style="margin-top:8px">Quem decide o quê no governo</h1>
+  <p class="mut" style="max-width:840px;margin:6px 0 0">Ministérios, agências reguladoras e secretarias, ligados aos
+  vetores de interesse de cada cliente pela <b>competência oficial</b> (SIORG/decreto de estrutura) — clique na
+  aresta ou no órgão para ver a citação. Camada formal: <i>estruturado</i>, com evidência legal.</p>
+
+  <div class="painel">
+    <div class="lado">
+      <div class="lab">Cliente</div>
+      <select id="fCliente"><option value="">— escolha p/ ver vetores —</option></select>
+      <div class="lab">Vetor temático</div>
+      <div class="chipset" id="fVetores"><span class="mut" style="font-size:11px">selecione um cliente</span></div>
+      <div class="lab">Tipo de órgão</div>
+      <div class="chipset" id="fTipos">
+        <span class="chp on" data-t="ministerio">Ministérios</span>
+        <span class="chp on" data-t="agencia">Agências</span>
+        <span class="chp on" data-t="secretaria">Secretarias</span>
+      </div>
+      <div class="lab">Buscar órgão</div>
+      <input id="fBusca" placeholder="sigla ou nome…" autocomplete="off">
+      <div class="lab">Legenda</div>
+      <div class="leg">
+        <div><span style="background:#4F9C6A"></span>Ministério / Presidência</div>
+        <div><span style="background:#C8A96E"></span>Agência reguladora</div>
+        <div><span style="background:#8FB99B"></span>Secretaria / diretoria</div>
+        <div><span class="di" style="background:#DCE7DF"></span>Vetor temático do cliente</div>
+      </div>
+      <div class="mut mono" style="font-size:9.5px;margin-top:14px;line-height:1.5" id="fonteNota"></div>
+    </div>
+    <div id="palco">
+      <div id="ctxinfo"></div>
+      <div id="detalhe"></div>
+      <svg id="svg"></svg>
+      <div id="hint">arraste o fundo: pan · scroll: zoom · clique: detalhe com citação do decreto</div>
+    </div>
+  </div>
+  <div class="foot"><span>fonte: SIORG — estrutura organizacional do Executivo federal (dados abertos) · competências = texto oficial do decreto de estrutura</span></div>
+</div>
+
+<script src="assets/d3.v7.min.js"></script>
+<script src="data/plataforma.js"></script>
+<script src="data/estado_base.js"></script>
+<script src="assets/app.js"></script>
+<script>
+if (exigeSessao()) {
+(function () {
+  renderTopbar('Estado');
+  const E = window.PILOTIS_ESTADO || { orgaos: [], temas: {}, meta: {} };
+  const CLIENTES = (window.PILOTIS || { clientes: [] }).clientes;
+  const COR = { ministerio: '#4F9C6A', agencia: '#C8A96E', secretaria: '#8FB99B' };
+  const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const S = { cliente: '', vetores: new Set(), tipos: new Set(['ministerio', 'agencia', 'secretaria']), busca: '' };
+  const porCod = new Map(E.orgaos.map(o => [o.codigo, o]));
+  document.getElementById('fonteNota').textContent =
+    `${E.orgaos.length} unidades · ${(E.meta.regra || '')} · gerado ${(E.meta.gerado || '').slice(0, 10)}`;
+
+  // filtros
+  const selCli = document.getElementById('fCliente');
+  CLIENTES.forEach(c => selCli.insertAdjacentHTML('beforeend',
+    `<option value="${c.slug}">${c.nome.split(' (')[0]}</option>`));
+  selCli.onchange = () => { S.cliente = selCli.value; S.vetores.clear(); refazVetores(); render(); };
+  function refazVetores() {
+    const box = document.getElementById('fVetores');
+    const cli = CLIENTES.find(c => c.slug === S.cliente);
+    if (!cli) { box.innerHTML = '<span class="mut" style="font-size:11px">selecione um cliente</span>'; return; }
+    box.innerHTML = Object.entries(cli.logica.categorias).map(([k, v]) =>
+      `<span class="chp" data-v="${k}">${v.rotulo}</span>`).join('');
+    box.querySelectorAll('.chp').forEach(ch => ch.onclick = () => {
+      const k = ch.dataset.v;
+      S.vetores.has(k) ? S.vetores.delete(k) : S.vetores.add(k);
+      ch.classList.toggle('on'); render();
+    });
+  }
+  document.querySelectorAll('#fTipos .chp').forEach(ch => ch.onclick = () => {
+    const t = ch.dataset.t;
+    S.tipos.has(t) ? S.tipos.delete(t) : S.tipos.add(t);
+    ch.classList.toggle('on'); render();
+  });
+  document.getElementById('fBusca').oninput = (e) => { S.busca = norm(e.target.value); render(); };
+
+  // grafo
+  const svg = d3.select('#svg'), g = svg.append('g');
+  svg.call(d3.zoom().scaleExtent([.25, 4]).on('zoom', e => g.attr('transform', e.transform)));
+  let sim;
+  function render() {
+    const palco = document.getElementById('palco');
+    const W = palco.clientWidth || 1000, H = palco.clientHeight || 600;
+    const temas = S.cliente ? (E.temas[S.cliente] || {}) : null;
+    const cli = CLIENTES.find(c => c.slug === S.cliente);
+    let orgaos = E.orgaos.filter(o => S.tipos.has(o.tipo));
+    if (temas) {
+      const comTema = new Set(Object.keys(temas));
+      orgaos = orgaos.filter(o => {
+        if (!comTema.has(o.codigo)) return false;
+        return !S.vetores.size || Object.keys(temas[o.codigo]).some(k => S.vetores.has(k));
+      });
+      // pais para contexto hierárquico
+      const cods = new Set(orgaos.map(o => o.codigo));
+      orgaos.slice().forEach(o => {
+        if (o.pai && !cods.has(o.pai) && porCod.has(o.pai)) { orgaos.push(porCod.get(o.pai)); cods.add(o.pai); }
+      });
+    }
+    const nodes = orgaos.map(o => ({ id: o.codigo, tipo: o.tipo, nome: o.sigla || o.nome, o }));
+    const links = [];
+    const idx = new Set(nodes.map(n => n.id));
+    orgaos.forEach(o => { if (o.pai && idx.has(o.pai)) links.push({ source: o.pai, target: o.codigo, t: 'hier' }); });
+    if (temas && cli) {
+      const vets = new Set();
+      orgaos.forEach(o => Object.keys(temas[o.codigo] || {}).forEach(k => {
+        if (S.vetores.size && !S.vetores.has(k)) return;
+        vets.add(k);
+        links.push({ source: 'v_' + k, target: o.codigo, t: 'tema', ev: temas[o.codigo][k] });
+      }));
+      vets.forEach(k => nodes.push({ id: 'v_' + k, tipo: 'vetor', nome: cli.logica.categorias[k].rotulo, key: k }));
+    }
+    g.selectAll('*').remove();
+    if (sim) sim.stop();
+    sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.t === 'hier' ? 46 : 110).strength(d => d.t === 'hier' ? .5 : .25))
+      .force('charge', d3.forceManyBody().strength(-160))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collide', d3.forceCollide(22));
+    const lk = g.selectAll('line').data(links).join('line')
+      .attr('stroke', d => d.t === 'tema' ? 'rgba(79,156,106,.55)' : 'rgba(220,231,223,.18)')
+      .attr('stroke-width', d => d.t === 'tema' ? 1.6 : 1)
+      .attr('stroke-dasharray', d => d.t === 'tema' ? null : '3 3')
+      .style('cursor', d => d.t === 'tema' ? 'pointer' : null)
+      .on('click', (e, d) => d.t === 'tema' && detalheAresta(d));
+    const nd = g.selectAll('path').data(nodes).join('path')
+      .attr('d', d3.symbol().type(d => d.tipo === 'vetor' ? d3.symbolDiamond : d3.symbolCircle)
+        .size(d => ({ ministerio: 340, agencia: 260, secretaria: 130, vetor: 220 })[d.tipo] || 150))
+      .attr('fill', d => d.tipo === 'vetor' ? '#DCE7DF' : COR[d.tipo])
+      .attr('stroke', '#292B26').attr('stroke-width', .8)
+      .attr('opacity', d => !S.busca || norm(d.nome).includes(S.busca) || norm((d.o || {}).nome).includes(S.busca) ? 1 : .15)
+      .style('cursor', 'pointer')
+      .on('click', (e, d) => detalheNo(d))
+      .call(d3.drag().on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; sim.alpha(.3).restart(); }));
+    const lb = g.selectAll('text').data(nodes).join('text')
+      .text(d => d.nome.length > 26 ? d.nome.slice(0, 25) + '…' : d.nome)
+      .attr('font-size', d => d.tipo === 'secretaria' ? 8 : 9.5).attr('fill', '#cfccc2')
+      .attr('text-anchor', 'middle').attr('font-family', 'JetBrains Mono, monospace').attr('pointer-events', 'none');
+    sim.on('tick', () => {
+      lk.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      nd.attr('transform', d => `translate(${d.x},${d.y})`);
+      lb.attr('x', d => d.x).attr('y', d => d.y - 14);
+    });
+    document.getElementById('ctxinfo').innerHTML =
+      `<span><b>${nodes.filter(n => n.tipo !== 'vetor').length}</b> órgãos</span>` +
+      (temas ? `<span><b>${links.filter(l => l.t === 'tema').length}</b> arestas temáticas</span>` : '') +
+      (cli ? `<span>contexto: ${cli.nome.split(' (')[0]}</span>` : '<span>sem cliente: estrutura completa</span>');
+  }
+
+  function detalheNo(d) {
+    const el = document.getElementById('detalhe');
+    let h = `<span class="fech" onclick="this.parentElement.style.display='none'">×</span>`;
+    if (d.tipo === 'vetor') {
+      h += `<b>${d.nome}</b><div class="mono" style="margin-top:2px">vetor temático do cliente</div>`;
+    } else {
+      const o = d.o, pai = o.pai && porCod.get(o.pai);
+      const temas = S.cliente ? ((E.temas[S.cliente] || {})[o.codigo] || {}) : {};
+      h += `<b style="font-size:13.5px">${o.nome}</b>
+        <div style="margin-top:5px"><span class="badge" style="background:${COR[o.tipo]};color:#1d1f1a">${o.tipo}</span>
+        ${o.sigla ? `<span class="badge" style="background:#E7E3DA;color:#292B26">${o.sigla}</span>` : ''}</div>
+        ${pai ? `<div class="rot">Vinculação</div><div style="font-size:11.5px">${pai.sigla || pai.nome}</div>` : ''}
+        ${Object.keys(temas).length ? `<div class="rot">Vetores (camada formal · estruturado)</div>` +
+          Object.values(temas).map(v => `<div style="margin:4px 0"><b style="font-size:11px">${v.rotulo}</b>
+            <div class="trecho">"${v.trecho}"</div>
+            <span class="mono">termo: ${v.termo} · âncora: ${v.ancora}</span></div>`).join('') : ''}
+        <div class="rot">Competência (decreto de estrutura)</div>
+        <div style="font-size:11px;opacity:.85">${(o.competencia || '—').slice(0, 420)}${(o.competencia || '').length > 420 ? '…' : ''}</div>
+        <div class="nota">Fonte: SIORG (dados abertos do Executivo). Aresta órgão→vetor = camada formal,
+        status <i>estruturado</i>: competência oficial batendo na lógica do cliente. Override do consultor prevalece.</div>`;
+    }
+    el.innerHTML = h; el.style.display = 'block';
+  }
+  function detalheAresta(d) {
+    const el = document.getElementById('detalhe');
+    el.innerHTML = `<span class="fech" onclick="this.parentElement.style.display='none'">×</span>
+      <b>${d.source.nome} → ${d.target.nome}</b>
+      <div class="rot">Evidência (texto do decreto)</div>
+      <div class="trecho">"${d.ev.trecho}"</div>
+      <span class="mono">termo: ${d.ev.termo} · âncora: ${d.ev.ancora}</span>
+      <div class="nota">Camada formal · estruturado — cf. docs/plano-stakeholders.md.</div>`;
+    el.style.display = 'block';
+  }
+
+  // deep-links: ?c=slug&orgao=SIGLA
+  const q = new URLSearchParams(location.search);
+  if (q.get('c')) { S.cliente = q.get('c'); selCli.value = S.cliente; refazVetores(); }
+  render();
+  if (q.get('orgao')) {
+    const alvo = E.orgaos.find(o => norm(o.sigla) === norm(q.get('orgao')));
+    if (alvo) detalheNo({ tipo: alvo.tipo, o: alvo, nome: alvo.sigla || alvo.nome });
+  }
+  new ResizeObserver(() => render()).observe(document.getElementById('palco'));
+})();
+}
+</script>
+</body>
+</html>

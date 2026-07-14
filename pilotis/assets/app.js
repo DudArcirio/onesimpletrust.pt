@@ -34,6 +34,7 @@
       ['cliente.html?c=vale', 'Vale'],
       ['cliente.html?c=expedia', 'Expedia'],
       ['parlamento.html', 'Painel parlamentar'],
+      ['estado.html', 'Estado'],
       ['comissoes.html', 'Comissões'],
     ];
     const nav = links.map(([h, t]) => `<a href="${h}" class="${ativo === t ? 'on' : ''}">${t}</a>`).join('');
